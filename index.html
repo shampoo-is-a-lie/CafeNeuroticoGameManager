@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cafe Neurotico - Game Library Manager</title>
+  <style>
+    @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Regular.ttf') format('truetype'); font-weight: 400; }
+    @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Bold.ttf') format('truetype'); font-weight: 700; }
+    @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Black.ttf') format('truetype'); font-weight: 900; }
+
+    :root {
+      --bg: #2C1E16; --bg_panel: rgba(67, 40, 24, 0.6); --bg_menu: #432818;
+      --accent: #D4A373; --accent_menu: #D4A373; --text_main: #FFE6A7;
+      --text_sec: #E6CC98; --text_dim: #A47148; --border: rgba(212, 163, 115, 0.2);
+      --border_solid: #8B5A2B;
+    }
+
+    body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; }
+
+    #titlebar { height: 35px; flex-shrink: 0; background: var(--bg_menu); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border_solid); user-select: none; -webkit-app-region: drag; z-index: 9999; box-sizing: border-box; }
+    .titlebar-brand { padding-left: 20px; font-size: 11px; font-weight: 900; color: var(--text_dim); letter-spacing: 3px; }
+    .titlebar-controls { display: flex; height: 100%; -webkit-app-region: no-drag; }
+    .win-btn { border: none; border-radius: 0; background: transparent; width: 45px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background-color 0.1s; cursor: pointer; color: var(--text_main); }
+    .win-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--text_main); transform: none; box-shadow: none; }
+    .win-close:hover { background-color: #d32f2f; color: white; }
+
+    #app-container { display: flex; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
+
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box { background: var(--bg_menu); padding: 30px; border-radius: 12px; border: 2px solid var(--border_solid); width: 400px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+
+    #gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+    .gallery-item { background: var(--bg_panel); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; display: flex; flex-direction: column; }
+    .gallery-item:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; }
+    .gallery-title { padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text_sec); }
+
+    #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; background-color: rgba(0,0,0,0.2); }
+    #main-content { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; overflow: hidden; }
+
+    .row { display: flex; gap: 10px; }
+    button { background-color: var(--bg_panel); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px 12px; font-family: 'Raleway', sans-serif; font-weight: 900; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+    button:hover { background-color: var(--text_main); color: var(--bg); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    button.primary { background-color: var(--accent); color: var(--bg); border: none; }
+    button.primary:hover { background-color: var(--text_main); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
+
+    .segmented-control { display: flex; width: 100%; border: 1px solid var(--border_solid); border-radius: 6px; overflow: hidden; margin-top: 5px; }
+    .segmented-btn { flex: 1; background: var(--bg_panel); color: var(--text_sec); border: none; border-right: 1px solid var(--border_solid); padding: 8px 0; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; border-radius: 0; box-shadow: none; transform: none; }
+    .segmented-btn:last-child { border-right: none; }
+    .segmented-btn:hover { background: var(--border_solid); color: var(--text_main); transform: none; box-shadow: none; }
+    .segmented-btn.active { background: var(--accent); color: var(--bg); }
+
+    .tool-card { background-color: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+    .tool-card-title { color: var(--accent); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border_solid); padding-bottom: 5px; margin-bottom: 2px; }
+
+    fieldset { border: 2px solid var(--border); border-radius: 12px; padding: 20px 15px 15px 15px; margin: 5px 0; background: var(--bg_panel); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    legend { font-weight: 900; padding: 4px 12px; color: var(--bg); background-color: var(--accent); border-radius: 6px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+    input[type="text"], input[type="password"], textarea { background-color: rgba(0,0,0,0.3); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px; width: 100%; box-sizing: border-box; border-radius: 6px; font-family: 'Raleway', sans-serif; }
+    input[type="text"]:focus, input[type="password"]:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 10px var(--border); }
+
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .filter-grid button { font-size: 11px; padding: 8px; background-color: var(--bg_menu); border: 1px solid var(--border); color: var(--text_sec); }
+    .filter-grid button:hover { background-color: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .filter-grid button.active { background-color: var(--text_main); color: var(--bg); border-color: var(--text_main); box-shadow: 0 0 10px var(--text_main); }
+
+    .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: auto; display: none; padding: 20px; box-sizing: border-box; }
+    .view.active { display: block; }
+
+    table { width: 100%; border-collapse: separate; border-spacing: 0 5px; text-align: left; }
+    th { padding: 12px; font-weight: 900; position: sticky; top: 0; background: var(--bg_menu); color: var(--accent); letter-spacing: 1px; z-index: 10; border-bottom: 2px solid var(--border_solid); text-transform: uppercase; }
+    td { padding: 12px; background: var(--bg_panel); border-bottom: 1px solid var(--border); color: var(--text_sec); }
+    tr:hover td { background-color: var(--border_solid); color: var(--text_main); cursor: pointer; }
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border_solid); border-radius: 5px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    @keyframes panZoom {
+        0% { transform: scale(1) translate(0, 0); }
+        100% { transform: scale(1.15) translate(2%, 2%); }
+    }
+    .hero-kb-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; animation: panZoom 8s infinite alternate ease-in-out; opacity: 0; transition: opacity 0.5s ease; }
+
+    /* GAMEPAGE SPECIFIC CSS */
+    .gamepage-stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat-label { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+    .stat-val { font-size: 13px; font-weight: bold; color: var(--text_main); }
+
+    #gamepage-steam-desc { color: var(--text_sec); line-height: 1.8; font-size: 18px; word-wrap: break-word; overflow-x: hidden; }
+    #gamepage-steam-desc img { max-width: 100% !important; height: auto !important; object-fit: contain; border-radius: 8px; margin: 15px 0; display: block; }
+    #gamepage-steam-desc h1, #gamepage-steam-desc h2, #gamepage-steam-desc h3 { color: var(--text_main); margin-top: 35px; margin-bottom: 15px; font-family: 'Raleway', sans-serif; font-weight: 900; font-size: 24px;}
+    #gamepage-steam-desc a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent); }
+    #gamepage-steam-desc a:hover { color: var(--text_main); border-color: var(--text_main); }
+    #gamepage-steam-desc .bb_tag { display: inline-block; max-width: 100%; }
+    #gamepage-steam-desc ul { padding-left: 20px; }
+
+    .btn-toggle { background: rgba(0,0,0,0.5); border: 1px solid var(--border_solid); color: var(--text_sec); padding: 12px 15px; backdrop-filter: blur(5px); border-radius: 8px; cursor: pointer; font-weight: 900; font-family: 'Raleway', sans-serif; font-size: 12px; transition: 0.2s; letter-spacing: 1px; }
+    .btn-toggle:hover { border-color: var(--accent); color: var(--text_main); }
+    .btn-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+    .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; overflow: hidden; }
+    .screenshots-banner:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: var(--accent); }
+    .screenshots-banner-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 1; }
+    .screenshots-banner:hover .screenshots-banner-overlay { background: rgba(0,0,0,0.2); }
+    .screenshots-banner-text { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 4px 10px rgba(0,0,0,0.9); }
+
+    .yt-search-item { display: flex; gap: 15px; align-items: center; padding: 10px; border: 2px solid transparent; border-radius: 8px; cursor: pointer; background: var(--bg_panel); }
+    .yt-search-item:hover { border-color: var(--accent); transform: scale(1.02); }
+
+    .zip-progress-bg { width: 100%; height: 20px; background: var(--bg); border-radius: 10px; overflow: hidden; position: relative; }
+    .zip-progress-fill { height: 100%; width: 50%; background: var(--accent); animation: indeterminate 1.5s infinite linear; transform-origin: 0% 50%; }
+    @keyframes indeterminate { 0% { transform: translateX(-100%); } 100% { transform: translateX(200%); } }
+
+    /* FLOATING MANUAL STYLES */
+    #floating-manual { display: none; position: absolute; top: 10vh; left: 10vw; width: 80vw; height: 80vh; background: var(--bg); border: 2px solid var(--accent); border-radius: 8px; z-index: 9999; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow: hidden; }
+    #manual-header { height: 40px; background: var(--bg_menu); border-bottom: 2px solid var(--accent); cursor: move; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; font-weight: 900; color: var(--accent); letter-spacing: 2px; }
+    #manual-body { display: flex; flex: 1; overflow: hidden; }
+    #manual-nav { width: 220px; background: var(--bg_panel); border-right: 2px solid var(--border_solid); overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
+    .manual-nav-btn { background: transparent; border: 1px solid transparent; color: var(--text_sec); text-align: left; padding: 8px; font-size: 11px; text-transform: uppercase; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+    .manual-nav-btn:hover, .manual-nav-btn.active { background: var(--border_solid); color: var(--text_main); border-color: var(--accent); }
+    #manual-content { flex: 1; padding: 30px; overflow-y: auto; scroll-behavior: smooth; color: var(--text_main); }
+    #manual-content h2 { color: var(--accent); border-bottom: 2px solid var(--border_solid); padding-bottom: 5px; font-weight: 900; text-transform: uppercase; margin-top: 40px; }
+    #manual-content h2:first-child { margin-top: 0; }
+    #manual-content h3 { color: var(--text_sec); font-weight: bold; text-transform: uppercase; margin-top: 25px; }
+    #manual-content p, #manual-content li { font-size: 14px; line-height: 1.6; color: var(--text_sec); }
+    #manual-content strong { color: var(--text_main); }
+    .manual-box { border: 2px dashed var(--accent); padding: 20px; margin: 20px 0; background-color: var(--bg_panel); border-radius: 8px; }
+    .manual-box-title { color: var(--accent); font-weight: 900; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+
+  <div id="titlebar">
+    <div class="titlebar-brand">CAFE NEUROTICO GAME MANAGER</div>
+    <div class="titlebar-controls">
+      <button id="btn-min" class="win-btn">—</button>
+      <button id="btn-max" class="win-btn">□</button>
+      <button id="btn-close" class="win-btn win-close">✕</button>
+    </div>
+  </div>
+
+  <div id="app-container">
+      <div id="sidebar">
+        <div class="row">
+          <button style="flex:1;" id="btn-view-list">List</button>
+          <button style="flex:1;" id="btn-view-gallery">Gallery</button>
+        </div>
+        <button id="btn-add-game" class="primary">+ Add Game</button>
+        <fieldset>
+          <legend>Search & Filter</legend>
+          <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
+        </fieldset>
+        <fieldset>
+          <legend>See</legend>
+          <div class="filter-grid" id="sidebar-filters">
+            <button class="active" data-filter="all">All Games</button>
+            <button data-filter="playable">Playable</button>
+            <button data-filter="favs">Favs</button>
+            <button data-filter="want">Want</button>
+            <button data-filter="steam">Steam</button>
+            <button data-filter="epic">Epic</button>
+            <button data-filter="gog">GOG</button>
+            <button data-filter="physical">Physical</button>
+            <button data-filter="others">Others</button>
+            <button data-filter="emulation">Emulation</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Menu</legend>
+          <div class="row">
+            <button id="btn-open-connect" style="flex:1;">Connect</button>
+            <button id="btn-open-tools" style="flex:1;">Tools</button>
+          </div>
+        </fieldset>
+        <div style="flex: 1;"></div>
+
+        <div id="btn-about" style="text-align: center; padding: 20px 0 10px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+          <div style="color: var(--text_dim); font-size: 14px; font-weight: 900; letter-spacing: 4px;">CAFE NEUROTICO</div>
+          <div style="color: var(--text_main); font-size: 22px; font-weight: 900; letter-spacing: 1px;">GAME MANAGER</div>
+          <div><p style="font-size: 11px; color: var(--text_dim); margin: 0;">CLICK TO LEARN ABOUT</p></div>
+        </div>
+      </div>
+
+      <div id="main-content">
+        <div id="view-list" class="view">
+          <table>
+            <thead><tr><th>Launch</th><th>Fav</th><th>Want</th><th>Game</th><th>Store</th><th>Genre</th><th>Released</th></tr></thead>
+            <tbody id="list-tbody"></tbody>
+          </table>
+        </div>
+
+        <div id="view-gallery" class="view active">
+          <div class="hero-display" style="position:relative; height: 350px; overflow:hidden; border-radius:12px; margin-bottom:20px; border: 1px solid var(--border); display: flex; justify-content: center; align-items: center; flex-shrink: 0;">
+            <img id="hero-kb-img" class="hero-kb-img" src="">
+            <div style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 40%, rgba(0,0,0,0.5) 100%); z-index: 1;"></div>
+
+            <div id="gallery-category-header" style="position: absolute; top: 20px; left: 25px; z-index: 10; display: flex; align-items: center; gap: 15px;">
+              <div id="gallery-category-icon" style="width: 45px; height: 45px; background-color: var(--accent); -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));"></div>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span id="gallery-category-text" style="font-size: 36px; font-weight: 900; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); letter-spacing: 2px;">ALL GAMES</span>
+                <span id="gallery-category-count" style="font-size: 11px; font-weight: bold; color: #dddddd; opacity: 0.8; letter-spacing: 2px; text-shadow: 0 1px 5px rgba(0,0,0,0.9);"></span>
+              </div>
+            </div>
+
+            <div id="hero-game-name" style="position: absolute; bottom: 20px; right: 25px; z-index: 10; font-size: 28px; font-weight: 900; color: #ffffff; text-shadow: 0 5px 15px rgba(0,0,0,0.9); text-align: right; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
+            <div class="hero-icon" id="hero-icon" style="position:relative; z-index: 2; font-size: 48px; font-weight: 900; color: rgba(255,255,255,0.3); letter-spacing: 5px;">NO ARTWORK FOUND</div>
+          </div>
+          <div id="gallery-grid"></div>
+        </div>
+
+        <div id="view-gamepage" class="view">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;">
+                <button id="btn-gamepage-back" style="background: transparent; color: var(--text_sec); border-color: var(--border_solid);">&lt; BACK TO LIBRARY</button>
+            </div>
+
+            <div id="gamepage-hero" style="position: relative; height: 350px; background-size: cover; background-position: center; border-radius: 12px; margin-bottom: 25px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border); background-color: var(--bg_menu);">
+                <div style="position: absolute; top:-2px; left:-2px; width:calc(100% + 4px); height:calc(100% + 4px); background: linear-gradient(to top, rgba(20,20,20,0.95) 0%, rgba(20,20,20,0.4) 50%, transparent 100%); z-index: 1;"></div>
+
+                <img id="gamepage-logo" src="" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-height: 250px; max-width: 80%; object-fit: contain; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.9)); z-index: 5; display: none;">
+
+                <div style="position: relative; z-index: 10; display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                    <div style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; padding-right: 20px;">
+                        <div id="gamepage-title-text" style="font-size: 42px; font-weight: 900; color: #ffffff; text-shadow: 0 5px 15px rgba(0,0,0,0.9); line-height: 1.1; display: none; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">GAME TITLE</div>
+                        <div id="gamepage-store-container" style="display: flex; gap: 10px; margin-top: 5px;"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
+                        <button id="btn-gamepage-fav" class="btn-toggle">+ FAV</button>
+                        <button id="btn-gamepage-want" class="btn-toggle">WANT TO PLAY</button>
+                        <button id="btn-gamepage-trailer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); display: none; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;">🎬 WATCH TRAILER</button>
+                        <button id="btn-gamepage-edit" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;">⚙️ EDIT DETAILS</button>
+                        <button id="btn-gamepage-play" class="primary" style="font-size: 20px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); letter-spacing: 2px; display: none;">▶ PLAY</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 30px; padding-bottom: 20px;">
+
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 20px; padding-right: 15px; min-width: 0;">
+
+                    <div id="gamepage-screenshots-banner" class="screenshots-banner" style="display: none; position: relative;">
+                        <img id="gamepage-ss-kb-img" class="hero-kb-img" src="" style="z-index: 0;">
+                        <div class="screenshots-banner-overlay" style="z-index: 1;">
+                            <span class="screenshots-banner-text">SCREENSHOTS</span>
+                        </div>
+                    </div>
+
+                    <div id="gamepage-desc-container" style="padding-top: 10px; overflow-x: hidden;">
+                        <div id="gamepage-short-desc" style="display: none; font-size: 18px; font-weight: 700; color: var(--accent); line-height: 1.6; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid var(--border_solid);"></div>
+
+                        <div id="gamepage-steam-desc" style="display: none;"></div>
+                        <div id="gamepage-fallback-desc" style="display: none; font-size: 18px; line-height: 1.8; color: var(--text_sec);"></div>
+                    </div>
+                </div>
+
+                <div style="width: 250px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px;">
+                    <img id="gamepage-cover" src="" style="width: 100%; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 1px solid var(--border_solid); background: var(--bg_menu); aspect-ratio: 2/3; object-fit: cover;">
+
+                    <div style="background: var(--bg_panel); border-radius: 8px; padding: 15px; border: 1px solid var(--border_solid); display: flex; flex-direction: column; gap: 10px;">
+                        <div class="gamepage-stat"><span class="stat-label">RELEASED</span><span id="gp-released" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">DEVELOPER</span><span id="gp-dev" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">PUBLISHER</span><span id="gp-pub" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">GENRE</span><span id="gp-genre" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">HLTB</span><span id="gp-hltb" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">METACRITIC</span><span id="gp-meta" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">PROTONDB</span><span id="gp-proton" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">CO-OP</span><span id="gp-coop" class="stat-val"></span></div>
+                        <div class="gamepage-stat"><span class="stat-label">PLAYERS</span><span id="gp-players" class="stat-val"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-details" class="view">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; flex-shrink: 0;">
+            <button id="btn-back-to-gamepage">&lt; BACK TO GAMEPAGE</button>
+            <div style="color: var(--accent); font-weight: 900; letter-spacing: 2px;">EDIT GAME DETAILS</div>
+          </div>
+
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 15px; height: calc(100vh - 120px);">
+            <div style="display: flex; gap: 30px; flex: 1; overflow: hidden;">
+
+              <div style="flex: 1; max-width: 250px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 10px;">
+
+                <div id="ui-cover" style="width: 100%; aspect-ratio: 2/3; background: var(--bg_menu); border: 2px solid var(--border_solid); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text_dim); overflow: hidden; font-weight: bold; flex-shrink: 0;">Cover Art</div>
+                <div class="row" style="margin-top: -10px; gap: 5px; flex-shrink: 0;">
+                  <button id="btn-sgdb-cover" style="flex:1; background-color: var(--bg_menu); color: var(--accent); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">SGDB</button>
+                  <button id="btn-local-cover" style="flex:1; background-color: var(--bg_menu); color: var(--text_sec); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">LOCAL</button>
+                  <button id="btn-delete-cover" style="background-color: #d32f2f; color: white; border: none; font-size: 11px; padding: 8px; border-radius: 6px;">🗑️</button>
+                </div>
+
+                <div id="ui-hero" style="width: 100%; aspect-ratio: 16/9; background: var(--bg_menu); border: 2px solid var(--border_solid); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text_dim); overflow: hidden; font-weight: bold; flex-shrink: 0;">Hero Art</div>
+                <div class="row" style="margin-top: -10px; gap: 5px; flex-shrink: 0;">
+                  <button id="btn-sgdb-hero" style="flex:1; background-color: var(--bg_menu); color: var(--accent); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">SGDB</button>
+                  <button id="btn-local-hero" style="flex:1; background-color: var(--bg_menu); color: var(--text_sec); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">LOCAL</button>
+                  <button id="btn-delete-hero" style="background-color: #d32f2f; color: white; border: none; font-size: 11px; padding: 8px; border-radius: 6px;">🗑️</button>
+                </div>
+
+                <div id="ui-logo" style="width: 100%; aspect-ratio: 21/9; background: var(--bg_menu); border: 2px solid var(--border_solid); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text_dim); overflow: hidden; font-weight: bold; flex-shrink: 0;">Logo</div>
+                <div class="row" style="margin-top: -10px; gap: 5px; flex-shrink: 0;">
+                  <button id="btn-sgdb-logo" style="flex:1; background-color: var(--bg_menu); color: var(--accent); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">SGDB</button>
+                  <button id="btn-local-logo" style="flex:1; background-color: var(--bg_menu); color: var(--text_sec); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">LOCAL</button>
+                  <button id="btn-delete-logo" style="background-color: #d32f2f; color: white; border: none; font-size: 11px; padding: 8px; border-radius: 6px;">🗑️</button>
+                </div>
+
+                <div id="ui-icon" style="width: 100%; aspect-ratio: 1/1; background: var(--bg_menu); border: 2px solid var(--border_solid); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text_dim); overflow: hidden; font-weight: bold; flex-shrink: 0;">Icon</div>
+                <div class="row" style="margin-top: -10px; gap: 5px; flex-shrink: 0;">
+                  <button id="btn-sgdb-icon" style="flex:1; background-color: var(--bg_menu); color: var(--accent); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">SGDB</button>
+                  <button id="btn-local-icon" style="flex:1; background-color: var(--bg_menu); color: var(--text_sec); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">LOCAL</button>
+                  <button id="btn-delete-icon" style="background-color: #d32f2f; color: white; border: none; font-size: 11px; padding: 8px; border-radius: 6px;">🗑️</button>
+                </div>
+
+                <div id="ui-screenshot" style="width: 100%; aspect-ratio: 16/9; background: var(--bg_menu); border: 2px solid var(--border_solid); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text_dim); overflow: hidden; font-weight: bold; flex-shrink: 0;">Screenshot</div>
+                <div class="row" style="margin-top: -10px; gap: 5px; flex-shrink: 0;">
+                  <button id="btn-local-screenshot" style="flex:1; background-color: var(--bg_menu); color: var(--text_sec); border: 1px solid var(--border_solid); font-size: 11px; padding: 8px;">LOCAL</button>
+                  <button id="btn-delete-screenshot" style="background-color: #d32f2f; color: white; border: none; font-size: 11px; padding: 8px; border-radius: 6px;">🗑️</button>
+                </div>
+
+                <div class="row" style="margin-top: 5px; gap: 5px; flex-shrink: 0; padding-bottom: 20px;">
+                  <button id="btn-watch-trailer" style="flex: 1; background-color: var(--accent); color: var(--bg); font-weight: 900; border: none; font-size: 12px; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">▶ WATCH TRAILER</button>
+                  <button id="btn-delete-trailer" style="background-color: #d32f2f; color: white; border: none; font-size: 12px; padding: 10px; border-radius: 6px;">🗑️</button>
+                </div>
+              </div>
+
+              <fieldset style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; margin-bottom: 0;">
+                <legend>Metadata & Launch</legend>
+                <div class="row" style="margin-top: 5px; margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--border_solid); flex-shrink: 0;">
+                  <label style="color: var(--accent); font-weight: bold; cursor: pointer;"><input type="checkbox" id="edit-fav"> ★ Favorite</label>
+                  <label style="margin-left: 20px; color: var(--text_main); font-weight: bold; cursor: pointer;"><input type="checkbox" id="edit-want"> ⚑ Want to Play</label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                    <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Game Title: <input type="text" id="edit-name" style="margin-top: 5px;"></label>
+                    <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Store: <input type="text" id="edit-store" style="margin-top: 5px;"></label>
+                </div>
+                <label style="color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase; flex-shrink: 0;">Launch Command: <input type="text" id="edit-launch" placeholder="E.G. HEROIC HEROIC://LAUNCH/EPIC/MARMALADE" style="margin-top: 5px;"></label>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Genre: <input type="text" id="edit-genre" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Released (Year): <input type="text" id="edit-released" style="margin-top: 5px;"></label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Steam App ID: <input type="text" id="edit-appid" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">ProtonDB Tier:
+                    <div style="display: flex; gap: 5px; margin-top: 5px;"><input type="text" id="edit-proton"><button id="btn-fetch-proton" style="padding: 10px; min-width: 40px; margin: 0;">🔍</button></div>
+                  </label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Metacritic Score: <input type="text" id="edit-meta" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">HLTB (Hours):
+                    <div style="display: flex; gap: 5px; margin-top: 5px;"><input type="text" id="edit-hltb"><button id="btn-fetch-hltb" style="padding: 10px; min-width: 40px; margin: 0;">🔍</button></div>
+                  </label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Developer: <input type="text" id="edit-dev" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Publisher: <input type="text" id="edit-pub" style="margin-top: 5px;"></label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Co-op: <input type="text" id="edit-coop" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Players: <input type="text" id="edit-players" style="margin-top: 5px;"></label>
+                </div>
+                <div class="row" style="flex-shrink: 0;">
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Tags: <input type="text" id="edit-tags" style="margin-top: 5px;"></label>
+                  <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;">Similar Games: <input type="text" id="edit-similar" style="margin-top: 5px;"></label>
+                </div>
+                <label style="color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase; flex-shrink: 0;">Description: <textarea id="edit-desc" rows="3" style="margin-top: 5px; resize: vertical;"></textarea></label>
+              </fieldset>
+            </div>
+
+            <div class="row" style="margin-top: auto; padding-top: 10px; flex-shrink: 0;">
+              <button id="btn-auto-fetch" style="flex: 1; background-color: var(--bg_menu); color: var(--accent); padding: 12px; font-weight: bold; border-color: var(--accent);">✨ AUTO-FETCH</button>
+              <button id="btn-clear-meta" style="flex: 1; background-color: var(--bg_menu); color: #f57c00; padding: 12px; border-color: #f57c00; font-weight: bold;">🧹 CLEAR META</button>
+              <button id="btn-save-game" class="primary" style="flex: 1; padding: 12px; font-size: 14px;">💾 SAVE & RETURN</button>
+              <button id="btn-delete-game" style="flex: 1; background-color: #d32f2f; color: white; padding: 12px; border: none; border-radius: 4px; font-weight: bold;">🗑️ DELETE GAME</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+  </div>
+
+  <div id="modal-about" class="modal-overlay">
+    <div class="modal-box" style="text-align: center;">
+      <h2 style="margin: 0; color: var(--text_main); font-weight: 900; letter-spacing: 2px;">CAFE NEUROTICO</h2>
+      <h3 style="margin: 0; color: var(--accent); font-weight: 900; letter-spacing: 4px;">GAME MANAGER</h3>
+
+      <p style="font-size: 13px; color: var(--text_sec); margin: 15px 0 5px 0;">CNGM and CREMA work together to satisfy our gaming needs.</p>
+
+      <p style="font-size: 12px; color: var(--text_sec); margin: 5px 0; text-align: justify;"><strong>CAFE NEUROTICO GAME MANAGER</strong> is the desktop app: detail-focused, neurotic about your library, handling all the heavy lifting with automatic and manual importing. It can do a lot of other pretty cool stuff too, check the <span id="btn-open-manual" style="color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold;">manual</span>.</p>
+
+      <p style="font-size: 12px; color: var(--text_sec); margin: 5px 0 15px 0; text-align: justify;"><strong>CREMA</strong> is the sweet foam on top. It is its fullscreen companion: laidback, easygoing, and focused purely on fun. A true connoisseur of good gaming and good music. Grab a controller and enjoy.</p>
+
+      <hr style="border: 1px solid var(--border); width: 100%;">
+
+      <p style="font-size: 11px; color: var(--text_dim); margin: 0;">
+        Proudly designed in Brazil 🇧🇷 by J.R.A.<br>
+        Shampoo is a Lie<br>
+        shampooisalie@gmail.com
+      </p>
+      <button id="btn-close-about" style="margin-top: 15px;">Close</button>
+    </div>
+  </div>
+
+  <div id="floating-manual">
+    <div id="manual-header">
+      <span>📖 CNGM SYSTEM MANUAL</span>
+      <button id="btn-close-floating-manual" style="background: transparent; color: var(--accent); border: none; padding: 0; margin: 0; font-size: 18px; cursor: pointer; font-weight: bold;">✕</button>
+    </div>
+    <div id="manual-body">
+      <div id="manual-nav">
+        <button class="manual-nav-btn" data-target="man-1">1. Manifesto & Philosophy</button>
+        <button class="manual-nav-btn" data-target="man-2">2. Adding Games & Sync</button>
+        <button class="manual-nav-btn" data-target="man-3">3. Views & Navigation</button>
+        <button class="manual-nav-btn" data-target="man-4">4. The Perfect Gamepage</button>
+        <button class="manual-nav-btn" data-target="man-5">5. Detailed View & Fallbacks</button>
+        <button class="manual-nav-btn" data-target="man-6">6. Media, SGDB & Trailers</button>
+        <button class="manual-nav-btn" data-target="man-7">7. Tools, Data & Cleanup</button>
+      </div>
+      <div id="manual-content">
+
+        <h2 id="man-1">1. MANIFESTO & PHILOSOPHY</h2>
+        <div class="manual-box">
+            <p class="manual-box-title">YOUR LIBRARY. MANAGEABLE. SEARCHABLE. PORTABLE.</p>
+            <p>I wanted an app that could organize and launch all my games, from Steam, Heroic (Epic and GOG), Flatpak, Emulators or whatever in just one place.</p>
+            <p>I wanted it to be complete with all the features I've always wished I had in a Linux game manager, like checking Youtube videos, HowLongToBeat, and ProtonDB right from inside the app, among other things.</p>
+            <p>I wanted it to be simple, beautiful and themeable.</p>
+            <p>And most importantly, I wanted it to be completely PORTABLE and BACKUPABLE.</p>
+
+            <p class="manual-box-title">THE LOCAL-ONLY PHILOSOPHY</p>
+            <p>CNGM is built with a strict <strong>Offline-First, Local-Only</strong> philosophy for your media. Once you fetch artwork, covers, logos, or download a trailer, it is saved securely into your local <code>GameManagerConfig</code> folder.</p>
+            <p>This means your library will never suffer from "link rot" or broken web images if a storefront changes its API. It also means you can pack up the entire folder, put it on a thumb drive, and take your flawlessly curated library to another PC entirely.</p>
+
+            <p class="manual-box-title">THE LAUNCH COMMAND</p>
+            <p>The crucial feature for my own usage. Inside the Detailed View, there is a field where you can put a command to launch that game.</p>
+            <p>Anything goes. If you can launch it on Linux, you can launch it from here. You can even open your calculator or your terminal from here if that fancies your desire.</p>
+            <p><b>Now the sweet part: If you imported your games via Steam or Heroic sync, the launch commands will be filled out automatically, even if the game is not installed (clicking PLAY will prompt you to install it).</b></p>
+        </div>
+
+        <h2 id="man-2">2. ADDING GAMES & STORE SYNC</h2>
+        <p>Before we dive in, a quick note: all data is securely stored in a <strong>single folder</strong> created in the same directory as the app (`GameManagerConfig`). No searching around your entire OS in hidden folders.</p>
+
+        <h3>CONNECTING YOUR STORES</h3>
+        <p>Click the <strong>Connect</strong> button in the left Menu sector to begin syncing libraries.</p>
+        <ul>
+            <li><strong>HEROIC SYNC (EPIC/GOG):</strong> Automatically scans your local Heroic/Legendary config files and pulls in everything you own (installed or not) <b>with the correct native launch commands!</b></li>
+            <li><strong>STEAM:</strong> Input your SteamID64 and API key. The system grabs your entire library and injects the launch commands automatically. <em>(Your profile's 'Game Details' must be set to Public.)</em></li>
+            <li><strong>GOG:</strong> Opens a secure internal login window. Once logged in, close it, and the app will automatically scrape and pull in your owned GOG assets. <em><b>The best way to import GOG games is actually via Heroic Sync, but if you want you can use this GOG Sync (be aware that you will have to add ALL launch commands manually).</b></em></li>
+        </ul>
+
+        <h3>ADDING GAMES MANUALLY</h3>
+        <p>Don't want to sync? Hit the <strong>+ Add Game</strong> button. It creates a blank slate. From there, you can jump to the Edit Details screen, type the title, and hit <strong>✨ Auto-Fetch</strong> to pull all metadata and artwork from the Steam database instantly.</p>
+
+        <h2 id="man-3">3. VIEWS & NAVIGATION</h2>
+        <p>There are three main views. The left sidebar remains your constant command center for filtering and searching.</p>
+
+        <h3>THE LIST VIEW</h3>
+        <p>For the true data obsessive. A high-density spreadsheet showing you everything at a glance: Launch status, Favs, Want, Store, Genre, and Release Year. Double click a row to open the Gamepage. If Gaming History is enabled, your most recently played games will be pinned at the very top.</p>
+
+        <h3>THE GALLERY VIEW</h3>
+        <p>All about the cover art. A highly visual, grid-based layout. At the top, the dynamic Hero header acts as a screensaver for your currently filtered selection, utilizing a beautiful Ken Burns effect to fade smoothly between the hero arts and screenshots of the games you are currently viewing. Just like the List View, your recent games will appear first if the history tracking is active.</p>
+
+        <h2 id="man-4">4. THE PERFECT GAMEPAGE</h2>
+        <p>Double-click any entry to enter the immersive <strong>Gamepage</strong>. This is your premium storefront view for the game.</p>
+
+        <div class="manual-box">
+            <p class="manual-box-title">STEP-BY-STEP: CRAFTING THE ULTIMATE PAGE</p>
+            <p>To get the absolute best-looking, most complete Gamepage, follow this workflow:</p>
+            <ul>
+                <li><strong>1. The Initial Scrape:</strong> Click <b>⚙️ EDIT DETAILS</b> and click <b>✨ AUTO-FETCH</b>. This pulls the Cover, Hero Art, Logo, Icon, up to 5 Screenshots, the massive HTML description, and queries ProtonDB and HLTB automatically.</li>
+                <li><strong>2. Refine the Visuals:</strong> Still in the Edit screen, look at the left column. If the Steam-provided Hero Art or Logo looks boring, click the <b>SGDB</b> button. This connects to SteamGridDB (requires a free API key) to let you pick custom, fan-made transparent logos and gorgeous textless hero backgrounds.</li>
+                <li><strong>3. Add the Trailer:</strong> Click <b>▶ WATCH TRAILER</b>. It will search YouTube for a high-quality, no-commentary gameplay trailer. Select the best one to download it to your local drive.</li>
+                <li><strong>4. Enjoy the Results:</strong> Return to the Gamepage. You should now see:
+                    <ul>
+                        <li>A massive Hero banner with a crisp, centered transparent Logo.</li>
+                        <li>An animated Screenshots banner utilizing the Ken Burns effect. Clicking it opens a fullscreen slideshow!</li>
+                        <li>A beautifully formatted short description summarizing the game, followed by the rich HTML Steam storefront payload.</li>
+                        <li>A <b>🎬 WATCH TRAILER</b> button right in the action bar, ready to play your locally downloaded video instantly.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <p>From the Gamepage, you can also use the live toggle buttons (<strong>+ FAV</strong> and <strong>WANT TO PLAY</strong>) to instantly update the database without needing to open the Edit screen.</p>
+
+        <h2 id="man-5">5. DETAILED VIEW & FALLBACKS</h2>
+        <p>Click <strong>⚙️ EDIT DETAILS</strong> to enter Edit Mode. Here you have full control over the database entry. You can edit every single text box manually.</p>
+
+        <h3>HLTB & PROTONDB FALLBACKS</h3>
+        <p>Next to the HLTB (HowLongToBeat) and ProtonDB fields, you'll see a magnifying glass icon (🔍). Clicking this will normally query their respective databases and pull the data right into your text box.</p>
+        <p>However, if the automated query fails (due to strict API limits or if the game's title is highly unusual), the app will intelligently pop open a secure internal web browser window directly to the search results page. You can then quickly read the score or time, close the window, and type it in manually.</p>
+
+        <h2 id="man-6">6. MEDIA, SGDB & TRAILERS</h2>
+
+        <h3>STEAMGRIDDB (SGDB)</h3>
+        <p>By pasting a free SteamGridDB API key into the app's settings, clicking the SGDB button next to any asset will instantly load the top-rated custom artwork for your game. If the auto-search gets the wrong game (e.g., pulling art for "Doom 2016" instead of "Doom 1993"), use the <strong>manual search box</strong> located inside the SGDB window to hunt for specific variations or editions. Click an image, and it downloads and applies it automatically.</p>
+
+        <h3>YOUTUBE TRAILERS & THE LOCAL RULE</h3>
+        <p>Clicking <strong>▶ WATCH TRAILER</strong> in the edit screen queries YouTube. Select the best result, and the app uses an embedded <code>yt-dlp</code> backend to securely process and download the highest-quality MP4 to your local folder.</p>
+        <p><strong>IMPORTANT:</strong> The <b>🎬 WATCH TRAILER</b> button on the main Gamepage will <em>only</em> appear if the game has a trailer successfully downloaded to your local drive. CNGM will never attempt to stream videos directly from the internet on the Gamepage. This guarantees that if the button is there, the video will play instantly, at maximum quality, entirely offline.</p>
+
+        <h2 id="man-7">7. TOOLS, DATA & CLEANUP</h2>
+        <p>Click the <strong>Tools</strong> button in the left sidebar to open the two-column Control Center dashboard.</p>
+
+        <h3>BATCH FETCHING</h3>
+        <p>The powerful <strong>Batch Fetch Missing Artwork</strong> tool scans your entire library in the background. It checks all five asset types (Cover, Hero, Logo, Icon, and Screenshots). If a game is missing <em>even one</em> of these assets, it will silently query Steam and pull down the missing files and metadata for you.</p>
+
+        <h3>IMAGE STORAGE & CLEANUP</h3>
+        <p>Because of our neurotic local-only philosophy, and the fact that SGDB custom artwork generates unique filenames, your <code>images</code> folder can collect "orphaned" images over time when you replace covers or logos.</p>
+        <ul>
+            <li><strong>🧹 Clean Unused Images:</strong> Click this to run a deep scan of your database. The app will cross-reference every assigned image, and ruthlessly delete any file in the folder that is no longer being used by a game, freeing up space safely.</li>
+            <li><strong>☢️ Clear All Images:</strong> The nuclear option. This completely wipes all downloaded artwork and screenshots from your drive and resets the visual database, giving you a completely fresh start.</li>
+        </ul>
+
+        <h3>CSV EXPORT & SYSTEM BACKUP</h3>
+        <p>Full library portability. Export your entire library to a standard CSV, or use the <strong>BACKUP TO ZIP</strong> tool to pack your database, covers, logos, and screenshots into a single, massive <code>.zip</code> file. When moving to another machine or a Steam Deck, simply use <strong>RESTORE ZIP</strong> from inside the app to unpack your perfectly curated library exactly as you left it.</p>
+
+        <div style="text-align: center; margin-top: 60px; padding: 20px; border: 1px solid var(--border_solid); background-color: var(--bg_panel);">
+            <p style="color: var(--accent); font-weight: bold;">=========================================</p>
+            <h3 style="color: var(--text_main); margin: 5px 0;">/// END OF FILE ///</h3>
+            <p style="color: var(--text_sec); font-family: monospace; font-size: 12px; margin: 2px;">SYSTEM OPERATIONS CONCLUDED.</p>
+            <p style="color: var(--text_sec); font-family: monospace; font-size: 12px; margin: 2px;">COPYRIGHT &copy; CAFE NEUROTICO SYSTEMS.</p>
+            <p style="color: var(--accent); font-weight: bold; margin-top: 15px;">NOW GO PLAY SOME GAMES.</p>
+            <p style="color: var(--accent); font-weight: bold; margin-bottom: 0;">=========================================</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-zip-progress" class="modal-overlay">
+    <div class="modal-box" style="text-align: center;">
+      <h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Processing...</h3>
+      <div style="font-size: 12px; color: var(--text_sec); margin-bottom: 10px;">Please wait while the ZIP archive is being processed.</div>
+      <div class="zip-progress-bg">
+        <div class="zip-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-refine-search" class="modal-overlay"><div class="modal-box"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Refine Search</h3><p style="font-size: 12px; color: var(--text_sec); margin: 0;">No exact matches found. Modify the title to search again:</p><input type="text" id="refine-search-input" style="margin-top: 10px;"><button id="btn-refine-search-submit" class="primary" style="padding: 10px;">Search Again</button><button id="btn-close-refine-search" style="margin-top: 5px;">Cancel</button></div></div>
+  <div id="modal-steam-results" class="modal-overlay"><div class="modal-box" style="max-height: 80vh;"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Multiple Results Found</h3><p style="font-size: 12px; color: var(--text_sec); margin: 0;">Select the correct game from the Steam database:</p><div id="steam-results-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px;"></div><button id="btn-close-steam-results" style="margin-top: 10px;">Cancel</button></div></div>
+  <div id="modal-connect" class="modal-overlay"><div class="modal-box"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Store Sync</h3><button id="btn-sync-heroic" style="background-color: #f57c00; border:none; padding: 10px; color: #fff;">Sync Heroic Games</button><hr style="border: 1px solid var(--border); width: 100%;"><h4 style="margin: 0; text-transform: uppercase;">Steam API Import</h4><div style="font-size: 11px; color: var(--text_sec); line-height: 1.5; text-transform: none; margin-top: 5px; margin-bottom: 10px;">Valve's web logins are notoriously strict for scrapers. The most reliable way to import your Steam library is using the official Steam API.<br><br>1. Get an API Key at: <strong style="color: var(--text_main);">https://steamcommunity.com/dev/apikey</strong><br>2. Find your 17-digit SteamID64 (from your profile URL or steamid.io).<br><br><span style="color: var(--accent); font-weight: bold;">* Your profile's 'Game Details' must be set to Public.</span></div><input type="password" id="steam-id" placeholder="STEAMID64 (E.G. 7656119...)"><input type="password" id="steam-api-key" placeholder="STEAM API KEY"><button id="btn-sync-steam" class="primary" style="padding: 10px;">Fetch Steam Library</button><hr style="border: 1px solid var(--border); width: 100%; margin: 15px 0;"><h4 style="margin: 0 0 10px 0; color: #8a2be2; text-transform: uppercase;">GOG Connection</h4><button id="btn-sync-gog" class="primary" style="width: 100%; background-color: #8a2be2;">Fetch GOG Library</button><p style="font-size: 11px; color: var(--text_dim); margin-top: 5px; text-align: center;">THIS WILL OPEN A SECURE LOGIN WINDOW. CLOSE IT WHEN YOU ARE LOGGED IN.</p><button id="btn-close-modal" style="margin-top: 10px;">Close</button></div></div>
+
+  <div id="modal-tools" class="modal-overlay">
+    <div class="modal-box" style="width: 800px; max-width: 90vw;">
+      <h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Tools & Data</h3>
+
+      <div style="display: flex; gap: 20px; margin-top: 10px;">
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+            <div class="tool-card">
+                <button id="btn-tools-manual" class="primary" style="width: 100%; font-size: 11px; background-color: var(--border_solid); color: var(--text_main);">📖 Open User Manual</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">🕒 Gaming History</div>
+                <div style="font-size: 11px; color: var(--text_sec);">Shows recently launched games at the top of the views.</div>
+
+                <div class="segmented-control" id="history-segmented-control">
+                    <button class="segmented-btn" data-val="0">OFF</button>
+                    <button class="segmented-btn" data-val="5">5</button>
+                    <button class="segmented-btn" data-val="10">10</button>
+                    <button class="segmented-btn" data-val="15">15</button>
+                    <button class="segmented-btn" data-val="20">20</button>
+                </div>
+
+                <button id="btn-clear-history" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; margin-top: 5px;">🗑️ CLEAR GAMING HISTORY</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">🔍 UI Scale</div>
+                <div style="font-size: 11px; color: var(--text_sec); display: flex; justify-content: space-between; padding: 0 10px;">
+                    <span>Smaller</span>
+                    <span>⟷</span>
+                    <span>Bigger</span>
+                </div>
+
+                <div class="segmented-control" id="ui-scale-segmented-control">
+                    <button class="segmented-btn ui-scale-btn" data-val="0.5">50%</button>
+                    <button class="segmented-btn ui-scale-btn" data-val="0.75">75%</button>
+                    <button class="segmented-btn ui-scale-btn" data-val="1.0">100%</button>
+                    <button class="segmented-btn ui-scale-btn" data-val="1.25">125%</button>
+                    <button class="segmented-btn ui-scale-btn" data-val="1.5">150%</button>
+                </div>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">🎨 Aesthetics</div>
+                <button id="btn-theme-switch" style="width: 100%; background-color: transparent; color: var(--accent); border-color: var(--accent); font-size: 11px;">Theme Selection</button>
+            </div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
+            <div class="tool-card">
+                <div class="tool-card-title">🗄️ System Backup</div>
+                <div class="row">
+                    <button id="btn-backup-zip" style="flex: 1; font-size: 11px;">BACKUP TO ZIP</button>
+                    <button id="btn-restore-zip" style="flex: 1; font-size: 11px;">RESTORE ZIP</button>
+                </div>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">✨ Media Fetching</div>
+                <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;">Batch Fetch Missing Artwork</button>
+                <div id="batch-status" style="font-size: 11px; text-align: center; font-weight: bold; color: #ffeb3b; min-height: 5px;"></div>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">📄 CSV Tools</div>
+                <div class="row">
+                    <button id="btn-import-csv" style="flex: 1; font-size: 11px;">📥 IMPORT</button>
+                    <button id="btn-export-csv" style="flex: 1; font-size: 11px;">📤 EXPORT</button>
+                </div>
+                <button id="btn-template-csv" style="width: 100%; background: transparent; border: 1px solid var(--border); font-size: 11px;">Download CSV Template</button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">🖼️ Image Storage</div>
+                <button id="btn-clean-images" style="width: 100%; font-size: 11px; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; margin-bottom: 5px;">🧹 Clean Unused Images</button>
+                <button id="btn-clear-all-images" style="width: 100%; font-size: 11px; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f;">☢️ Clear All Images</button>
+            </div>
+
+            <div class="tool-card">
+                <button id="btn-clear-data" style="width: 100%; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f; font-size: 11px;">🧹 WIPE SECURE BROWSER DATA</button>
+            </div>
+        </div>
+
+      </div>
+
+      <button id="btn-close-tools" style="margin-top: auto; padding: 10px;">Close</button>
+    </div>
+  </div>
+
+  <div id="modal-themes" class="modal-overlay"><div class="modal-box"><h3 id="theme-modal-title" style="margin: 0; color: var(--accent); text-transform: uppercase;">Theme Categories</h3><div id="theme-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; padding-right: 5px;"></div><button id="btn-theme-back" style="display: none; background-color: transparent; color: var(--text-sec); border: 1px solid var(--border);">Back to Categories</button><button id="btn-close-themes" style="margin-top: 10px;">Close</button></div></div>
+
+  <div id="modal-sgdb" class="modal-overlay">
+    <div class="modal-box" style="width: 800px; max-height: 85vh;">
+        <h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Select Artwork</h3>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 5px;">
+            <input type="text" id="sgdb-manual-search-input" placeholder="Search specific game variation..." style="flex: 1;">
+            <button id="btn-sgdb-manual-search" class="primary" style="padding: 10px 20px;">Search SGDB</button>
+        </div>
+
+        <div id="sgdb-status" style="color: var(--text_dim); font-size: 12px; font-weight: bold;">Connecting to SteamGridDB...</div>
+        <div id="sgdb-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; overflow-y: auto; padding: 5px; max-height: 50vh;"></div>
+        <button id="btn-close-sgdb" style="margin-top: 10px;">Close</button>
+    </div>
+  </div>
+
+  <div id="modal-sgdb-api" class="modal-overlay"><div class="modal-box"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">SteamGridDB API Key</h3><p style="font-size: 12px; color: var(--text_sec);">To fetch custom artwork, you need a free API key from SteamGridDB.<br><br>1. Go to <strong style="color: var(--text_main);">steamgriddb.com/profile/preferences/api</strong><br>2. Generate and paste your key below.</p><input type="text" id="sgdb-api-input" placeholder="PASTE API KEY HERE"><button id="btn-save-sgdb-api" class="primary">Save Key</button><button id="btn-close-sgdb-api">Cancel</button></div></div>
+
+  <div id="modal-trailer-search" class="modal-overlay"><div class="modal-box" style="width: 800px; max-height: 80vh;"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Select Trailer to Download</h3><div id="yt-search-status" style="color: var(--text_dim); font-size: 12px; font-weight: bold;">Searching YouTube...</div><div id="yt-search-list" style="display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding: 5px;"></div><button id="btn-close-yt-search" style="margin-top: 10px;">Cancel</button></div></div>
+  <div id="modal-trailer-progress" class="modal-overlay"><div class="modal-box" style="text-align: center;"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Downloading Trailer</h3><div id="dl-progress-game" style="color: var(--text_main); font-weight: bold; margin-bottom: 10px;"></div><div style="width: 100%; height: 20px; background: var(--bg); border-radius: 10px; overflow: hidden; position: relative;"><div id="dl-progress-fill" style="height: 100%; width: 0%; background: var(--accent); transition: width 0.1s linear;"></div></div><div id="dl-progress-text" style="margin-top: 5px; font-size: 12px; color: var(--text_sec);">0%</div></div></div>
+  <div id="modal-trailer-player" class="modal-overlay"><div class="modal-box" style="width: 900px; padding: 15px; background: #000; border: 2px solid var(--accent);"><video id="detail-video-player" controls style="width: 100%; border-radius: 8px;"></video><button id="btn-close-player" style="margin-top: 15px;">Close Player</button></div></div>
+
+  <div id="modal-slideshow" class="modal-overlay">
+      <div style="position: relative; width: 90vw; height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <button id="btn-slideshow-close" style="position: absolute; top: 0; right: 0; background: transparent; border: none; color: #fff; font-size: 30px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.8); z-index: 10;">✕</button>
+
+          <button id="btn-slideshow-prev" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: 2px solid var(--accent); color: #fff; font-size: 30px; cursor: pointer; padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(5px); z-index: 10;">&lt;</button>
+          <button id="btn-slideshow-next" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.5); border: 2px solid var(--accent); color: #fff; font-size: 30px; cursor: pointer; padding: 10px 20px; border-radius: 8px; backdrop-filter: blur(5px); z-index: 10;">&gt;</button>
+
+          <img id="slideshow-img" src="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+
+          <div id="slideshow-counter" style="position: absolute; bottom: -30px; color: var(--text_sec); font-weight: bold; font-size: 14px; letter-spacing: 2px; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;"></div>
+      </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

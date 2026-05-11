@@ -1,0 +1,56 @@
+{
+  "name": "cngm_electron_build",
+  "version": "1.0.0",
+  "description": "Cafe Neurotico Game Manager",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --linux AppImage"
+  },
+  "keywords": [
+    "game",
+    "manager",
+    "launcher",
+    "linux"
+  ],
+  "author": "Shampoo is a Lie",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "howlongtobeat": "^1.8.0"
+  },
+  "devDependencies": {
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.cafeneurotico.cngm",
+    "productName": "CNGM",
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icons/CNGM.svg",
+      "category": "Game"
+    },
+    "appImage": {
+      "artifactName": "CNGM-v${version}-x86_64.AppImage"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/bin/linux",
+        "to": "assets/bin/linux",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}
