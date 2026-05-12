@@ -53,6 +53,9 @@ contextBridge.exposeInMainWorld('api', {
                                 cleanUnusedImages: () => ipcRenderer.invoke('clean-unused-images'),
                                 clearAllImages: () => ipcRenderer.invoke('clear-all-images'),
 
+                                // --- SYSTEM ---
+                                installToMenu: () => ipcRenderer.invoke('install-to-menu'),
+
                                 // --- CREMA COMPANION ---
                                 checkCrema: () => ipcRenderer.invoke('check-crema'),
                                 launchCrema: () => ipcRenderer.send('launch-crema'),

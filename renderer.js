@@ -1087,7 +1087,17 @@ document.getElementById('btn-restore-zip').addEventListener('click', async () =>
 });
 
 const modalTools = document.getElementById('modal-tools');
-document.getElementById('btn-open-tools').addEventListener('click', () => { modalTools.classList.add('active'); document.getElementById('batch-status').innerText = ""; });
+document.getElementById('btn-open-tools').addEventListener('click', () => { modalTools.classList.add('active'); document.getElementById('batch-status').innerText = ""; document.getElementById('install-menu-status').innerText = ""; });
+
+document.getElementById('btn-install-menu').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-install-menu');
+    const status = document.getElementById('install-menu-status');
+    btn.disabled = true; btn.innerText = 'Installing...'; status.style.color = 'var(--text_dim)'; status.innerText = '';
+    const result = await window.api.installToMenu();
+    btn.disabled = false; btn.innerText = 'Add to Application Menu';
+    status.style.color = result.success ? '#66bb6a' : '#ef5350';
+    status.innerText = result.message;
+});
 document.getElementById('btn-close-tools').addEventListener('click', () => modalTools.classList.remove('active'));
 
 // Upgraded Batch Fetcher

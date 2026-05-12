@@ -7,6 +7,10 @@ const { exec, execFile, spawn } = require('child_process');
 
 const https = require('https');
 
+// Embedded SVG icons for the menu installer
+const CNGM_SVG_B64 = 'PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPCEtLSBCYXNlIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiMyQzFFMTYiLz4KICAKICA8IS0tIE91dGVyIENvbm5lY3RvcnMgLS0+CiAgPHBhdGggZD0iTSAyNCAyNTYgSCAxMTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTM3MyIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iNzAiIGN5PSIyNTYiIHI9IjgiIGZpbGw9IiNENEEzNzMiLz4KICA8cGF0aCBkPSJNIDM5NiAyNTYgSCA0ODgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTM3MyIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPGNpcmNsZSBjeD0iNDQyIiBjeT0iMjU2IiByPSI4IiBmaWxsPSIjRDRBMzczIi8+CgogIDwhLS0gVGhlIFBpbGwgQmVhbiBCb2R5IC0tPgogIDxyZWN0IHg9IjExNiIgeT0iODAiIHdpZHRoPSIyODAiIGhlaWdodD0iMzUyIiByeD0iMTQwIiBmaWxsPSIjNDMyODE4IiBzdHJva2U9IiNENEEzNzMiIHN0cm9rZS13aWR0aD0iMjAiLz4KCiAgPCEtLSBUaGUgUy1DcmFjayBFcmFzZXIgKFNwbGl0cyB0aGUgYmVhbiB1c2luZyBiYWNrZ3JvdW5kIGNvbG9yKSAtLT4KICA8cGF0aCBkPSJNIDI1NiAyNCBWIDEzNiBMIDIxNiAxNzYgViAyMTYgTCAyOTYgMjk2IFYgMzM2IEwgMjU2IDM3NiBWIDQ4OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMkMxRTE2IiBzdHJva2Utd2lkdGg9IjI4IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CgogIDwhLS0gVGhlIEdsb3dpbmcgUy1DcmFjayBDaXJjdWl0IFRyYWNlIC0tPgogIDxwYXRoIGQ9Ik0gMjU2IDI0IFYgMTM2IEwgMjE2IDE3NiBWIDIxNiBMIDI5NiAyOTYgViAzMzYgTCAyNTYgMzc2IFYgNDg4IiBmaWxsPSJub25lIiBzdHJva2U9IiNGRkU2QTciIHN0cm9rZS13aWR0aD0iOCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgoKICA8IS0tIENpcmN1aXQgTm9kZXMgYWxvbmcgdGhlIHRyYWNlIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjEzNiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDxjaXJjbGUgY3g9IjIxNiIgY3k9IjE3NiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDxjaXJjbGUgY3g9IjIxNiIgY3k9IjIxNiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTIiIGZpbGw9IiNGRkU2QTciLz4gPCEtLSBDb3JlIENlbnRlciBOb2RlIC0tPgogIDxjaXJjbGUgY3g9IjI5NiIgY3k9IjI5NiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDxjaXJjbGUgY3g9IjI5NiIgY3k9IjMzNiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjM3NiIgcj0iOCIgZmlsbD0iI0ZGRTZBNyIvPgoKICA8IS0tIEdvbGRlbiBPdXRlciBCb3JkZXIgKERyYXduIGxhc3QgdG8gb3ZlcmxheSBwZXJmZWN0bHkpIC0tPgogIDxyZWN0IHg9IjI0IiB5PSIyNCIgd2lkdGg9IjQ2NCIgaGVpZ2h0PSI0NjQiIHJ4PSI4OCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOEI1QTJCIiBzdHJva2Utd2lkdGg9IjEyIi8+Cjwvc3ZnPgo=';
+const CREMA_SVG_B64 = 'PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPCEtLSBCYXNlIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiMyQzFFMTYiLz4KICAKICA8IS0tIEdvbGRlbiBJbm5lciBCb3JkZXIgLS0+CiAgPHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDY0IiBoZWlnaHQ9IjQ2NCIgcng9Ijg4IiBmaWxsPSJub25lIiBzdHJva2U9IiM4QjVBMkIiIHN0cm9rZS13aWR0aD0iMTIiLz4KCiAgPCEtLSBDb2ZmZWUgQ3VwIEhhbmRsZSAtLT4KICA8cGF0aCBkPSJNIDM4MCAyNTYgQyA0OTAgMjU2LCA0OTAgMTUwLCAzODAgMTUwIiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEzNzMiIHN0cm9rZS13aWR0aD0iMjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgoKICA8IS0tIEVzcHJlc3NvIEN1cCBCYXNlIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTYwIiBmaWxsPSIjNDMyODE4IiBzdHJva2U9IiNENEEzNzMiIHN0cm9rZS13aWR0aD0iMTYiLz4KCiAgPCEtLSBDcmVtYSAvIFZpbnlsIFN3aXJscyAtLT4KICA8cGF0aCBkPSJNIDI1NiAxMzYgQSAxMjAgMTIwIDAgMCAxIDM3NiAyNTYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0Q0QTM3MyIgc3Ryb2tlLXdpZHRoPSIxNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTSAyNTYgMzc2IEEgMTIwIDEyMCAwIDAgMSAxMzYgMjU2IiBmaWxsPSJub25lIiBzdHJva2U9IiNENEEzNzMiIHN0cm9rZS13aWR0aD0iMTYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0gMTg2IDI1NiBBIDcwIDcwIDAgMCAxIDI1NiAxODYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRTZBNyIgc3Ryb2tlLXdpZHRoPSIxMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTSAzMjYgMjU2IEEgNzAgNzAgMCAwIDEgMjU2IDMyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZFNkE3IiBzdHJva2Utd2lkdGg9IjEyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KCiAgPCEtLSBHYW1lcGFkIEFCWFkgQnV0dG9ucyAtLT4KICA8IS0tIFRvcCBCdXR0b24gKFkvVHJpYW5nbGUpIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjIwNCIgcj0iMTgiIGZpbGw9IiNGRkU2QTciLz4KICA8IS0tIEJvdHRvbSBCdXR0b24gKEEvQ3Jvc3MpIC0tPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjMwOCIgcj0iMTgiIGZpbGw9IiNGRkU2QTciLz4KICA8IS0tIExlZnQgQnV0dG9uIChYL1NxdWFyZSkgLS0+CiAgPGNpcmNsZSBjeD0iMjA0IiBjeT0iMjU2IiByPSIxOCIgZmlsbD0iI0ZGRTZBNyIvPgogIDwhLS0gUmlnaHQgQnV0dG9uIChCL0NpcmNsZSkgLS0+CiAgPGNpcmNsZSBjeD0iMzA4IiBjeT0iMjU2IiByPSIxOCIgZmlsbD0iI0ZGRTZBNyIvPgo8L3N2Zz4K';
+
 async function searchHltb(gameName) {
     const initData = await new Promise((resolve, reject) => {
         const req = https.get(`https://howlongtobeat.com/api/bleed/init?t=${Date.now()}`, {
@@ -137,6 +141,36 @@ ipcMain.on('launch-crema', () => {
     child.unref();
     const win = BrowserWindow.getAllWindows()[0];
     if (win) win.minimize();
+});
+
+ipcMain.handle('install-to-menu', () => {
+    try {
+        const appsDir = path.join(os.homedir(), '.local', 'share', 'applications');
+        const iconsDir = path.join(baseDir, 'icons');
+        if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true });
+        fs.writeFileSync(path.join(iconsDir, 'CNGM.svg'), Buffer.from(CNGM_SVG_B64, 'base64'));
+        fs.writeFileSync(path.join(iconsDir, 'CREMA.svg'), Buffer.from(CREMA_SVG_B64, 'base64'));
+        if (!fs.existsSync(appsDir)) fs.mkdirSync(appsDir, { recursive: true });
+        const files = fs.readdirSync(baseDir);
+        const cngmFile = files.find(f => /^CNGM.*\.AppImage$/i.test(f));
+        const cremaFile = files.find(f => /^CREMA.*\.AppImage$/i.test(f));
+        const installed = [];
+        if (cngmFile) {
+            const p = path.join(baseDir, cngmFile); fs.chmodSync(p, '755');
+            fs.writeFileSync(path.join(appsDir, 'cafe-neurotico-game-manager.desktop'),
+                `[Desktop Entry]\nVersion=1.0\nType=Application\nName=Cafe Neurotico Game Manager\nComment=The neurotic manager for your gaming library.\nExec="${p}"\nIcon=${path.join(iconsDir,'CNGM.svg')}\nTerminal=false\nCategories=Game;Utility;\n`);
+            installed.push('CNGM');
+        }
+        if (cremaFile) {
+            const p = path.join(baseDir, cremaFile); fs.chmodSync(p, '755');
+            fs.writeFileSync(path.join(appsDir, 'cafe-neurotico-crema.desktop'),
+                `[Desktop Entry]\nVersion=1.0\nType=Application\nName=CREMA\nComment=The Bon Vivant Fullscreen Gamepad-Centered Interface.\nExec="${p}"\nIcon=${path.join(iconsDir,'CREMA.svg')}\nTerminal=false\nCategories=Game;\n`);
+            installed.push('CREMA');
+        }
+        execFile('update-desktop-database', [appsDir], () => {});
+        if (installed.length === 0) return { success: false, message: 'No AppImages found in the app folder.' };
+        return { success: true, message: `Installed to menu: ${installed.join(' + ')}` };
+    } catch(err) { return { success: false, message: err.message }; }
 });
 
 ipcMain.on('window-minimize', () => { const win = BrowserWindow.getFocusedWindow(); if(win) win.minimize(); });
