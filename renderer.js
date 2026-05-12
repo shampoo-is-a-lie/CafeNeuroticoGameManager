@@ -1288,5 +1288,4 @@ function renderThemesInCategory(category) {
     });
 }
 
-applyTheme(activeTheme);
-window.api.getSetting('cngm_theme').then(saved => { if (saved && THEMES[saved]) applyTheme(saved); });
+window.api.getSetting('cngm_theme').then(saved => { applyTheme(saved && THEMES[saved] ? saved : activeTheme); });
