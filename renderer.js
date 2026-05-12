@@ -6,7 +6,7 @@ let lastGridView = 'view-gallery';
 let baseDir = '';
 
 window.api.checkCrema().then(exists => {
-    if (exists) document.getElementById('btn-launch-crema').style.display = 'block';
+    if (exists) document.getElementById('btn-launch-crema').style.display = 'flex';
 });
 document.getElementById('btn-launch-crema').addEventListener('click', () => window.api.launchCrema());
 
