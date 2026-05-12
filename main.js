@@ -176,11 +176,12 @@ ipcMain.handle('backup-zip', async (event) => {
 
     return new Promise((resolve) => {
         const isWin = process.platform === 'win32';
-        const cmd = isWin
-        ? `powershell -command "Compress-Archive -Path '${configDir}' -DestinationPath '${filePath}' -Force"`
-        : `cd "${baseDir}" && zip -r "${filePath}" GameManagerConfig`;
+        const [prog, args] = isWin
+            ? ['powershell', ['-command', `Compress-Archive -Path '${configDir}' -DestinationPath '${filePath}' -Force`]]
+            : ['zip', ['-r', filePath, 'GameManagerConfig']];
+        const opts = isWin ? {} : { cwd: baseDir };
 
-        exec(cmd, (error) => {
+        execFile(prog, args, opts, (error) => {
             if (error) resolve({ success: false, message: `Backup failed: ${error.message}` });
             else resolve({ success: true, message: "ZIP Backup successfully created!" });
         });
@@ -201,11 +202,11 @@ ipcMain.handle('restore-zip', async (event) => {
     const filePath = filePaths[0];
     return new Promise((resolve) => {
         const isWin = process.platform === 'win32';
-        const cmd = isWin
-        ? `powershell -command "Expand-Archive -Path '${filePath}' -DestinationPath '${baseDir}' -Force"`
-        : `unzip -o "${filePath}" -d "${baseDir}"`;
+        const [prog, args] = isWin
+            ? ['powershell', ['-command', `Expand-Archive -Path '${filePath}' -DestinationPath '${baseDir}' -Force`]]
+            : ['unzip', ['-o', filePath, '-d', baseDir]];
 
-        exec(cmd, (error) => {
+        execFile(prog, args, (error) => {
             if (error) resolve({ success: false, message: `Restore failed: ${error.message}` });
             else resolve({ success: true, message: "Restore successful! Please restart the app to load the new database." });
         });
@@ -227,8 +228,8 @@ ipcMain.handle('add-game', () => {
 
 ipcMain.handle('update-game', (event, id, data) => {
     try {
-        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Description=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=? WHERE id=?`);
-        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Description, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, id);
+        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Description=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=?, CoverArt=?, Screenshot=? WHERE id=?`);
+        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Description, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, data.CoverArt, data.Screenshot, id);
         return true;
     } catch (err) { return false; }
 });
@@ -239,7 +240,8 @@ ipcMain.handle('delete-game', (event, id) => {
 
 ipcMain.on('launch-game', (event, cmd) => {
     if (!cmd) return;
-    exec(cmd, (error) => {});
+    const child = spawn(cmd, [], { shell: true, detached: true, stdio: 'ignore' });
+    child.unref();
 });
 
 ipcMain.handle('update-last-played', (event, id) => {
