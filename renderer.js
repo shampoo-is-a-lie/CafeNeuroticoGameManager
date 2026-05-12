@@ -1145,7 +1145,8 @@ function updateHeroMosaic(filtered, filterName) {
         'favs': { text: 'FAVORITES', icon: 'favs' }, 'want': { text: 'WANT TO PLAY', icon: 'want_to_play' },
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
         'gog': { text: 'GOG', icon: 'gog' }, 'physical': { text: 'PHYSICAL', icon: 'physical' },
-        'others': { text: 'OTHERS', icon: 'others' }, 'emulation': { text: 'EMULATION', icon: 'emulation' }
+        'others': { text: 'OTHERS', icon: 'others' }, 'emulation': { text: 'EMULATION', icon: 'emulation' },
+        'amazon': { text: 'AMAZON GAMES', icon: 'amazon' }, 'apps': { text: 'APPS', icon: 'apps' }
     };
     const currentCat = filterMap[filterName] || { text: filterName.toUpperCase(), icon: filterName };
     document.getElementById('gallery-category-text').innerText = currentCat.text;
