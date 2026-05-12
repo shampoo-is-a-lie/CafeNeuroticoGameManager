@@ -448,7 +448,7 @@
         <h3>CONNECTING YOUR STORES</h3>
         <p>Click the <strong>Connect</strong> button in the left Menu sector to begin syncing libraries.</p>
         <ul>
-            <li><strong>HEROIC SYNC (EPIC/GOG):</strong> Automatically scans your local Heroic/Legendary config files and pulls in everything you own (installed or not) <b>with the correct native launch commands!</b></li>
+            <li><strong>HEROIC SYNC (EPIC/GOG/AMAZON):</strong> Automatically scans your local Heroic/Legendary config files and pulls in everything you own (installed or not) <b>with the correct native launch commands!</b> This includes your Amazon Games library if you have it connected in Heroic.</li>
             <li><strong>STEAM:</strong> Input your SteamID64 and API key. The system grabs your entire library and injects the launch commands automatically. <em>(Your profile's 'Game Details' must be set to Public.)</em></li>
             <li><strong>GOG:</strong> Opens a secure internal login window. Once logged in, close it, and the app will automatically scrape and pull in your owned GOG assets. <em><b>The best way to import GOG games is actually via Heroic Sync, but if you want you can use this GOG Sync (be aware that you will have to add ALL launch commands manually).</b></em></li>
         </ul>
@@ -464,6 +464,13 @@
 
         <h3>THE GALLERY VIEW</h3>
         <p>All about the cover art. A highly visual, grid-based layout. At the top, the dynamic Hero header acts as a screensaver for your currently filtered selection, utilizing a beautiful Ken Burns effect to fade smoothly between the hero arts and screenshots of the games you are currently viewing. Just like the List View, your recent games will appear first if the history tracking is active.</p>
+
+        <h3>SIDEBAR FILTERS</h3>
+        <p>The <strong>See</strong> section of the sidebar lets you instantly narrow your library by store or category: All Games, Playable, Favs, Want, Steam, Epic, GOG, Amazon Games, Apps, Physical, Others, and Emulation.</p>
+        <p>One quality-of-life detail worth knowing: if you're deep inside a Gamepage or the Edit Details screen and you click a filter button, CNGM will automatically navigate you back to the last grid view you were using (List or Gallery) and apply the filter. No need to manually backtrack first.</p>
+
+        <h3>THE CREMA COMPANION</h3>
+        <p>If <strong>CREMA.AppImage</strong> is present in the same folder as CNGM, a <strong>Go Fullscreen With / CREMA</strong> button will appear at the bottom of the sidebar. Clicking it minimizes CNGM and launches CREMA — the fullscreen, gamepad-driven companion app — in its own process. Both apps share the same library database seamlessly.</p>
 
         <h2 id="man-4">4. THE PERFECT GAMEPAGE</h2>
         <p>Double-click any entry to enter the immersive <strong>Gamepage</strong>. This is your premium storefront view for the game.</p>
@@ -487,13 +494,14 @@
         </div>
 
         <p>From the Gamepage, you can also use the live toggle buttons (<strong>+ FAV</strong> and <strong>WANT TO PLAY</strong>) to instantly update the database without needing to open the Edit screen.</p>
+        <p>The stats panel also displays <strong>Similar Games</strong> if you've added them — a handy personal recommendation field for games that share the same vibe.</p>
 
         <h2 id="man-5">5. DETAILED VIEW & FALLBACKS</h2>
         <p>Click <strong>⚙️ EDIT DETAILS</strong> to enter Edit Mode. Here you have full control over the database entry. You can edit every single text box manually.</p>
 
         <h3>HLTB & PROTONDB FALLBACKS</h3>
-        <p>Next to the HLTB (HowLongToBeat) and ProtonDB fields, you'll see a magnifying glass icon (🔍). Clicking this will normally query their respective databases and pull the data right into your text box.</p>
-        <p>However, if the automated query fails (due to strict API limits or if the game's title is highly unusual), the app will intelligently pop open a secure internal web browser window directly to the search results page. You can then quickly read the score or time, close the window, and type it in manually.</p>
+        <p>Next to the HLTB (HowLongToBeat) and ProtonDB fields, you'll see a magnifying glass icon (🔍). Clicking this queries the live HowLongToBeat and ProtonDB APIs and drops the data straight into your text box. HLTB in particular uses a direct integration against their current API, so the numbers you get are real — not guesses from a stale package.</p>
+        <p>However, if the automated query fails (the game title is highly unusual, or the API is momentarily grumpy), the app will intelligently pop open a secure internal web browser window directly to the search results page. You can read the score or time, close the window, and type it in manually. No dead ends.</p>
 
         <h2 id="man-6">6. MEDIA, SGDB & TRAILERS</h2>
 
@@ -505,20 +513,29 @@
         <p><strong>IMPORTANT:</strong> The <b>🎬 WATCH TRAILER</b> button on the main Gamepage will <em>only</em> appear if the game has a trailer successfully downloaded to your local drive. CNGM will never attempt to stream videos directly from the internet on the Gamepage. This guarantees that if the button is there, the video will play instantly, at maximum quality, entirely offline.</p>
 
         <h2 id="man-7">7. TOOLS, DATA & CLEANUP</h2>
-        <p>Click the <strong>Tools</strong> button in the left sidebar to open the two-column Control Center dashboard.</p>
+        <p>Click the <strong>Tools</strong> button in the left sidebar to open the Control Center. It is split into two columns: <strong>Preferences</strong> on the left, <strong>Actions</strong> on the right.</p>
 
-        <h3>BATCH FETCHING</h3>
-        <p>The powerful <strong>Batch Fetch Missing Artwork</strong> tool scans your entire library in the background. It checks all five asset types (Cover, Hero, Logo, Icon, and Screenshots). If a game is missing <em>even one</em> of these assets, it will silently query Steam and pull down the missing files and metadata for you.</p>
+        <h3>APPEARANCE</h3>
+        <p>The top card on the left combines two visual preferences in one place. <strong>Theme Selection</strong> opens the theme picker — organized by category — where you can live-preview any colour scheme without committing. Below it, the <strong>UI Scale</strong> segmented control lets you zoom the entire interface between 50% and 150%, which is particularly useful on Steam Deck or high-DPI displays.</p>
 
-        <h3>IMAGE STORAGE & CLEANUP</h3>
-        <p>Because of our neurotic local-only philosophy, and the fact that SGDB custom artwork generates unique filenames, your <code>images</code> folder can collect "orphaned" images over time when you replace covers or logos.</p>
+        <h3>GAMING HISTORY</h3>
+        <p>Set how many recently launched games CNGM should pin to the top of both views (OFF, 5, 10, 15, or 20). Use <strong>Clear History</strong> to wipe the timestamps without touching anything else in the database.</p>
+
+        <h3>LIBRARY</h3>
+        <p>The powerhouse card on the right. <strong>Batch Fetch Missing Artwork</strong> scans your entire library in the background — it checks all five asset types (Cover, Hero, Logo, Icon, Screenshots) and silently pulls whatever is missing from Steam. Run it once after a big sync and let it do the heavy lifting.</p>
+        <p>Below that: <strong>Import CSV</strong> and <strong>Export CSV</strong> let you move your library in and out of a standard spreadsheet format, and <strong>Template</strong> downloads a blank CSV with all the correct column headers so you can bulk-add games the analogue way.</p>
+
+        <h3>SYSTEM</h3>
+        <p><strong>Backup ZIP</strong> packs your entire <code>GameManagerConfig</code> folder — database, covers, logos, screenshots, everything — into a single archive. <strong>Restore ZIP</strong> unpacks it. When you're moving to a new machine or a Steam Deck, this is the only thing you need.</p>
+        <p><strong>Add to Application Menu</strong> registers both CNGM and CREMA as entries in your desktop environment's application launcher (GNOME, KDE, XFCE, etc.). It writes the <code>.desktop</code> files, extracts the icons, and refreshes the launcher database automatically — no terminal required. Run it again any time you move the folder to update the paths.</p>
+
+        <h3>CLEANUP</h3>
+        <p>Because of the neurotic local-only philosophy, and the fact that SGDB custom artwork generates unique filenames, your <code>images</code> folder quietly accumulates orphaned files whenever you swap covers or logos.</p>
         <ul>
-            <li><strong>🧹 Clean Unused Images:</strong> Click this to run a deep scan of your database. The app will cross-reference every assigned image, and ruthlessly delete any file in the folder that is no longer being used by a game, freeing up space safely.</li>
-            <li><strong>☢️ Clear All Images:</strong> The nuclear option. This completely wipes all downloaded artwork and screenshots from your drive and resets the visual database, giving you a completely fresh start.</li>
+            <li><strong>Clean Images:</strong> Cross-references every image currently assigned in the database and deletes anything that is no longer attached to a game. Fast, safe, surgical.</li>
+            <li><strong>Clear All Images:</strong> The nuclear option. Wipes all downloaded artwork and screenshots from disk and resets the visual database entirely. Use only if you want a completely fresh start.</li>
+            <li><strong>Wipe Secure Browser Data:</strong> Clears the internal browser cache used for the GOG login window and any Steam API popups. If something is behaving strangely after a store sync, try this first.</li>
         </ul>
-
-        <h3>CSV EXPORT & SYSTEM BACKUP</h3>
-        <p>Full library portability. Export your entire library to a standard CSV, or use the <strong>BACKUP TO ZIP</strong> tool to pack your database, covers, logos, and screenshots into a single, massive <code>.zip</code> file. When moving to another machine or a Steam Deck, simply use <strong>RESTORE ZIP</strong> from inside the app to unpack your perfectly curated library exactly as you left it.</p>
 
         <div style="text-align: center; margin-top: 60px; padding: 20px; border: 1px solid var(--border_solid); background-color: var(--bg_panel);">
             <p style="color: var(--accent); font-weight: bold;">=========================================</p>
