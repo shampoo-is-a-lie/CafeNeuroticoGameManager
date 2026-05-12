@@ -115,8 +115,9 @@ document.getElementById('btn-gamepage-back').addEventListener('click', () => {
 });
 
 document.getElementById('btn-back-to-gamepage').addEventListener('click', () => {
+    clearInterval(detailScreenshotInterval);
     const game = allGames.find(g => g.id === currentGameId);
-    if(game) openGamepage(game);
+    if (game) openGamepage(game); else switchView('view-gallery');
 });
 
 document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
@@ -175,10 +176,9 @@ function switchView(viewId) {
     const vp = document.getElementById('detail-video-player');
     if (vp) vp.pause();
 
-    // FIX: Clear interval to save resources if not on Gamepage
-    if (viewId !== 'view-gamepage') {
-        clearInterval(ssBannerKbInterval);
-    }
+    if (viewId !== 'view-gamepage') clearInterval(ssBannerKbInterval);
+    if (viewId !== 'view-gallery') clearInterval(heroKbInterval);
+    if (viewId !== 'view-details') clearInterval(detailScreenshotInterval);
 }
 
 async function loadGames() {
@@ -441,8 +441,9 @@ function openGamepage(game) {
     // Local Trailer Only Logic
     trailerBtn.style.display = 'none';
     trailerBtn.onclick = null;
+    const trailerGameId = game.id;
     window.api.checkLocalTrailer(game.Game).then(localUrl => {
-        if (localUrl) {
+        if (localUrl && currentGameId === trailerGameId) {
             trailerBtn.style.display = 'block';
             trailerBtn.onclick = () => {
                 document.getElementById('modal-trailer-player').classList.add('active');
@@ -828,7 +829,7 @@ document.getElementById('btn-save-game').addEventListener('click', async () => {
     if (success) {
         await loadGames();
         const updatedGame = allGames.find(g => g.id === currentGameId);
-        openGamepage(updatedGame); // Return to Gamepage directly
+        if (updatedGame) openGamepage(updatedGame); else switchView('view-gallery');
     } else {
         alert("Failed to save game.");
     }
