@@ -5,8 +5,52 @@ const Database = require('better-sqlite3');
 const fs = require('fs');
 const { exec, execFile, spawn } = require('child_process');
 
-const hltb = require('howlongtobeat');
-const hltbService = new hltb.HowLongToBeatService();
+const https = require('https');
+
+async function searchHltb(gameName) {
+    const initData = await new Promise((resolve, reject) => {
+        const req = https.get(`https://howlongtobeat.com/api/bleed/init?t=${Date.now()}`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'referer': 'https://howlongtobeat.com/',
+            }
+        }, res => {
+            let body = '';
+            res.on('data', c => body += c);
+            res.on('end', () => { try { resolve(JSON.parse(body)); } catch(e) { reject(e); } });
+        });
+        req.on('error', reject);
+        req.setTimeout(10000, () => { req.destroy(); reject(new Error('timeout')); });
+    });
+    const { token, hpKey, hpVal } = initData;
+    const payload = {
+        searchType: 'games', searchTerms: gameName.trim().split(' '),
+        searchPage: 1, size: 5,
+        searchOptions: {
+            games: { userId: 0, platform: '', sortCategory: 'popular', rangeCategory: 'main', rangeTime: { min: 0, max: 0 }, gameplay: { perspective: '', flow: '', genre: '', difficulty: '' }, rangeYear: { min: 0, max: 0 }, modifier: '' },
+            users: { sortCategory: 'postcount' }, lists: { sortCategory: 'all' },
+            filter: '', sort: 0, randomizer: 0
+        },
+        useCache: true
+    };
+    if (hpKey) payload[hpKey] = hpVal;
+    const body = JSON.stringify(payload);
+    return new Promise((resolve, reject) => {
+        const req = https.request({ hostname: 'howlongtobeat.com', path: '/api/bleed', method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body),
+                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'origin': 'https://howlongtobeat.com', 'referer': 'https://howlongtobeat.com/search',
+                'x-auth-token': token, 'x-hp-key': hpKey, 'x-hp-val': hpVal }
+        }, res => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => { try { resolve(JSON.parse(data).data || []); } catch(e) { reject(e); } });
+        });
+        req.on('error', reject);
+        req.setTimeout(15000, () => { req.destroy(); reject(new Error('timeout')); });
+        req.write(body); req.end();
+    });
+}
 
 let baseDir;
 if (process.env.APPIMAGE) {
@@ -552,12 +596,12 @@ ipcMain.handle('fetch-steam-trailer', async (event, appId) => {
 // --- OTHER FETCHERS ---
 ipcMain.handle('fetch-hltb', async (event, gameName) => {
     try {
-        let results = await hltbService.search(gameName);
+        let results = await searchHltb(gameName);
         if (results.length === 0) {
             let cleanName = gameName.replace(/[:\-].*/, '').replace(/[™®©]/g, '').trim();
-            results = await hltbService.search(cleanName);
+            results = await searchHltb(cleanName);
         }
-        if (results.length > 0 && results[0].gameplayMain > 0) return `${results[0].gameplayMain} Hours`;
+        if (results.length > 0 && results[0].comp_main > 0) return `${Math.round(results[0].comp_main / 3600)} Hours`;
         return "Unknown";
     } catch (e) {
         if (e.message.includes('404')) return "API Offline";
@@ -685,12 +729,12 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
         // External API Calls
         let hltbResult = "";
         try {
-            let hltbRes = await hltbService.search(gameName);
+            let hltbRes = await searchHltb(gameName);
             if (hltbRes.length === 0) {
                 let clean = gameName.replace(/[:\-].*/, '').replace(/[™®©]/g, '').trim();
-                hltbRes = await hltbService.search(clean);
+                hltbRes = await searchHltb(clean);
             }
-            if (hltbRes.length > 0 && hltbRes[0].gameplayMain > 0) hltbResult = `${hltbRes[0].gameplayMain} Hours`;
+            if (hltbRes.length > 0 && hltbRes[0].comp_main > 0) hltbResult = `${Math.round(hltbRes[0].comp_main / 3600)} Hours`;
         } catch(e) {}
 
         let protonResult = "";
