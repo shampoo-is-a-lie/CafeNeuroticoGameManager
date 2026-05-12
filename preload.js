@@ -34,6 +34,7 @@ contextBridge.exposeInMainWorld('api', {
 
                                 // --- TRAILERS ---
                                 checkLocalTrailer: (g) => ipcRenderer.invoke('check-local-trailer', g),
+                                fetchSteamTrailer: (appId) => ipcRenderer.invoke('fetch-steam-trailer', appId),
                                 searchYoutube: (g) => ipcRenderer.invoke('search-youtube', g),
                                 downloadTrailer: (g, id) => ipcRenderer.invoke('download-trailer', g, id),
                                 deleteTrailer: (g) => ipcRenderer.invoke('delete-trailer', g),

@@ -1226,7 +1226,7 @@ const THEME_CATEGORIES = {
     "PSIII Colors": ["PSIII CLASSIC", "PSIII RED", "PSIII GREEN", "PSIII BLUE", "PSIII PURPLE", "PSIII GOLD", "PSIII SILVER"]
 };
 
-let activeTheme = localStorage.getItem('cngm_theme') || "DARK GRAY";
+let activeTheme = "DARK GRAY";
 
 function applyTheme(themeName) {
     const tConfig = THEMES[themeName];
@@ -1234,7 +1234,7 @@ function applyTheme(themeName) {
     const root = document.documentElement;
     Object.keys(tConfig).forEach(key => root.style.setProperty(`--${key}`, tConfig[key]));
     activeTheme = themeName;
-    localStorage.setItem('cngm_theme', themeName);
+    window.api.setSetting('cngm_theme', themeName);
 }
 
 const modalThemes = document.getElementById('modal-themes');
@@ -1279,3 +1279,4 @@ function renderThemesInCategory(category) {
 }
 
 applyTheme(activeTheme);
+window.api.getSetting('cngm_theme').then(saved => { if (saved && THEMES[saved]) applyTheme(saved); });
