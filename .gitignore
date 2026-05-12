@@ -3,3 +3,5 @@ dist/
 GameManagerConfig/
 *.AppImage
 .vscode/
+assets/bin/linux/yt-dlp
+assets/bin/linux/ffmpeg
