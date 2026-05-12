@@ -551,37 +551,17 @@
     <div class="modal-box" style="width: 800px; max-width: 90vw;">
       <h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Tools & Data</h3>
 
-      <div style="display: flex; gap: 20px; margin-top: 10px;">
+      <button id="btn-tools-manual" style="width: 100%; font-size: 11px; margin-top: 10px; background-color: var(--border_solid); color: var(--text_main);">📖 Open User Manual</button>
 
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
-            <div class="tool-card">
-                <button id="btn-tools-manual" class="primary" style="width: 100%; font-size: 11px; background-color: var(--border_solid); color: var(--text_main);">📖 Open User Manual</button>
-            </div>
+      <div style="display: flex; gap: 20px; margin-top: 12px;">
 
-            <div class="tool-card">
-                <div class="tool-card-title">🕒 Gaming History</div>
-                <div style="font-size: 11px; color: var(--text_sec);">Shows recently launched games at the top of the views.</div>
-
-                <div class="segmented-control" id="history-segmented-control">
-                    <button class="segmented-btn" data-val="0">OFF</button>
-                    <button class="segmented-btn" data-val="5">5</button>
-                    <button class="segmented-btn" data-val="10">10</button>
-                    <button class="segmented-btn" data-val="15">15</button>
-                    <button class="segmented-btn" data-val="20">20</button>
-                </div>
-
-                <button id="btn-clear-history" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; margin-top: 5px;">🗑️ CLEAR GAMING HISTORY</button>
-            </div>
+        <!-- LEFT: Preferences -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
 
             <div class="tool-card">
-                <div class="tool-card-title">🔍 UI Scale</div>
-                <div style="font-size: 11px; color: var(--text_sec); display: flex; justify-content: space-between; padding: 0 10px;">
-                    <span>Smaller</span>
-                    <span>⟷</span>
-                    <span>Bigger</span>
-                </div>
-
-                <div class="segmented-control" id="ui-scale-segmented-control">
+                <div class="tool-card-title">🎨 Appearance</div>
+                <button id="btn-theme-switch" style="width: 100%; background-color: transparent; color: var(--accent); border-color: var(--accent); font-size: 11px;">Theme Selection</button>
+                <div class="segmented-control" id="ui-scale-segmented-control" style="margin-top: 6px;">
                     <button class="segmented-btn ui-scale-btn" data-val="0.5">50%</button>
                     <button class="segmented-btn ui-scale-btn" data-val="0.75">75%</button>
                     <button class="segmented-btn ui-scale-btn" data-val="1.0">100%</button>
@@ -591,50 +571,52 @@
             </div>
 
             <div class="tool-card">
-                <div class="tool-card-title">🎨 Aesthetics</div>
-                <button id="btn-theme-switch" style="width: 100%; background-color: transparent; color: var(--accent); border-color: var(--accent); font-size: 11px;">Theme Selection</button>
+                <div class="tool-card-title">🕒 Gaming History</div>
+                <div class="segmented-control" id="history-segmented-control">
+                    <button class="segmented-btn" data-val="0">OFF</button>
+                    <button class="segmented-btn" data-val="5">5</button>
+                    <button class="segmented-btn" data-val="10">10</button>
+                    <button class="segmented-btn" data-val="15">15</button>
+                    <button class="segmented-btn" data-val="20">20</button>
+                </div>
+                <button id="btn-clear-history" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; margin-top: 6px;">🗑️ Clear History</button>
             </div>
+
         </div>
 
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 15px;">
-            <div class="tool-card">
-                <div class="tool-card-title">🗄️ System Backup</div>
-                <div class="row">
-                    <button id="btn-backup-zip" style="flex: 1; font-size: 11px;">BACKUP TO ZIP</button>
-                    <button id="btn-restore-zip" style="flex: 1; font-size: 11px;">RESTORE ZIP</button>
-                </div>
-            </div>
+        <!-- RIGHT: Actions -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
 
             <div class="tool-card">
-                <div class="tool-card-title">✨ Media Fetching</div>
+                <div class="tool-card-title">✨ Library</div>
                 <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;">Batch Fetch Missing Artwork</button>
                 <div id="batch-status" style="font-size: 11px; text-align: center; font-weight: bold; color: #ffeb3b; min-height: 5px;"></div>
-            </div>
-
-            <div class="tool-card">
-                <div class="tool-card-title">📄 CSV Tools</div>
-                <div class="row">
-                    <button id="btn-import-csv" style="flex: 1; font-size: 11px;">📥 IMPORT</button>
-                    <button id="btn-export-csv" style="flex: 1; font-size: 11px;">📤 EXPORT</button>
+                <div class="row" style="margin-top: 6px;">
+                    <button id="btn-import-csv" style="flex: 1; font-size: 11px;">📥 Import CSV</button>
+                    <button id="btn-export-csv" style="flex: 1; font-size: 11px;">📤 Export CSV</button>
+                    <button id="btn-template-csv" style="flex: 1; background: transparent; border: 1px solid var(--border); font-size: 11px;">Template</button>
                 </div>
-                <button id="btn-template-csv" style="width: 100%; background: transparent; border: 1px solid var(--border); font-size: 11px;">Download CSV Template</button>
             </div>
 
             <div class="tool-card">
-                <div class="tool-card-title">🖼️ Image Storage</div>
-                <button id="btn-clean-images" style="width: 100%; font-size: 11px; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; margin-bottom: 5px;">🧹 Clean Unused Images</button>
-                <button id="btn-clear-all-images" style="width: 100%; font-size: 11px; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f;">☢️ Clear All Images</button>
-            </div>
-
-            <div class="tool-card">
-                <button id="btn-clear-data" style="width: 100%; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f; font-size: 11px;">🧹 WIPE SECURE BROWSER DATA</button>
-            </div>
-
-            <div class="tool-card">
-                <div class="tool-card-title">🖥️ System Integration</div>
-                <button id="btn-install-menu" style="width: 100%; font-size: 11px;">Add to Application Menu</button>
+                <div class="tool-card-title">🗄️ System</div>
+                <div class="row">
+                    <button id="btn-backup-zip" style="flex: 1; font-size: 11px;">Backup ZIP</button>
+                    <button id="btn-restore-zip" style="flex: 1; font-size: 11px;">Restore ZIP</button>
+                </div>
+                <button id="btn-install-menu" style="width: 100%; font-size: 11px; margin-top: 6px;">🖥️ Add to Application Menu</button>
                 <div id="install-menu-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 5px;"></div>
             </div>
+
+            <div class="tool-card">
+                <div class="tool-card-title">🧹 Cleanup</div>
+                <div class="row">
+                    <button id="btn-clean-images" style="flex: 1; font-size: 11px; background-color: transparent; border: 1px solid #f57c00; color: #f57c00;">Clean Images</button>
+                    <button id="btn-clear-all-images" style="flex: 1; font-size: 11px; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f;">Clear All Images</button>
+                </div>
+                <button id="btn-clear-data" style="width: 100%; background-color: transparent; border: 1px solid #d32f2f; color: #d32f2f; font-size: 11px; margin-top: 6px;">Wipe Secure Browser Data</button>
+            </div>
+
         </div>
 
       </div>
