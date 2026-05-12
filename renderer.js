@@ -214,6 +214,7 @@ function applyFilters() {
         else if (currentFilter === 'epic') matchesCategory = storeLower.includes('epic');
         else if (currentFilter === 'gog') matchesCategory = storeLower.includes('gog');
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
+        else if (currentFilter === 'amazon') matchesCategory = storeLower.includes('amazon');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
 
@@ -487,6 +488,7 @@ function openGamepage(game) {
 
     document.getElementById('gp-coop').innerText = game.Coop || "--";
     document.getElementById('gp-players').innerText = game.NumPlayers || "--";
+    document.getElementById('gp-similar').innerText = game.SimilarGames || "--";
 
     // FIX: Screenshots Slideshow Logic with beautiful Ken Burns Effect
     const ssBanner = document.getElementById('gamepage-screenshots-banner');

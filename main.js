@@ -903,7 +903,7 @@ ipcMain.handle('import-csv', async () => {
                                getVal('steamappid') || getVal('steam_app_id'),
                                getVal('protontier') || getVal('protondb_tier') || getVal('proton_tier'),
                                getVal('metacritic') || getVal('metacritic_score'),
-                               getVal('hltb_main') || getVal('hltb_(hours)') || getVal('hltb_main'),
+                               getVal('hltb_main') || getVal('hltb_(hours)'),
                                getVal('dev') || getVal('developer'),
                                getVal('pub') || getVal('publisher'),
                                getVal('coop') || getVal('co-op'),
