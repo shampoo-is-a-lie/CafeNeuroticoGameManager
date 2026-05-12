@@ -100,6 +100,7 @@ app.whenReady().then(() => {
 
     try {
         db = new Database(dbPath);
+        db.pragma('journal_mode = WAL');
         db.prepare(`
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT, Store TEXT, FAV TEXT, WANT_TO_PLAY TEXT,
@@ -128,6 +129,15 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+
+const cremaPath = path.join(baseDir, 'CREMA.AppImage');
+ipcMain.handle('check-crema', () => fs.existsSync(cremaPath));
+ipcMain.on('launch-crema', () => {
+    const child = spawn(cremaPath, [], { detached: true, stdio: 'ignore' });
+    child.unref();
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win) win.minimize();
+});
 
 ipcMain.on('window-minimize', () => { const win = BrowserWindow.getFocusedWindow(); if(win) win.minimize(); });
 ipcMain.on('window-maximize', () => {

@@ -5,6 +5,11 @@ let currentFilter = 'all';
 let lastGridView = 'view-gallery';
 let baseDir = '';
 
+window.api.checkCrema().then(exists => {
+    if (exists) document.getElementById('btn-launch-crema').style.display = 'block';
+});
+document.getElementById('btn-launch-crema').addEventListener('click', () => window.api.launchCrema());
+
 // Local variable to hold our gaming history limit preference
 let recentGamesCount = 0;
 let detailScreenshotInterval = null;

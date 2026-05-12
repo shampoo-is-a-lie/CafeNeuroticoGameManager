@@ -53,6 +53,10 @@ contextBridge.exposeInMainWorld('api', {
                                 cleanUnusedImages: () => ipcRenderer.invoke('clean-unused-images'),
                                 clearAllImages: () => ipcRenderer.invoke('clear-all-images'),
 
+                                // --- CREMA COMPANION ---
+                                checkCrema: () => ipcRenderer.invoke('check-crema'),
+                                launchCrema: () => ipcRenderer.send('launch-crema'),
+
                                 // --- WINDOW CONTROLS ---
                                 minimizeApp: () => ipcRenderer.send('window-minimize'),
                                 maximizeApp: () => ipcRenderer.send('window-maximize'),
