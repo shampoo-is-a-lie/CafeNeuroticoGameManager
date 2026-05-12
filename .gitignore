@@ -1,6 +1,7 @@
 node_modules/
 dist/
 GameManagerConfig/
+GameManagerConfig
 *.AppImage
 .vscode/
 assets/bin/linux/yt-dlp
