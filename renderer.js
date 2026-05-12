@@ -2,6 +2,7 @@ let allGames = [];
 let currentGameId = null;
 let currentLaunchCmd = '';
 let currentFilter = 'all';
+let lastGridView = 'view-gallery';
 let baseDir = '';
 
 // Local variable to hold our gaming history limit preference
@@ -179,6 +180,7 @@ function switchView(viewId) {
     if (viewId !== 'view-gamepage') clearInterval(ssBannerKbInterval);
     if (viewId !== 'view-gallery') clearInterval(heroKbInterval);
     if (viewId !== 'view-details') clearInterval(detailScreenshotInterval);
+    if (viewId === 'view-gallery' || viewId === 'view-list') lastGridView = viewId;
 }
 
 async function loadGames() {
@@ -197,6 +199,10 @@ filterButtons.forEach(btn => {
         e.target.classList.add('active');
         currentFilter = e.target.getAttribute('data-filter');
         applyFilters();
+        const active = document.querySelector('.view.active');
+        if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) {
+            switchView(lastGridView);
+        }
     });
 });
 
