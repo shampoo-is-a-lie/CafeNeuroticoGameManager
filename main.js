@@ -126,6 +126,7 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN SteamTrailer TEXT").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN Description_i18n TEXT DEFAULT ''").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN Franchise TEXT DEFAULT ''").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN IGDBTrailer TEXT DEFAULT ''").run(); } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
     } catch (err) {
@@ -401,8 +402,8 @@ ipcMain.handle('update-game', (event, id, data) => {
             try { const p = JSON.parse(existing?.Description_i18n || '{}'); p.en = data.Description; descI18n = JSON.stringify(p); }
             catch(e) { descI18n = JSON.stringify({ en: data.Description }); }
         }
-        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Franchise=?, Description=?, Description_i18n=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=?, CoverArt=?, Screenshot=? WHERE id=?`);
-        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Franchise || "", data.Description, descI18n, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, data.CoverArt, data.Screenshot, id);
+        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Franchise=?, Description=?, Description_i18n=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=?, CoverArt=?, Screenshot=?, IGDBTrailer=? WHERE id=?`);
+        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Franchise || "", data.Description, descI18n, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, data.CoverArt, data.Screenshot, data.IGDBTrailer || "", id);
         return true;
     } catch (err) { return false; }
 });
@@ -672,18 +673,18 @@ ipcMain.handle('delete-trailer', (event, gameName) => {
 });
 
 ipcMain.handle('search-youtube', async (event, gameName) => {
-    const query = `${gameName} gameplay trailer no commentary`;
-    return new Promise((resolve) => {
-        const args = [ '--config-location', ytDlpConfigPath, `ytsearch5:${query}`, '--print', '%(id)s|%(thumbnail)s|%(title)s' ];
-        execFile(ytDlpPath, args, (error, stdout, stderr) => {
-            if (error || !stdout) resolve([]);
-            else {
-                const lines = stdout.split('\n').filter(l => l.trim() !== "");
-                const results = lines.map(line => { const parts = line.split('|'); return { id: parts[0], thumbnail: parts[1], title: parts.slice(2).join('|') }; });
-                resolve(results);
-            }
+    const runSearch = (query) => new Promise((resolve) => {
+        const args = ['--config-location', ytDlpConfigPath, `ytsearch5:${query}`, '--print', '%(id)s|%(thumbnail)s|%(title)s', '--no-playlist'];
+        execFile(ytDlpPath, args, { timeout: 20000 }, (error, stdout) => {
+            if (!stdout?.trim()) { resolve([]); return; }
+            const lines = stdout.split('\n').filter(l => l.trim());
+            resolve(lines.map(line => { const parts = line.split('|'); return { id: parts[0], thumbnail: parts[1], title: parts.slice(2).join('|') }; }));
         });
     });
+    // Try "official trailer" first — broader and catches branded trailers; fall back to plain "trailer"
+    let results = await runSearch(`${gameName} official trailer`);
+    if (results.length === 0) results = await runSearch(`${gameName} trailer`);
+    return results;
 });
 
 ipcMain.handle('download-trailer', (event, gameName, videoId) => {
@@ -757,6 +758,34 @@ ipcMain.handle('search-steam', async (e, gameName) => {
         return data.items.map(item => ({ id: item.id, name: item.name }));
     } catch(e) { return []; }
 });
+
+async function sgdbFetchFirst(gameName, apiKey, appId, assetType) {
+    try {
+        const headers = { "Authorization": `Bearer ${apiKey}`, "User-Agent": "Mozilla/5.0" };
+        let sgdbId = null;
+        if (appId) {
+            const r = await fetch(`https://www.steamgriddb.com/api/v2/games/steam/${appId}`, { headers });
+            const d = await r.json();
+            if (d.success && d.data) sgdbId = d.data.id;
+        }
+        if (!sgdbId) {
+            const res = await fetch(`https://www.steamgriddb.com/api/v2/search/autocomplete/${encodeURIComponent(gameName)}`, { headers });
+            const data = await res.json();
+            if (!data.success || !data.data?.length) return null;
+            sgdbId = data.data[0].id;
+        }
+        const endpoint = assetType === 'hero' ? 'heroes' : assetType === 'logo' ? 'logos' : 'grids';
+        const res2 = await fetch(`https://www.steamgriddb.com/api/v2/${endpoint}/game/${sgdbId}`, { headers });
+        const data2 = await res2.json();
+        if (!data2.success || !data2.data?.length) return null;
+        const url = data2.data[0].url;
+        const ext = assetType === 'logo' ? 'png' : 'jpg';
+        const safeN = gameName.replace(/[\\/:*?"<>|#]/g, '').trim();
+        const fileName = `${safeN} - SGDB ${assetType}.${ext}`;
+        if (await downloadImage(url, path.join(imagesDir, fileName))) return `GameManagerConfig/images/${fileName}`;
+        return null;
+    } catch(e) { return null; }
+}
 
 ipcMain.handle('sgdb-search', async (e, gameName, apiKey, appId, assetType = 'cover') => {
     try {
@@ -835,11 +864,18 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
         }
 
         // ── 2. STEAM DETAILS ──────────────────────────────────────────────
+        // Read existing local images — preserved if already set; never overwritten
+        const existing = db.prepare("SELECT CoverArt, HeroArt, Logo, Icon, Screenshot FROM games WHERE id=?").get(gameId) || {};
+        const isLocal = (v) => v && String(v).startsWith('GameManagerConfig');
+
         let steamSuccess = false, appData = null;
         let desc = "", htmlDesc = "", dev = "", pub = "", released = "", meta = "";
         let genre = "", coop = "None", players = "", tags = "";
         let hltbResult = "", protonResult = "", steamTrailerUrl = "";
-        let dbCoverPath = "", dbHeroPath = "", dbLogoPath = "", dbScreenPath = "";
+        let dbCoverPath  = isLocal(existing.CoverArt)   ? existing.CoverArt   : "";
+        let dbHeroPath   = isLocal(existing.HeroArt)    ? existing.HeroArt    : "";
+        let dbLogoPath   = isLocal(existing.Logo)       ? existing.Logo       : "";
+        let dbScreenPath = isLocal(existing.Screenshot) ? existing.Screenshot : "";
 
         if (appId) {
             try {
@@ -878,25 +914,31 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
                         if (pr.ok) { const pd = await pr.json(); if (pd.tier) protonResult = pd.tier.toUpperCase(); }
                     } catch(e) {}
 
-                    // Cover
-                    const coverFileName = `${safeName} - Cover.jpg`;
-                    const coverPath = path.join(imagesDir, coverFileName);
-                    let coverOk = await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/library_600x900.jpg`, coverPath);
-                    if (!coverOk && appData.header_image) coverOk = await downloadImage(appData.header_image, coverPath);
-                    if (coverOk) dbCoverPath = `GameManagerConfig/images/${coverFileName}`;
+                    // Cover (skip if already have a local file)
+                    if (!dbCoverPath) {
+                        const coverFileName = `${safeName} - Cover.jpg`;
+                        const coverPath = path.join(imagesDir, coverFileName);
+                        let coverOk = await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/library_600x900.jpg`, coverPath);
+                        if (!coverOk && appData.header_image) coverOk = await downloadImage(appData.header_image, coverPath);
+                        if (coverOk) dbCoverPath = `GameManagerConfig/images/${coverFileName}`;
+                    }
 
-                    // Hero
-                    const heroFileName = `${safeName} - Hero.jpg`;
-                    if (await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/library_hero.jpg`, path.join(imagesDir, heroFileName)))
-                        dbHeroPath = `GameManagerConfig/images/${heroFileName}`;
+                    // Hero (skip if already have a local file)
+                    if (!dbHeroPath) {
+                        const heroFileName = `${safeName} - Hero.jpg`;
+                        if (await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/library_hero.jpg`, path.join(imagesDir, heroFileName)))
+                            dbHeroPath = `GameManagerConfig/images/${heroFileName}`;
+                    }
 
-                    // Logo
-                    const logoFileName = `${safeName} - Logo.png`;
-                    if (await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/logo.png`, path.join(imagesDir, logoFileName)))
-                        dbLogoPath = `GameManagerConfig/images/${logoFileName}`;
+                    // Logo (skip if already have a local file)
+                    if (!dbLogoPath) {
+                        const logoFileName = `${safeName} - Logo.png`;
+                        if (await downloadImage(`https://steamcdn-a.akamaihd.net/steam/apps/${appId}/logo.png`, path.join(imagesDir, logoFileName)))
+                            dbLogoPath = `GameManagerConfig/images/${logoFileName}`;
+                    }
 
-                    // Screenshots
-                    if (appData.screenshots?.length > 0) {
+                    // Screenshots (skip if already have local screenshots)
+                    if (!dbScreenPath && appData.screenshots?.length > 0) {
                         const saved = [];
                         for (let i = 0; i < Math.min(5, appData.screenshots.length); i++) {
                             const fn = `${safeName} - Screen ${i+1}.jpg`;
@@ -913,14 +955,22 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
             } catch(e) {}
         }
 
-        // ── 3. IGDB ENRICHMENT ────────────────────────────────────────────
-        let similarGames = "", franchise = "";
+        // ── 3. SGDB FALLBACK — Hero Art & Logo ───────────────────────────
+        const sgdbApiKey = db?.prepare("SELECT value FROM settings WHERE key='steamgriddb_api'").get()?.value;
+        if (sgdbApiKey) {
+            if (!dbHeroPath) dbHeroPath = await sgdbFetchFirst(gameName, sgdbApiKey, appId, 'hero') || "";
+            if (!dbLogoPath) dbLogoPath = await sgdbFetchFirst(gameName, sgdbApiKey, appId, 'logo') || "";
+        }
+
+        // ── 4. IGDB ENRICHMENT ────────────────────────────────────────────
+        let similarGames = "", franchise = "", igdbTrailerId = "";
         const igdb = await igdbSearch(gameName, appId);
 
         if (igdb) {
             // Similar games & franchise (for all games)
             if (igdb.similar_games?.length) similarGames = igdb.similar_games.map(g => g.name).slice(0, 6).join(', ');
             franchise = igdb.franchises?.[0]?.name || igdb.collection?.name || "";
+            igdbTrailerId = igdb.videos?.[0]?.video_id || "";
 
             // Fill gaps — used when Steam failed or game is non-Steam
             if (!desc   && igdb.summary)               desc    = igdb.summary;
@@ -961,12 +1011,12 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
             }
         }
 
-        // ── 4. SAVE ───────────────────────────────────────────────────────
+        // ── 5. SAVE ───────────────────────────────────────────────────────
         if (!steamSuccess && !igdb) return { success: false, message: "No data found on Steam or IGDB." };
 
         const descI18n = await fetchDescI18n(appId, desc);
-        db.prepare(`UPDATE games SET Description=?, SteamDesc=?, Description_i18n=?, DEV=?, PUB=?, RELEASED=?, METACRITIC=?, GENRE=?, CoverArt=?, HeroArt=?, Logo=?, Screenshot=?, SteamAppID=?, Coop=?, NumPlayers=?, Tags=?, HLTB_Main=?, ProtonTier=?, SteamTrailer=?, SimilarGames=?, Franchise=? WHERE id=?`)
-        .run(desc, htmlDesc, descI18n, dev, pub, released, meta, genre, dbCoverPath, dbHeroPath, dbLogoPath, dbScreenPath, appId || "", coop, players, tags, hltbResult, protonResult, steamTrailerUrl, similarGames, franchise, gameId);
+        db.prepare(`UPDATE games SET Description=?, SteamDesc=?, Description_i18n=?, DEV=?, PUB=?, RELEASED=?, METACRITIC=?, GENRE=?, CoverArt=?, HeroArt=?, Logo=?, Screenshot=?, SteamAppID=?, Coop=?, NumPlayers=?, Tags=?, HLTB_Main=?, ProtonTier=?, SteamTrailer=?, SimilarGames=?, Franchise=?, IGDBTrailer=? WHERE id=?`)
+        .run(desc, htmlDesc, descI18n, dev, pub, released, meta, genre, dbCoverPath, dbHeroPath, dbLogoPath, dbScreenPath, appId || "", coop, players, tags, hltbResult, protonResult, steamTrailerUrl, similarGames, franchise, igdbTrailerId, gameId);
 
         const sources = [steamSuccess && 'Steam', igdb && 'IGDB'].filter(Boolean).join(' + ');
         return { success: true, message: `Data fetched via ${sources}!` };

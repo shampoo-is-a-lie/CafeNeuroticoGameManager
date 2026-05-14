@@ -1039,17 +1039,35 @@ document.getElementById('btn-watch-trailer').addEventListener('click', async () 
     } else {
         document.getElementById('modal-trailer-search').classList.add('active');
         const lst = document.getElementById('yt-search-list'); const stat = document.getElementById('yt-search-status');
-        lst.innerHTML = ''; stat.innerText = t('status.searching_yt', {name: gameName});
-        const results = await window.api.searchYoutube(gameName);
-        if (results.length === 0) { stat.innerText = t('status.no_yt'); return; }
-        stat.innerText = t('status.select_video');
-        results.forEach((res, i) => {
+        lst.innerHTML = '';
+
+        // IGDB result is local — show it immediately if available
+        const game = allGames.find(g => g.id === currentGameId);
+        const igdbId = game?.IGDBTrailer;
+        const renderResult = (res) => {
             const div = document.createElement('div');
             div.className = 'yt-search-item';
-            div.innerHTML = `<img src="${res.thumbnail}" style="width: 120px; border-radius: 4px;"><div style="color: var(--text_main); font-weight: bold;">${res.title}</div>`;
+            if (res.official) div.style.cssText = 'border: 2px solid var(--accent); border-radius: 8px;';
+            div.innerHTML = `<img src="${res.thumbnail}" style="width: 120px; border-radius: 4px;"><div style="color: ${res.official ? 'var(--accent)' : 'var(--text_main)'}; font-weight: bold;">${res.title}</div>`;
             div.addEventListener('click', () => { document.getElementById('modal-trailer-search').classList.remove('active'); openTrailerProgress(gameName, res.id); });
             lst.appendChild(div);
-        });
+        };
+
+        if (igdbId) {
+            renderResult({ id: igdbId, thumbnail: `https://img.youtube.com/vi/${igdbId}/hqdefault.jpg`, title: '🎬 Official Trailer (via IGDB)', official: true });
+            stat.innerText = 'Official trailer found. Also searching YouTube...';
+        } else {
+            stat.innerText = t('status.searching_yt', {name: gameName});
+        }
+
+        // YouTube search runs in parallel — results appended when ready
+        const ytResults = await window.api.searchYoutube(gameName);
+        const filtered = ytResults.filter(r => r.id !== igdbId);
+        filtered.forEach(res => renderResult(res));
+
+        const total = (igdbId ? 1 : 0) + filtered.length;
+        if (total === 0) { stat.innerText = t('status.no_yt'); return; }
+        stat.innerText = t('status.select_video');
     }
 });
 
