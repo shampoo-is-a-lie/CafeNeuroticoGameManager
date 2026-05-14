@@ -60,6 +60,12 @@ contextBridge.exposeInMainWorld('api', {
                                 checkCrema: () => ipcRenderer.invoke('check-crema'),
                                 launchCrema: () => ipcRenderer.send('launch-crema'),
 
+                                // --- IGDB ---
+                                igdbTest: () => ipcRenderer.invoke('igdb-test'),
+
+                                // --- I18N ---
+                                getStrings: (lang) => ipcRenderer.invoke('get-strings', lang),
+
                                 // --- WINDOW CONTROLS ---
                                 minimizeApp: () => ipcRenderer.send('window-minimize'),
                                 maximizeApp: () => ipcRenderer.send('window-maximize'),
