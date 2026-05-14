@@ -342,6 +342,20 @@ function renderTable(recent, regular) {
     });
 }
 
+function getStoreLogo(store) {
+    if (!store) return null;
+    const s = store.toLowerCase();
+    if (s.includes('steam'))    return 'assets/logos/steam.png';
+    if (s.includes('gog'))      return 'assets/logos/gog.png';
+    if (s.includes('epic'))     return 'assets/logos/epic.png';
+    if (s.includes('amazon'))   return 'assets/logos/amazon.png';
+    if (s.includes('physical')) return 'assets/logos/physical.png';
+    if (s.includes('emulat'))   return 'assets/logos/emulation.png';
+    if (s.includes('app'))      return 'assets/logos/apps.png';
+    if (s.includes('other'))    return 'assets/logos/others.png';
+    return null;
+}
+
 function renderGallery(recent, regular) {
     const grid = document.getElementById('gallery-grid');
     grid.innerHTML = '';
@@ -351,8 +365,10 @@ function renderGallery(recent, regular) {
         div.className = 'gallery-item';
         const imgSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
         const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
+        const logo = getStoreLogo(game.Store);
+        const badgeHtml = logo ? `<div class="gallery-store-badge" style="-webkit-mask-image: url('${logo}');"></div>` : '';
         div.innerHTML = `
-        ${imgHtml}
+        <div class="gallery-cover-wrap">${imgHtml}${badgeHtml}</div>
         <div class="gallery-title">${game.Game}</div>
         ${game.LaunchCommand ? `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>` : ''}
         `;
@@ -1110,7 +1126,9 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
     const statusEl = document.getElementById('update-library-status');
     btn.disabled = true;
     btn.innerText = t('status.updating_library');
-    statusEl.innerText = '';
+    statusEl.innerHTML = '';
+
+    const line = (html) => { statusEl.innerHTML += (statusEl.innerHTML ? '<br>' : '') + html; };
 
     const steamId = await window.api.getSetting('steam_id');
     const steamKey = await window.api.getSetting('steam_api_key');
@@ -1118,22 +1136,35 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
     let anySuccess = false;
 
     // Heroic sync
+    line('🔄 Syncing Heroic...');
     const heroicResult = await window.api.syncHeroic();
-    if (heroicResult.success) { anySuccess = true; }
-    else { issues.push('heroic'); }
+    if (heroicResult.success) {
+        anySuccess = true;
+        statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Heroic...', `✅ Heroic: ${heroicResult.message}`);
+    } else {
+        statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Heroic...', '⚠️ Heroic: not found');
+        issues.push('heroic');
+    }
 
     // Steam sync — only if credentials are already saved
     if (steamId && steamKey) {
+        line('🔄 Syncing Steam...');
         const steamResult = await window.api.syncSteam(steamId, steamKey);
-        if (steamResult.success) anySuccess = true;
+        if (steamResult.success) {
+            anySuccess = true;
+            statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Steam...', `✅ Steam: ${steamResult.message}`);
+        } else {
+            statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Steam...', `⚠️ Steam: ${steamResult.message}`);
+        }
     } else {
+        line('⚠️ Steam: not configured');
         issues.push('steam');
     }
 
     btn.disabled = false;
     btn.innerText = t('html.btn_update_library');
 
-    // Show setup info if anything is missing
+    // Show setup info modal if anything is missing
     if (issues.length > 0) {
         let body = '';
         if (issues.includes('heroic')) {
@@ -1157,8 +1188,8 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
 
     if (anySuccess) {
         await loadGames();
+        // Keep the Tools modal open so the user can see batch scrape progress
         if (confirm(t('status.sync_batch_prompt'))) {
-            document.getElementById('modal-tools').classList.remove('active');
             document.getElementById('btn-batch-fetch').click();
         }
     }
@@ -1225,25 +1256,39 @@ document.getElementById('btn-close-tools').addEventListener('click', () => modal
 
 // Upgraded Batch Fetcher
 document.getElementById('btn-batch-fetch').addEventListener('click', async () => {
+    const hasImg = (v) => v && String(v).startsWith('GameManagerConfig');
+    const hasText = (v) => v && String(v).trim() !== '';
     const gamesToFetch = allGames.filter(g =>
-    !g.CoverArt || !String(g.CoverArt).startsWith('GameManagerConfig') ||
-    !g.HeroArt || !String(g.HeroArt).startsWith('GameManagerConfig') ||
-    !g.Logo || !String(g.Logo).startsWith('GameManagerConfig') ||
-    !g.Icon || !String(g.Icon).startsWith('GameManagerConfig') ||
-    !g.Screenshot || !String(g.Screenshot).startsWith('GameManagerConfig')
+        !hasImg(g.CoverArt) || !hasImg(g.HeroArt) || !hasImg(g.Logo) ||
+        !hasImg(g.Icon) || !hasImg(g.Screenshot) ||
+        !hasText(g.Description) || !hasText(g.DEV) || !hasText(g.GENRE) ||
+        !hasText(g.SimilarGames) || !hasText(g.Franchise)
     );
 
-    if (gamesToFetch.length === 0) { document.getElementById('batch-status').innerText = t('status.all_up_to_date'); return; }
+    const btn = document.getElementById('btn-batch-fetch');
+    const statusText = document.getElementById('batch-status');
+    const progressWrap = document.getElementById('batch-progress-wrap');
+    const progressFill = document.getElementById('batch-progress-fill');
 
-    const btn = document.getElementById('btn-batch-fetch'); const statusText = document.getElementById('batch-status');
+    if (gamesToFetch.length === 0) { statusText.innerText = t('status.all_up_to_date'); return; }
+
     btn.disabled = true;
+    progressWrap.style.display = 'block';
+    progressFill.style.width = '0%';
+
     for (let i = 0; i < gamesToFetch.length; i++) {
         const game = gamesToFetch[i];
         statusText.innerText = t('status.fetching_progress', {i: i + 1, total: gamesToFetch.length, name: game.Game});
+        progressFill.style.width = `${Math.round(((i + 1) / gamesToFetch.length) * 100)}%`;
         await window.api.autoFetch(game.id, game.Game, game.SteamAppID);
         await new Promise(resolve => setTimeout(resolve, 500));
     }
-    statusText.innerText = t('status.batch_done', {n: gamesToFetch.length}); btn.disabled = false; loadGames();
+
+    progressFill.style.width = '100%';
+    statusText.innerText = t('status.batch_done', {n: gamesToFetch.length});
+    setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0%'; }, 2000);
+    btn.disabled = false;
+    loadGames();
 });
 
 document.getElementById('btn-add-game').addEventListener('click', async () => {

@@ -33,7 +33,9 @@
     #gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
     .gallery-item { background: var(--bg_panel); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; display: flex; flex-direction: column; }
     .gallery-item:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-    .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; }
+    .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; display: block; }
+    .gallery-cover-wrap { position: relative; width: 100%; }
+    .gallery-store-badge { position: absolute; bottom: 7px; right: 7px; width: 22px; height: 22px; background-color: rgba(255,255,255,0.7); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)); }
     .gallery-title { padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text_sec); }
 
     #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
@@ -617,9 +619,12 @@
             <div class="tool-card">
                 <div class="tool-card-title" data-i18n="html.card_library">✨ Library</div>
                 <button id="btn-update-library" class="primary" style="width: 100%; font-size: 12px; padding: 12px; letter-spacing: 1px;" data-i18n="html.btn_update_library">🔄 Update Library</button>
-                <div id="update-library-status" style="font-size: 11px; text-align: center; font-weight: bold; color: #ffeb3b; min-height: 5px;"></div>
-                <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;" data-i18n="html.btn_batch_fetch">Batch Fetch Missing Artwork</button>
-                <div id="batch-status" style="font-size: 11px; text-align: center; font-weight: bold; color: #ffeb3b; min-height: 5px;"></div>
+                <div id="update-library-status" style="font-size: 11px; font-weight: bold; color: #ffeb3b; min-height: 14px; line-height: 1.6;"></div>
+                <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;" data-i18n="html.btn_batch_fetch">Batch Scrape Missing Data</button>
+                <div id="batch-progress-wrap" style="display:none; width:100%; background: var(--bg); border-radius: 4px; height: 6px; overflow:hidden; margin-top: 2px;">
+                  <div id="batch-progress-fill" style="height:100%; width:0%; background: var(--accent); transition: width 0.2s linear;"></div>
+                </div>
+                <div id="batch-status" style="font-size: 11px; text-align: center; font-weight: bold; color: #ffeb3b; min-height: 14px;"></div>
                 <div class="row" style="margin-top: 6px;">
                     <button id="btn-import-csv" style="flex: 1; font-size: 11px;" data-i18n="status.import_csv">📥 Import CSV</button>
                     <button id="btn-export-csv" style="flex: 1; font-size: 11px;" data-i18n="html.btn_export_csv">📤 Export CSV</button>

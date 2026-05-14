@@ -217,21 +217,29 @@ async function getIgdbToken() {
     } catch(e) { return null; }
 }
 
+async function igdbQuery(auth, body) {
+    const res = await fetch('https://api.igdb.com/v4/games', {
+        method: 'POST',
+        headers: { 'Client-ID': auth.clientId, 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'text/plain' },
+        body
+    });
+    const data = await res.json();
+    // IGDB returns error objects with a 'title' field instead of 'name'
+    if (!Array.isArray(data) || data[0]?.title) return null;
+    return data[0] || null;
+}
+
 async function igdbSearch(gameName, steamAppId) {
     const auth = await getIgdbToken();
     if (!auth) return null;
     const fields = 'fields name,summary,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,genres.name,themes.name,first_release_date,aggregated_rating,cover.url,screenshots.url,videos.video_id,similar_games.name,franchises.name,collection.name,external_games.category,external_games.uid;';
-    const body = steamAppId
-        ? `${fields} where external_games.category=1 & external_games.uid="${steamAppId}"; limit 1;`
-        : `search "${gameName.replace(/"/g, '')}"; ${fields} limit 3;`;
     try {
-        const res = await fetch('https://api.igdb.com/v4/games', {
-            method: 'POST',
-            headers: { 'Client-ID': auth.clientId, 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'text/plain' },
-            body
-        });
-        const data = await res.json();
-        return data?.[0] || null;
+        // Try Steam App ID lookup first (precise), fall back to name search
+        if (steamAppId) {
+            const byId = await igdbQuery(auth, `${fields} where external_games.uid = "${steamAppId}" & external_games.category = 1; limit 1;`);
+            if (byId) return byId;
+        }
+        return await igdbQuery(auth, `search "${gameName.replace(/"/g, '')}"; ${fields} limit 3;`);
     } catch(e) { return null; }
 }
 
@@ -243,9 +251,10 @@ function igdbImg(url, size = 'cover_big') {
 ipcMain.handle('igdb-test', async () => {
     const auth = await getIgdbToken();
     if (!auth) return { success: false, message: 'No credentials saved.' };
-    const result = await igdbSearch('Portal 2', '620');
-    if (result) return { success: true, message: `✅ Connected! Found: ${result.name}` };
-    return { success: false, message: '❌ Token OK but query failed. Check credentials.' };
+    // Use name search for the test — most reliable, no external_games dependency
+    const result = await igdbQuery(auth, 'search "Portal 2"; fields name; limit 1;');
+    if (result?.name) return { success: true, message: `✅ Connected! Found: ${result.name}` };
+    return { success: false, message: '❌ Token OK but IGDB query failed. Try again in a moment.' };
 });
 // ───────────────────────────────────────────────────────────────────────────
 
