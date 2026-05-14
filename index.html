@@ -90,6 +90,8 @@
     .gamepage-stat { display: flex; flex-direction: column; gap: 2px; }
     .stat-label { font-size: 10px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
     .stat-val { font-size: 13px; font-weight: bold; color: var(--text_main); }
+    .similar-link { color: var(--accent); cursor: pointer; text-decoration: underline; text-decoration-color: var(--border_solid); text-underline-offset: 2px; }
+    .similar-link:hover { opacity: 0.75; }
 
     #gamepage-steam-desc { color: var(--text_sec); line-height: 1.8; font-size: 18px; word-wrap: break-word; overflow-x: hidden; }
     #gamepage-steam-desc img { max-width: 100% !important; height: auto !important; object-fit: contain; border-radius: 8px; margin: 15px 0; display: block; }
@@ -566,7 +568,60 @@
 
   <div id="modal-refine-search" class="modal-overlay"><div class="modal-box"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Refine Search</h3><p style="font-size: 12px; color: var(--text_sec); margin: 0;">No exact matches found. Modify the title to search again:</p><input type="text" id="refine-search-input" style="margin-top: 10px;"><button id="btn-refine-search-submit" class="primary" style="padding: 10px;">Search Again</button><button id="btn-close-refine-search" style="margin-top: 5px;">Cancel</button></div></div>
   <div id="modal-steam-results" class="modal-overlay"><div class="modal-box" style="max-height: 80vh;"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;">Multiple Results Found</h3><p style="font-size: 12px; color: var(--text_sec); margin: 0;">Select the correct game from the Steam database:</p><div id="steam-results-list" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px;"></div><button id="btn-close-steam-results" style="margin-top: 10px;">Cancel</button></div></div>
-  <div id="modal-connect" class="modal-overlay"><div class="modal-box"><h3 style="margin: 0; color: var(--accent); text-transform: uppercase;" data-i18n="html.connect_title">Store Sync</h3><button id="btn-sync-heroic" style="background-color: #f57c00; border:none; padding: 10px; color: #fff;" data-i18n="html.btn_sync_heroic">Sync Heroic Games</button><hr style="border: 1px solid var(--border); width: 100%;"><h4 style="margin: 0; text-transform: uppercase;" data-i18n="html.connect_steam_section">Steam API Import</h4><div style="font-size: 11px; color: var(--text_sec); line-height: 1.5; text-transform: none; margin-top: 5px; margin-bottom: 10px;" data-i18n-html="html.connect_steam_info">Valve's web logins are notoriously strict for scrapers. The most reliable way to import your Steam library is using the official Steam API.<br><br>1. Get an API Key at: <strong style="color: var(--text_main);">https://steamcommunity.com/dev/apikey</strong><br>2. Find your 17-digit SteamID64 (from your profile URL or steamid.io).<br><br><span style="color: var(--accent); font-weight: bold;">* Your profile's 'Game Details' must be set to Public.</span></div><input type="password" id="steam-id" placeholder="STEAMID64 (E.G. 7656119...)"><input type="password" id="steam-api-key" placeholder="STEAM API KEY"><button id="btn-sync-steam" class="primary" style="padding: 10px;" data-i18n="html.btn_fetch_steam">Fetch Steam Library</button><hr style="border: 1px solid var(--border); width: 100%; margin: 15px 0;"><h4 style="margin: 0 0 10px 0; color: #8a2be2; text-transform: uppercase;" data-i18n="html.connect_gog_section">GOG Connection</h4><button id="btn-sync-gog" class="primary" style="width: 100%; background-color: #8a2be2;" data-i18n="html.btn_fetch_gog">Fetch GOG Library</button><p style="font-size: 11px; color: var(--text_dim); margin-top: 5px; text-align: center;" data-i18n="html.connect_gog_hint">THIS WILL OPEN A SECURE LOGIN WINDOW. CLOSE IT WHEN YOU ARE LOGGED IN.</p><hr style="border: 1px solid var(--border); width: 100%; margin: 15px 0;"><h4 style="margin: 0 0 6px 0; color: var(--accent); text-transform: uppercase;" data-i18n="html.connect_igdb_section">IGDB Integration</h4><p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px 0;" data-i18n="html.connect_igdb_hint">Get free API credentials at dev.twitch.tv — register an app, copy your Client ID and Secret.</p><input type="text" id="igdb-client-id" placeholder="CLIENT ID"><input type="password" id="igdb-client-secret" placeholder="CLIENT SECRET"><button id="btn-save-igdb" class="primary" style="padding: 10px; margin-top: 4px;" data-i18n="html.btn_igdb_save">Save & Test Connection</button><div id="igdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div><button id="btn-close-modal" style="margin-top: 10px;" data-i18n="html.close">Close</button></div></div>
+  <div id="modal-connect" class="modal-overlay">
+    <div class="modal-box" style="width: 680px; max-width: 92vw;">
+      <h3 style="margin: 0 0 15px 0; color: var(--accent); text-transform: uppercase;" data-i18n="html.connect_title">Store Sync</h3>
+
+      <div style="display: flex; gap: 15px; align-items: flex-start;">
+
+        <!-- LEFT: One-click syncs -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+
+          <div class="tool-card">
+            <div class="tool-card-title" style="color: #f57c00;">🎮 Heroic Games</div>
+            <button id="btn-sync-heroic" style="width: 100%; background-color: #f57c00; border: none; color: #fff;" data-i18n="html.btn_sync_heroic">Sync Heroic Games</button>
+            <p style="font-size: 11px; color: var(--text_dim); margin: 4px 0 0 0;">Imports Epic Games and GOG libraries from Heroic.</p>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-title" style="color: #8a2be2;" data-i18n="html.connect_gog_section">GOG Connection</div>
+            <button id="btn-sync-gog" style="width: 100%; background-color: #8a2be2; border: none; color: #fff;" data-i18n="html.btn_fetch_gog">Fetch GOG Library</button>
+            <p style="font-size: 11px; color: var(--text_dim); margin: 4px 0 0 0;" data-i18n="html.connect_gog_hint">THIS WILL OPEN A SECURE LOGIN WINDOW. CLOSE IT WHEN YOU ARE LOGGED IN.</p>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Credential-based -->
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 12px;">
+
+          <div class="tool-card">
+            <div class="tool-card-title" style="color: #66c0f4;" data-i18n="html.connect_steam_section">Steam API Import</div>
+            <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 6px 0; line-height: 1.5;">
+              API key: <strong style="color: var(--text_main);">steamcommunity.com/dev/apikey</strong><br>
+              SteamID64: profile URL or steamid.io<br>
+              <span style="color: var(--accent); font-weight: bold;">★ Game Details must be set to Public</span>
+            </p>
+            <input type="password" id="steam-id" placeholder="STEAMID64">
+            <input type="password" id="steam-api-key" placeholder="STEAM API KEY">
+            <button id="btn-sync-steam" class="primary" style="padding: 8px;" data-i18n="html.btn_fetch_steam">Fetch Steam Library</button>
+          </div>
+
+          <div class="tool-card">
+            <div class="tool-card-title" data-i18n="html.connect_igdb_section">IGDB Integration</div>
+            <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 6px 0;" data-i18n="html.connect_igdb_hint">Get free API credentials at dev.twitch.tv — register an app, copy your Client ID and Secret.</p>
+            <input type="text" id="igdb-client-id" placeholder="CLIENT ID">
+            <input type="password" id="igdb-client-secret" placeholder="CLIENT SECRET">
+            <button id="btn-save-igdb" class="primary" style="padding: 8px; margin-top: 2px;" data-i18n="html.btn_igdb_save">Save & Test Connection</button>
+            <div id="igdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <button id="btn-close-modal" style="margin-top: 15px; width: 100%;" data-i18n="html.close">Close</button>
+    </div>
+  </div>
 
   <div id="modal-tools" class="modal-overlay">
     <div class="modal-box" style="width: 800px; max-width: 90vw;">

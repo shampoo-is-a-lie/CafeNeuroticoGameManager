@@ -213,7 +213,9 @@ manualNavBtns.forEach(btn => {
 
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
+    const target = document.getElementById(viewId);
+    target.classList.add('active');
+    target.scrollTop = 0;
 
     // Ensure video pauses when leaving the view
     const vp = document.getElementById('detail-video-player');
@@ -553,7 +555,24 @@ function openGamepage(game) {
 
     document.getElementById('gp-coop').innerText = game.Coop || "--";
     document.getElementById('gp-players').innerText = game.NumPlayers || "--";
-    document.getElementById('gp-similar').innerText = game.SimilarGames || "--";
+    const similarEl = document.getElementById('gp-similar');
+    if (!game.SimilarGames || !game.SimilarGames.trim() || game.SimilarGames === '--') {
+        similarEl.innerText = '--';
+    } else {
+        const names = game.SimilarGames.split(',').map(n => n.trim()).filter(Boolean);
+        similarEl.innerHTML = names.map(name => {
+            const match = allGames.find(g => g.Game.toLowerCase() === name.toLowerCase());
+            return match
+                ? `<span class="similar-link" data-id="${match.id}" title="Open ${name}">${name}</span>`
+                : `<span>${name}</span>`;
+        }).join(', ');
+        similarEl.querySelectorAll('.similar-link').forEach(el => {
+            el.addEventListener('click', () => {
+                const g = allGames.find(g => g.id === parseInt(el.dataset.id));
+                if (g) openGamepage(g);
+            });
+        });
+    }
     document.getElementById('gp-franchise').innerText = game.Franchise || "--";
 
     // FIX: Screenshots Slideshow Logic with beautiful Ken Burns Effect
