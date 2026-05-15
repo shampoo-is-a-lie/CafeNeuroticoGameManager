@@ -432,14 +432,14 @@ function openGamepage(game) {
     const favBtn = document.getElementById('btn-gamepage-fav');
     const wantBtn = document.getElementById('btn-gamepage-want');
 
-    // Hero Art
+    // Hero Art — always reset to none first so the previous game's image
+    // is cleared immediately, before the new URL starts loading.
+    heroEl.style.backgroundImage = "none";
     if (game.HeroArt && game.HeroArt.trim() !== "") {
         heroEl.style.backgroundImage = `url('${getSafePath(game.HeroArt)}')`;
     } else if (game.Screenshot && game.Screenshot.trim() !== "") {
         const screens = String(game.Screenshot).split('|').filter(s => s.trim() !== "");
         heroEl.style.backgroundImage = `url('${getSafePath(screens[0])}')`;
-    } else {
-        heroEl.style.backgroundImage = "none";
     }
 
     // Logo vs Text
