@@ -34,13 +34,15 @@
       "category": "Game"
     },
     "appImage": {
-      "artifactName": "CNGM-v${version}-x86_64.AppImage"
+      "artifactName": "CNGM.AppImage"
     },
     "files": [
       "main.js",
       "preload.js",
       "renderer.js",
       "index.html",
+      "i18n.js",
+      "locales/**/*",
       "assets/**/*"
     ],
     "extraResources": [
