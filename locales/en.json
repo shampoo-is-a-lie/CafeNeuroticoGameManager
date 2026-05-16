@@ -121,7 +121,7 @@
     "btn_batch_fetch": "Batch Scrape Missing Data",
     "btn_export_csv": "📤 Export CSV",
     "btn_csv_template": "Download CSV Template",
-    "btn_update_library": "🔄 Update Library",
+    "btn_update_library": "Update Library",
     "card_system": "🗄️ System",
     "btn_backup": "Backup ZIP",
     "btn_restore": "Restore ZIP",

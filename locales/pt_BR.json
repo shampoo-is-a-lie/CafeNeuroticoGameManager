@@ -119,7 +119,7 @@
     "btn_batch_fetch": "Buscar Dados em Lote",
     "btn_export_csv": "📤 Exportar CSV",
     "btn_csv_template": "Baixar Modelo CSV",
-    "btn_update_library": "🔄 Atualizar Biblioteca",
+    "btn_update_library": "Atualizar Biblioteca",
     "card_system": "🗄️ Sistema",
     "btn_backup": "Backup ZIP",
     "btn_restore": "Restaurar ZIP",

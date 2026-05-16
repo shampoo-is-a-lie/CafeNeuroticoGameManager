@@ -15,7 +15,8 @@
       --border_solid: #8B5A2B;
     }
 
-    body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; }
+    @keyframes cngmFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; animation: cngmFadeIn 0.2s ease forwards; }
 
     #titlebar { height: 35px; flex-shrink: 0; background: var(--bg_menu); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border_solid); user-select: none; -webkit-app-region: drag; z-index: 9999; box-sizing: border-box; }
     .titlebar-brand { padding-left: 20px; font-size: 11px; font-weight: 900; color: var(--text_dim); letter-spacing: 3px; }
@@ -134,6 +135,7 @@
     .manual-box { border: 2px dashed var(--accent); padding: 20px; margin: 20px 0; background-color: var(--bg_panel); border-radius: 8px; }
     .manual-box-title { color: var(--accent); font-weight: 900; font-size: 14px; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
   </style>
+  <script>(function(){try{var c=localStorage.getItem('cngm_theme_cache');if(c){var t=JSON.parse(c);Object.keys(t).forEach(function(k){document.documentElement.style.setProperty('--'+k,t[k]);});}}catch(e){}})();</script>
 </head>
 <body>
 
@@ -673,7 +675,7 @@
 
             <div class="tool-card">
                 <div class="tool-card-title" data-i18n="html.card_library">✨ Library</div>
-                <button id="btn-update-library" class="primary" style="width: 100%; font-size: 12px; padding: 12px; letter-spacing: 1px;" data-i18n="html.btn_update_library">🔄 Update Library</button>
+                <button id="btn-update-library" class="primary" style="width: 100%; font-size: 12px; padding: 12px; letter-spacing: 1px;" data-i18n="html.btn_update_library">Update Library</button>
                 <div id="update-library-status" style="font-size: 11px; font-weight: bold; color: #ffeb3b; min-height: 14px; line-height: 1.6;"></div>
                 <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;" data-i18n="html.btn_batch_fetch">Batch Scrape Missing Data</button>
                 <div id="batch-progress-wrap" style="display:none; width:100%; background: var(--bg); border-radius: 4px; height: 6px; overflow:hidden; margin-top: 2px;">

@@ -48,7 +48,9 @@ window.api.getSetting('language').then(activeLang => {
         btn.addEventListener('click', async () => {
             const lang = btn.getAttribute('data-lang');
             await window.api.setSetting('language', lang);
-            window.location.reload();
+            document.body.style.transition = 'opacity 0.15s ease';
+            document.body.style.opacity = '0';
+            setTimeout(() => window.location.reload(), 160);
         });
     });
 });
@@ -1484,6 +1486,7 @@ function applyTheme(themeName) {
     Object.keys(tConfig).forEach(key => root.style.setProperty(`--${key}`, tConfig[key]));
     activeTheme = themeName;
     window.api.setSetting('cngm_theme', themeName);
+    try { localStorage.setItem('cngm_theme_cache', JSON.stringify(tConfig)); } catch(e) {}
 }
 
 const modalThemes = document.getElementById('modal-themes');
