@@ -1138,6 +1138,45 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
     btn.innerText = t('status.sync_heroic');
 });
 
+(function () {
+    const launchBtn = document.getElementById('btn-launch-watch-heroic');
+    const statusEl  = document.getElementById('heroic-watch-status-text');
+    let watching = false;
+
+    function setWatching(on) {
+        watching = on;
+        launchBtn.innerText = on ? t('status.heroic_watching') : t('html.btn_launch_watch_heroic');
+        launchBtn.style.opacity = on ? '0.7' : '1';
+    }
+
+    launchBtn.addEventListener('click', async () => {
+        if (watching) { window.api.cancelHeroicWatch(); setWatching(false); statusEl.innerText = ''; return; }
+        const result = await window.api.launchAndWatchHeroic();
+        if (!result.success) { statusEl.innerText = `⚠️ ${result.message}`; return; }
+        setWatching(true);
+        statusEl.style.color = 'var(--text_dim)';
+        statusEl.innerText = t('status.heroic_waiting');
+    });
+
+    window.api.onHeroicWatchStatus(data => {
+        if (data.phase === 'syncing') {
+            statusEl.style.color = 'var(--text_dim)';
+            statusEl.innerText = t('status.heroic_syncing');
+        } else if (data.phase === 'done') {
+            setWatching(false);
+            statusEl.style.color = data.success ? '#66bb6a' : '#ef5350';
+            statusEl.innerText = data.success ? `✅ ${data.message}` : `❌ ${data.message}`;
+            if (data.success) loadGames();
+            setTimeout(() => { statusEl.innerText = ''; }, 6000);
+        } else if (data.phase === 'timeout') {
+            setWatching(false);
+            statusEl.style.color = 'var(--text_dim)';
+            statusEl.innerText = t('status.heroic_timeout');
+            setTimeout(() => { statusEl.innerText = ''; }, 8000);
+        }
+    });
+})();
+
 document.getElementById('btn-sync-steam').addEventListener('click', async () => {
     const steamId = document.getElementById('steam-id').value.trim();
     const apiKey = document.getElementById('steam-api-key').value.trim();
@@ -1530,4 +1569,4 @@ function renderThemesInCategory(category) {
     });
 }
 
-window.api.getSetting('cngm_theme').then(saved => { applyTheme(saved && THEMES[saved] ? saved : activeTheme); });
+window.api.getSetting('cngm_theme').then(saved => { applyTheme(saved && THEMES[saved] ? saved : activeTheme); window.api.signalReady(); });

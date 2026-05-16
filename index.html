@@ -15,8 +15,7 @@
       --border_solid: #8B5A2B;
     }
 
-    @keyframes cngmFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; animation: cngmFadeIn 0.2s ease forwards; }
+    body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; }
 
     #titlebar { height: 35px; flex-shrink: 0; background: var(--bg_menu); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border_solid); user-select: none; -webkit-app-region: drag; z-index: 9999; box-sizing: border-box; }
     .titlebar-brand { padding-left: 20px; font-size: 11px; font-weight: 900; color: var(--text_dim); letter-spacing: 3px; }
@@ -581,8 +580,9 @@
 
           <div class="tool-card">
             <div class="tool-card-title" style="color: #f57c00;">🎮 Heroic Games</div>
-            <button id="btn-sync-heroic" style="width: 100%; background-color: #f57c00; border: none; color: #fff;" data-i18n="html.btn_sync_heroic">Sync Heroic Games</button>
-            <p style="font-size: 11px; color: var(--text_dim); margin: 4px 0 0 0;">Imports Epic Games and GOG libraries from Heroic.</p>
+            <button id="btn-launch-watch-heroic" style="width: 100%; background-color: #f57c00; border: none; color: #fff;" data-i18n="html.btn_launch_watch_heroic">🚀 Launch &amp; Auto-Sync</button>
+            <p id="heroic-watch-status-text" style="font-size: 11px; color: var(--text_dim); margin: 5px 0 5px 0; min-height: 14px; line-height: 1.4;"></p>
+            <button id="btn-sync-heroic" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; padding: 6px 0;" data-i18n="html.btn_sync_heroic">Sync Heroic Games</button>
           </div>
 
           <div class="tool-card">

@@ -84,7 +84,8 @@ function createWindow () {
         width: 1400,
         height: 950,
         frame: false,
-        backgroundColor: '#121212',
+        show: false,
+        backgroundColor: '#2C1E16',
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
                                   contextIsolation: true,
@@ -95,6 +96,12 @@ function createWindow () {
 
     win.setMenu(null);
     win.loadFile('index.html');
+
+    // Show only after the renderer has applied the theme — eliminates blank screen and color flash.
+    // Fallback: if renderer never signals within 3s, show anyway.
+    const showWin = () => { if (!win.isVisible()) win.show(); };
+    ipcMain.once('renderer-ready', showWin);
+    win.once('ready-to-show', () => setTimeout(showWin, 3000));
 }
 
 app.whenReady().then(() => {
@@ -431,63 +438,50 @@ ipcMain.handle('clear-history', (event) => {
 ipcMain.handle('get-strings', (_, lang) => require('./i18n')(lang || 'en'));
 
 // --- SYNC ENGINES ---
-ipcMain.handle('sync-heroic', async () => {
+async function doHeroicSync() {
     if (!db) return { success: false, message: "Database not initialized." };
     const home = os.homedir();
     let importedCount = 0;
 
     const heroicPaths = [
-        { type: 'NATIVE', base: path.join(home, '.config', 'heroic'), cmdPrefix: 'heroic' },
-               { type: 'FLATPAK', base: path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic'), cmdPrefix: 'flatpak run com.heroicgameslauncher.hgl' }
+        { type: 'NATIVE',  base: path.join(home, '.config', 'heroic'), cmdPrefix: 'heroic' },
+        { type: 'FLATPAK', base: path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic'), cmdPrefix: 'flatpak run com.heroicgameslauncher.hgl' }
     ];
-
     const storeConfigs = [
-        { name: 'EPIC', relInstalled: path.join('legendaryConfig', 'legendary', 'installed.json'), relLibraries: [ path.join('store_cache', 'legendary_library.json'), path.join('store_cache', 'epic_library.json'), path.join('store', 'epic', 'library.json') ], protocolId: 'epic' },
-               { name: 'GOG', relInstalled: path.join('gog_store', 'installed.json'), relLibraries: [ path.join('store_cache', 'gog_library.json'), path.join('gog_store', 'library.json') ], protocolId: 'gog' },
-               { name: 'AMAZON', relInstalled: path.join('nile_config', 'nile', 'installed.json'), relLibraries: [ path.join('nile_config', 'nile', 'library.json'), path.join('store_cache', 'amazon_library.json') ], protocolId: 'amazon' }
+        { name: 'EPIC',   relInstalled: path.join('legendaryConfig', 'legendary', 'installed.json'), relLibraries: [ path.join('store_cache', 'legendary_library.json'), path.join('store_cache', 'epic_library.json'), path.join('store', 'epic', 'library.json') ], protocolId: 'epic' },
+        { name: 'GOG',    relInstalled: path.join('gog_store', 'installed.json'), relLibraries: [ path.join('store_cache', 'gog_library.json'), path.join('gog_store', 'library.json') ], protocolId: 'gog' },
+        { name: 'AMAZON', relInstalled: path.join('nile_config', 'nile', 'installed.json'), relLibraries: [ path.join('nile_config', 'nile', 'library.json'), path.join('store_cache', 'amazon_library.json') ], protocolId: 'amazon' }
     ];
 
     for (const env of heroicPaths) {
         if (!fs.existsSync(env.base)) continue;
         for (const store of storeConfigs) {
             const gamesFound = new Map();
-
             for (const relLib of store.relLibraries) {
-                const libraryJsonPath = path.join(env.base, relLib);
-                if (fs.existsSync(libraryJsonPath)) {
-                    try {
-                        const rawData = fs.readFileSync(libraryJsonPath, 'utf8');
-                        const libraryData = JSON.parse(rawData);
-                        let items = [];
-                        if (Array.isArray(libraryData)) items = libraryData;
-                        else if (libraryData.library) items = libraryData.library;
-                        else if (libraryData.games) items = libraryData.games;
-                        else if (typeof libraryData === 'object') items = Object.values(libraryData);
-                        for (const item of items) {
-                            const appId = item.app_name || item.appName || item.id || item.name;
-                            const title = item.title || item.name || item.appName;
-                            if (appId && title) gamesFound.set(appId, title);
-                        }
-                    } catch (err) {}
-                }
-            }
-
-            const targetJsonPath = path.join(env.base, store.relInstalled);
-            if (fs.existsSync(targetJsonPath)) {
+                const libPath = path.join(env.base, relLib);
+                if (!fs.existsSync(libPath)) continue;
                 try {
-                    const rawData = fs.readFileSync(targetJsonPath, 'utf8');
-                    const installedGames = JSON.parse(rawData);
-                    for (const [appId, gameData] of Object.entries(installedGames)) {
+                    const raw = JSON.parse(fs.readFileSync(libPath, 'utf8'));
+                    let items = Array.isArray(raw) ? raw : raw.library || raw.games || (typeof raw === 'object' ? Object.values(raw) : []);
+                    for (const item of items) {
+                        const appId = item.app_name || item.appName || item.id || item.name;
+                        const title = item.title || item.name || item.appName;
+                        if (appId && title) gamesFound.set(appId, title);
+                    }
+                } catch (err) {}
+            }
+            const installedPath = path.join(env.base, store.relInstalled);
+            if (fs.existsSync(installedPath)) {
+                try {
+                    const installed = JSON.parse(fs.readFileSync(installedPath, 'utf8'));
+                    for (const [appId, gameData] of Object.entries(installed)) {
                         if (gameData.title) gamesFound.set(appId, gameData.title);
                     }
                 } catch (err) {}
             }
-
             for (const [appId, gameTitle] of gamesFound.entries()) {
                 const launchCommand = `${env.cmdPrefix} "heroic://launch/${store.protocolId}/${appId}"`;
-
                 const existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ? OR LOWER(Game) = LOWER(?)").get(launchCommand, gameTitle);
-
                 if (existing) {
                     let stores = existing.Store ? existing.Store.split(',').map(s => s.trim()) : [];
                     if (!stores.some(s => s.toLowerCase() === store.name.toLowerCase())) stores.push(store.name);
@@ -500,7 +494,67 @@ ipcMain.handle('sync-heroic', async () => {
         }
     }
     return { success: true, count: importedCount, message: `Successfully synced ${importedCount} games from Heroic.` };
+}
+
+ipcMain.handle('sync-heroic', async () => doHeroicSync());
+
+// ── LAUNCH & AUTO-WATCH ────────────────────────────────────────────────────
+let heroicWatchState = null;
+
+function stopHeroicWatch() {
+    if (!heroicWatchState) return;
+    heroicWatchState.watchers.forEach(w => { try { w.close(); } catch(e) {} });
+    clearTimeout(heroicWatchState.debounceTimer);
+    clearTimeout(heroicWatchState.timeoutTimer);
+    heroicWatchState = null;
+}
+
+ipcMain.handle('launch-and-watch-heroic', async (event) => {
+    const win = BrowserWindow.getFocusedWindow();
+    stopHeroicWatch();
+
+    const home = os.homedir();
+    const candidates = [
+        { base: path.join(home, '.config', 'heroic'), cmd: 'heroic' },
+        { base: path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic'), cmd: 'flatpak run com.heroicgameslauncher.hgl' }
+    ];
+    const valid = candidates.filter(c => fs.existsSync(c.base));
+    if (valid.length === 0) return { success: false, message: 'Heroic not found.' };
+
+    // Launch Heroic (fire-and-forget)
+    exec(valid[0].cmd, () => {});
+
+    // Collect directories to watch across all valid installs
+    const watchDirs = [];
+    for (const v of valid) {
+        const sub = ['store_cache', path.join('legendaryConfig', 'legendary'), 'gog_store', path.join('nile_config', 'nile')];
+        for (const s of sub) { const d = path.join(v.base, s); if (fs.existsSync(d)) watchDirs.push(d); }
+    }
+    if (watchDirs.length === 0) return { success: false, message: 'Heroic library directories not found.' };
+
+    heroicWatchState = { watchers: [], debounceTimer: null, timeoutTimer: null };
+
+    const onFileChange = () => {
+        clearTimeout(heroicWatchState.debounceTimer);
+        heroicWatchState.debounceTimer = setTimeout(async () => {
+            stopHeroicWatch();
+            if (win) win.webContents.send('heroic-watch-status', { phase: 'syncing' });
+            const result = await doHeroicSync();
+            if (win) win.webContents.send('heroic-watch-status', { phase: 'done', success: result.success, message: result.message, count: result.count });
+        }, 2500);
+    };
+
+    heroicWatchState.watchers = watchDirs.map(d => { try { return fs.watch(d, { persistent: false }, onFileChange); } catch(e) { return null; } }).filter(Boolean);
+
+    heroicWatchState.timeoutTimer = setTimeout(() => {
+        stopHeroicWatch();
+        if (win) win.webContents.send('heroic-watch-status', { phase: 'timeout' });
+    }, 300000);
+
+    return { success: true };
 });
+
+ipcMain.handle('cancel-heroic-watch', () => { stopHeroicWatch(); });
 
 ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
     if (!steamId || !apiKey) return { success: false, message: "Missing SteamID or API Key." };
