@@ -1,5 +1,27 @@
 let allGames = [];
 let currentGameId = null;
+
+function getInstallCommand(game) {
+    const cmd = game.LaunchCommand || '';
+    // Heroic: use the heroic:// URL — Heroic shows install prompt when not installed
+    if (/heroic:\/\/launch/i.test(cmd)) {
+        const m = cmd.match(/heroic:\/\/launch\/[^"\s]+/i);
+        return m ? m[0] : null;
+    }
+    // Steam: use install protocol
+    if (/steam:\/\/rungameid/i.test(cmd) && game.SteamAppID && String(game.SteamAppID).trim() !== '' && String(game.SteamAppID) !== 'None') {
+        return `steam://install/${String(game.SteamAppID).replace(/\.0+$/, '')}`;
+    }
+    return null;
+}
+
+function verifyAndLaunch(gameId, launchCmd) {
+    window.api.launchGame(launchCmd);
+    window.api.updateLastPlayed(gameId).then(() => loadGames());
+    window.api.verifyInstallStatus(gameId).then(() => loadGames());
+}
+
+window.api.onInstallStatusUpdated(() => loadGames());
 let currentLaunchCmd = '';
 let currentFilter = 'all';
 let lastGridView = 'view-gallery';
@@ -270,6 +292,7 @@ function applyFilters() {
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
+        else if (currentFilter === 'installed') matchesCategory = game.Installed == 1;
 
         if (!matchesCategory) return false;
         if (!query) return true;
@@ -312,8 +335,15 @@ function renderTable(recent, regular) {
         const tr = document.createElement('tr');
         tr.style.cursor = "pointer";
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
+        const isInstalled = game.Installed == null || game.Installed == 1;
+        const installCmd = getInstallCommand(game);
+        const actionCell = game.LaunchCommand
+            ? (isInstalled
+                ? `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`
+                : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`))
+            : `<span style="color:#555; font-size:12px;">${t('game.no_cmd')}</span>`;
         tr.innerHTML = `
-        <td>${game.LaunchCommand ? `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>` : `<span style="color:#555; font-size:12px;">${t('game.no_cmd')}</span>`}</td>
+        <td>${actionCell}</td>
         <td style="color: #ffeb3b;">${game.FAV === 'YES' ? '★' : ''}</td>
         <td style="color: #ff9800;">${game.WANT_TO_PLAY === 'YES' ? '⚑' : ''}</td>
         <td style="font-weight: bold;">${game.Game}</td>
@@ -340,8 +370,13 @@ function renderTable(recent, regular) {
     document.querySelectorAll('.btn-play').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.api.launchGame(btn.getAttribute('data-cmd'));
-            window.api.updateLastPlayed(btn.getAttribute('data-id')).then(() => loadGames());
+            verifyAndLaunch(btn.getAttribute('data-id'), btn.getAttribute('data-cmd'));
+        });
+    });
+    document.querySelectorAll('.btn-install').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.api.openInstallUrl(btn.getAttribute('data-url'));
         });
     });
 }
@@ -371,10 +406,21 @@ function renderGallery(recent, regular) {
         const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
         const logo = getStoreLogo(game.Store);
         const badgeHtml = logo ? `<div class="gallery-store-badge" style="-webkit-mask-image: url('${logo}');"></div>` : '';
+        const isInstalled = game.Installed == null || game.Installed == 1;
+        const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
+        let actionBtn = '';
+        if (game.LaunchCommand) {
+            if (isInstalled) {
+                actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
+            } else {
+                const installCmd = getInstallCommand(game);
+                actionBtn = installCmd ? `<button class="btn-install-gallery" data-url="${installCmd}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>` : '';
+            }
+        }
         div.innerHTML = `
-        <div class="gallery-cover-wrap">${imgHtml}${badgeHtml}</div>
+        <div class="gallery-cover-wrap">${imgHtml}${dotHtml}${badgeHtml}</div>
         <div class="gallery-title">${game.Game}</div>
-        ${game.LaunchCommand ? `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>` : ''}
+        ${actionBtn}
         `;
         div.addEventListener('dblclick', () => openGamepage(game));
         grid.appendChild(div);
@@ -413,8 +459,13 @@ function renderGallery(recent, regular) {
     document.querySelectorAll('.btn-play-gallery').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.api.launchGame(btn.getAttribute('data-cmd'));
-            window.api.updateLastPlayed(btn.getAttribute('data-id')).then(() => loadGames());
+            verifyAndLaunch(btn.getAttribute('data-id'), btn.getAttribute('data-cmd'));
+        });
+    });
+    document.querySelectorAll('.btn-install-gallery').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.api.openInstallUrl(btn.getAttribute('data-url'));
         });
     });
 }
@@ -496,13 +547,21 @@ function openGamepage(game) {
         loadGames();
     };
 
-    // Play Button
+    // Play / Install Button
     if (currentLaunchCmd) {
         playBtn.style.display = 'block';
-        playBtn.onclick = () => {
-            window.api.launchGame(currentLaunchCmd);
-            window.api.updateLastPlayed(currentGameId).then(() => loadGames());
-        };
+        const isInstalled = game.Installed == null || game.Installed == 1;
+        if (isInstalled) {
+            playBtn.innerText = t('status.play');
+            playBtn.className = 'primary';
+            playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
+        } else {
+            const installCmd = getInstallCommand(game);
+            playBtn.innerText = t('status.install');
+            playBtn.className = 'btn-install-primary';
+            playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
+            if (!installCmd) playBtn.style.display = 'none';
+        }
     } else {
         playBtn.style.display = 'none';
         playBtn.onclick = null;
@@ -1366,6 +1425,21 @@ document.getElementById('btn-batch-fetch').addEventListener('click', async () =>
     statusText.innerText = t('status.batch_done', {n: gamesToFetch.length});
     setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0%'; }, 2000);
     btn.disabled = false;
+    loadGames();
+});
+
+document.getElementById('btn-check-install').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-check-install');
+    const statusEl = document.getElementById('check-install-status');
+    btn.disabled = true;
+    btn.innerText = t('status.checking');
+    statusEl.innerText = '';
+    const result = await window.api.checkAllInstallStatus();
+    btn.disabled = false;
+    btn.innerText = t('html.btn_check_install');
+    statusEl.style.color = '#66bb6a';
+    statusEl.innerText = `✅ ${t('status.install_check_done', { n: result.updated })}`;
+    setTimeout(() => { statusEl.innerText = ''; }, 5000);
     loadGames();
 });
 

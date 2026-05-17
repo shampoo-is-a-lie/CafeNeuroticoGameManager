@@ -36,6 +36,15 @@
     .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; display: block; }
     .gallery-cover-wrap { position: relative; width: 100%; }
     .gallery-store-badge { position: absolute; bottom: 7px; right: 7px; width: 22px; height: 22px; background-color: rgba(255,255,255,0.7); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)); }
+    .install-dot { position: absolute; top: 8px; left: 8px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.4); pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)); z-index: 2; }
+    .install-dot.is-installed { background: #66bb6a; }
+    .install-dot.not-installed { background: #ff9800; }
+    .btn-install-gallery { margin: 5px; font-size: 12px; padding: 4px; background: #e65100; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 1px; }
+    .btn-install-gallery:hover { background: #ff6d00; }
+    .btn-install { padding: 4px 8px; background: #e65100; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 12px; }
+    .btn-install:hover { background: #ff6d00; }
+    .btn-install-primary { background: #e65100; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-family: inherit; font-weight: 900; font-size: 14px; cursor: pointer; letter-spacing: 1px; }
+    .btn-install-primary:hover { background: #ff6d00; }
     .gallery-title { padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text_sec); }
 
     #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
@@ -162,6 +171,7 @@
           <legend data-i18n="html.legend_see">See</legend>
           <div class="filter-grid" id="sidebar-filters">
             <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
+            <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
             <button data-filter="playable" data-i18n="html.filter_playable">Playable</button>
             <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
             <button data-filter="want" data-i18n="html.filter_want">Want</button>
@@ -678,6 +688,8 @@
                 <button id="btn-update-library" class="primary" style="width: 100%; font-size: 12px; padding: 12px; letter-spacing: 1px;" data-i18n="html.btn_update_library">Update Library</button>
                 <div id="update-library-status" style="font-size: 11px; font-weight: bold; color: #ffeb3b; min-height: 14px; line-height: 1.6;"></div>
                 <button id="btn-batch-fetch" class="primary" style="width: 100%; font-size: 11px;" data-i18n="html.btn_batch_fetch">Batch Scrape Missing Data</button>
+                <button id="btn-check-install" style="width: 100%; font-size: 11px; background: transparent; border: 1px solid var(--border_solid); color: var(--text_sec);" data-i18n="html.btn_check_install">Check Installed Games</button>
+                <div id="check-install-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px;"></div>
                 <div id="batch-progress-wrap" style="display:none; width:100%; background: var(--bg); border-radius: 4px; height: 6px; overflow:hidden; margin-top: 2px;">
                   <div id="batch-progress-fill" style="height:100%; width:0%; background: var(--accent); transition: width 0.2s linear;"></div>
                 </div>

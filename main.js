@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net, session } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, net, session, shell } = require('electron');
 const path = require('path');
 const os = require('os');
 const Database = require('better-sqlite3');
@@ -102,6 +102,7 @@ function createWindow () {
     const showWin = () => { if (!win.isVisible()) win.show(); };
     ipcMain.once('renderer-ready', showWin);
     win.once('ready-to-show', () => setTimeout(showWin, 3000));
+    win.webContents.once('did-finish-load', () => startSteamInstallWatcher(win));
 }
 
 app.whenReady().then(() => {
@@ -134,6 +135,7 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN Description_i18n TEXT DEFAULT ''").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN Franchise TEXT DEFAULT ''").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN IGDBTrailer TEXT DEFAULT ''").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN Installed INTEGER DEFAULT 1").run(); } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
     } catch (err) {
@@ -144,10 +146,173 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 
-const cremaPath = path.join(baseDir, 'CREMA.AppImage');
-ipcMain.handle('check-crema', () => fs.existsSync(cremaPath));
+function findCremaPath() {
+    try {
+        const f = fs.readdirSync(baseDir).find(n => /^CREMA\.(AppImage|appimage)$/i.test(n));
+        return f ? path.join(baseDir, f) : null;
+    } catch(e) { return null; }
+}
+ipcMain.handle('check-crema', () => !!findCremaPath());
+
+// ── INSTALL STATUS HELPERS ────────────────────────────────────────────────
+function getSteamLibraryPaths() {
+    const home = os.homedir();
+    const roots = [
+        path.join(home, '.local', 'share', 'Steam'),
+        path.join(home, '.var', 'app', 'com.valvesoftware.Steam', 'data', 'steam'),
+        path.join(home, '.steam', 'steam'),
+    ];
+    const dirs = new Set();
+    for (const root of roots) {
+        const sa = path.join(root, 'steamapps');
+        if (!fs.existsSync(sa)) continue;
+        dirs.add(sa);
+        try {
+            const vdf = path.join(sa, 'libraryfolders.vdf');
+            if (fs.existsSync(vdf)) {
+                const content = fs.readFileSync(vdf, 'utf8');
+                for (const m of content.matchAll(/"path"\s+"([^"]+)"/g)) {
+                    const extra = path.join(m[1], 'steamapps');
+                    if (fs.existsSync(extra)) dirs.add(extra);
+                }
+            }
+        } catch(e) {}
+    }
+    return [...dirs];
+}
+function isSteamGameInstalled(appId) {
+    if (!appId || appId === 'None' || appId === '') return false;
+    const id = String(appId).replace(/\.0+$/, '');
+    return getSteamLibraryPaths().some(dir => fs.existsSync(path.join(dir, `appmanifest_${id}.acf`)));
+}
+
+function isHeroicGameInstalled(launchCommand) {
+    if (!launchCommand) return null;
+    const match = launchCommand.match(/heroic:\/\/launch\/(epic|gog|amazon)\/([^"\s]+)/i);
+    if (!match) return null;
+    const [, storeType, appId] = match;
+    const home = os.homedir();
+    const heroicBase = [
+        path.join(home, '.config', 'heroic'),
+        path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic')
+    ];
+    const relPaths = {
+        epic:   path.join('legendaryConfig', 'legendary', 'installed.json'),
+        gog:    path.join('gog_store', 'installed.json'),
+        amazon: path.join('nile_config', 'nile', 'installed.json')
+    };
+    for (const base of heroicBase) {
+        const p = path.join(base, relPaths[storeType] || '');
+        if (!fs.existsSync(p)) continue;
+        try { const ids = parseHeroicInstalledIds(JSON.parse(fs.readFileSync(p, 'utf8'))); return ids.has(appId) ? true : null; } catch(e) {}
+    }
+    return null; // positive install not confirmed — preserve existing DB value (defaults to 1)
+}
+
+function resolveInstallState(launchCommand, steamAppId) {
+    const cmd = launchCommand || '';
+    if (/heroic:\/\/launch/i.test(cmd)) {
+        const h = isHeroicGameInstalled(cmd);
+        return h === true ? 1 : null; // only write 1 when confirmed; never force 0
+    }
+    if (/steam:\/\/rungameid/i.test(cmd) && steamAppId && steamAppId !== 'None' && steamAppId !== '') {
+        return isSteamGameInstalled(steamAppId) ? 1 : 0;
+    }
+    return null;
+}
+
+ipcMain.handle('verify-install-status', (e, gameId) => {
+    if (!db) return { installed: 1 };
+    const game = db.prepare("SELECT id, SteamAppID, LaunchCommand, Installed FROM games WHERE id=?").get(gameId);
+    if (!game) return { installed: 1 };
+    const installed = resolveInstallState(game.LaunchCommand, game.SteamAppID);
+    if (installed !== null) db.prepare("UPDATE games SET Installed=? WHERE id=?").run(installed, gameId);
+    return { installed: installed ?? game.Installed ?? 1 };
+});
+
+// ── DYNAMIC INSTALL WATCHER ───────────────────────────────────────────────
+let steamInstallWatchers = [];
+function startSteamInstallWatcher(win) {
+    steamInstallWatchers.forEach(w => { try { w.close(); } catch(e) {} });
+    steamInstallWatchers = [];
+    let debounce = null;
+    const onChange = (ev, filename) => {
+        if (!filename || !filename.startsWith('appmanifest_')) return;
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            if (!db) return;
+            const games = db.prepare("SELECT id, SteamAppID, LaunchCommand FROM games WHERE LaunchCommand IS NOT NULL AND LaunchCommand != ''").all();
+            for (const g of games) {
+                const s = resolveInstallState(g.LaunchCommand, g.SteamAppID);
+                if (s !== null) db.prepare("UPDATE games SET Installed=? WHERE id=?").run(s, g.id);
+            }
+            if (win) win.webContents.send('install-status-updated');
+        }, 1500);
+    };
+    for (const dir of getSteamLibraryPaths()) {
+        try { steamInstallWatchers.push(fs.watch(dir, { persistent: false }, onChange)); } catch(e) {}
+    }
+}
+
+ipcMain.handle('open-install-url', async (e, url) => {
+    if (url) await shell.openExternal(url);
+});
+
+ipcMain.handle('check-all-install-status', async () => {
+    if (!db) return { updated: 0 };
+    let updated = 0;
+
+    // ── STEAM: filesystem detection ──────────────────────────────────────────
+    const steamGames = db.prepare("SELECT id, SteamAppID, LaunchCommand FROM games WHERE LaunchCommand LIKE '%steam://rungameid%'").all();
+    for (const g of steamGames) {
+        const s = resolveInstallState(g.LaunchCommand, g.SteamAppID);
+        if (s !== null) { db.prepare("UPDATE games SET Installed=? WHERE id=?").run(s, g.id); updated++; }
+    }
+
+    // ── HEROIC: snapshot scraped data → delete → resync → restore ────────────
+    const heroicGames = db.prepare("SELECT * FROM games WHERE LaunchCommand LIKE '%heroic://launch%'").all();
+    if (heroicGames.length > 0) {
+        // Key = stable heroic://launch/... URL extracted from launch command
+        const snapshot = {};
+        for (const g of heroicGames) {
+            const m = (g.LaunchCommand || '').match(/heroic:\/\/launch\/[^"\s]+/i);
+            const key = m ? m[0].toLowerCase() : null;
+            if (key) snapshot[key] = {
+                CoverArt: g.CoverArt, HeroArt: g.HeroArt, Logo: g.Logo, Icon: g.Icon,
+                Screenshot: g.Screenshot, Description: g.Description, SteamDesc: g.SteamDesc,
+                Description_i18n: g.Description_i18n, DEV: g.DEV, PUB: g.PUB,
+                RELEASED: g.RELEASED, GENRE: g.GENRE, METACRITIC: g.METACRITIC,
+                HLTB_Main: g.HLTB_Main, ProtonTier: g.ProtonTier, SteamAppID: g.SteamAppID,
+                Coop: g.Coop, NumPlayers: g.NumPlayers, SimilarGames: g.SimilarGames,
+                Franchise: g.Franchise, IGDBTrailer: g.IGDBTrailer, SteamTrailer: g.SteamTrailer,
+                FAV: g.FAV, WANT_TO_PLAY: g.WANT_TO_PLAY, LastPlayed: g.LastPlayed
+            };
+            db.prepare("DELETE FROM games WHERE id=?").run(g.id);
+        }
+
+        // Re-sync: INSERT path reads installed.json fresh → correct Installed status
+        await doHeroicSync();
+
+        // Restore scraped data onto re-inserted rows
+        const reinserted = db.prepare("SELECT id, LaunchCommand FROM games WHERE LaunchCommand LIKE '%heroic://launch%'").all();
+        for (const g of reinserted) {
+            const m = (g.LaunchCommand || '').match(/heroic:\/\/launch\/[^"\s]+/i);
+            const key = m ? m[0].toLowerCase() : null;
+            const saved = key ? snapshot[key] : null;
+            if (saved) {
+                db.prepare(`UPDATE games SET CoverArt=?,HeroArt=?,Logo=?,Icon=?,Screenshot=?,Description=?,SteamDesc=?,Description_i18n=?,DEV=?,PUB=?,RELEASED=?,GENRE=?,METACRITIC=?,HLTB_Main=?,ProtonTier=?,SteamAppID=?,Coop=?,NumPlayers=?,SimilarGames=?,Franchise=?,IGDBTrailer=?,SteamTrailer=?,FAV=?,WANT_TO_PLAY=?,LastPlayed=? WHERE id=?`)
+                  .run(saved.CoverArt,saved.HeroArt,saved.Logo,saved.Icon,saved.Screenshot,saved.Description,saved.SteamDesc,saved.Description_i18n,saved.DEV,saved.PUB,saved.RELEASED,saved.GENRE,saved.METACRITIC,saved.HLTB_Main,saved.ProtonTier,saved.SteamAppID,saved.Coop,saved.NumPlayers,saved.SimilarGames,saved.Franchise,saved.IGDBTrailer,saved.SteamTrailer,saved.FAV,saved.WANT_TO_PLAY,saved.LastPlayed,g.id);
+                updated++;
+            }
+        }
+    }
+
+    return { updated };
+});
 ipcMain.on('launch-crema', () => {
-    const child = spawn(cremaPath, [], { detached: true, stdio: 'ignore' });
+    const p = findCremaPath();
+    if (!p) return;
+    const child = spawn(p, [], { detached: true, stdio: 'ignore' });
     child.unref();
     const win = BrowserWindow.getAllWindows()[0];
     if (win) win.minimize();
@@ -437,6 +602,22 @@ ipcMain.handle('clear-history', (event) => {
 
 ipcMain.handle('get-strings', (_, lang) => require('./i18n')(lang || 'en'));
 
+// Normalises Heroic installed.json regardless of format:
+//   Epic  → flat dict  { "appId": { app_name, ... } }
+//   GOG   → wrapped    { "installed": [ { appName, ... }, ... ] }
+//   plain → bare array [ { appName, ... }, ... ]
+function parseHeroicInstalledIds(raw) {
+    const items = Array.isArray(raw) ? raw
+        : Array.isArray(raw.installed) ? raw.installed
+        : Object.values(raw);
+    const ids = new Set();
+    for (const item of items) {
+        const id = String(item.app_name || item.appName || item.appID || '');
+        if (id) ids.add(id);
+    }
+    return ids;
+}
+
 // --- SYNC ENGINES ---
 async function doHeroicSync() {
     if (!db) return { success: false, message: "Database not initialized." };
@@ -457,6 +638,8 @@ async function doHeroicSync() {
         if (!fs.existsSync(env.base)) continue;
         for (const store of storeConfigs) {
             const gamesFound = new Map();
+            const installedIds = new Set();
+            let installedJsonLoaded = false;
             for (const relLib of store.relLibraries) {
                 const libPath = path.join(env.base, relLib);
                 if (!fs.existsSync(libPath)) continue;
@@ -473,21 +656,23 @@ async function doHeroicSync() {
             const installedPath = path.join(env.base, store.relInstalled);
             if (fs.existsSync(installedPath)) {
                 try {
-                    const installed = JSON.parse(fs.readFileSync(installedPath, 'utf8'));
-                    for (const [appId, gameData] of Object.entries(installed)) {
-                        if (gameData.title) gamesFound.set(appId, gameData.title);
-                    }
+                    const raw = JSON.parse(fs.readFileSync(installedPath, 'utf8'));
+                    const ids = parseHeroicInstalledIds(raw);
+                    for (const id of ids) installedIds.add(id);
+                    installedJsonLoaded = true;
                 } catch (err) {}
             }
             for (const [appId, gameTitle] of gamesFound.entries()) {
                 const launchCommand = `${env.cmdPrefix} "heroic://launch/${store.protocolId}/${appId}"`;
+                // Use actual detected state when json was loadable; default to 1 when file not found
+                const isInstalled = installedJsonLoaded ? (installedIds.has(appId) ? 1 : 0) : 1;
                 const existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ? OR LOWER(Game) = LOWER(?)").get(launchCommand, gameTitle);
                 if (existing) {
                     let stores = existing.Store ? existing.Store.split(',').map(s => s.trim()) : [];
                     if (!stores.some(s => s.toLowerCase() === store.name.toLowerCase())) stores.push(store.name);
-                    db.prepare("UPDATE games SET LaunchCommand = ?, Store = ? WHERE id = ?").run(launchCommand, stores.join(', '), existing.id);
+                    db.prepare("UPDATE games SET LaunchCommand = ?, Store = ?, Installed = ? WHERE id = ?").run(launchCommand, stores.join(', '), isInstalled, existing.id);
                 } else {
-                    db.prepare("INSERT INTO games (Game, Store, LaunchCommand, FAV, WANT_TO_PLAY) VALUES (?, ?, ?, 'NO', 'NO')").run(gameTitle, store.name, launchCommand);
+                    db.prepare("INSERT INTO games (Game, Store, LaunchCommand, FAV, WANT_TO_PLAY, Installed) VALUES (?, ?, ?, 'NO', 'NO', ?)").run(gameTitle, store.name, launchCommand, isInstalled);
                 }
                 importedCount++;
             }
@@ -576,6 +761,7 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
             if (!name) continue;
 
             const launchCommand = `steam steam://rungameid/${appid} -silent`;
+            const isInstalled = isSteamGameInstalled(appid) ? 1 : 0;
 
             const existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ? OR LOWER(Game) = LOWER(?)").get(launchCommand, name);
 
@@ -593,11 +779,13 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
                 }
 
                 if (needsUpdate) {
-                    db.prepare("UPDATE games SET LaunchCommand = ?, Store = ?, SteamAppID = ? WHERE id = ?").run(launchCommand, stores.join(', '), appid, existing.id);
+                    db.prepare("UPDATE games SET LaunchCommand = ?, Store = ?, SteamAppID = ?, Installed = ? WHERE id = ?").run(launchCommand, stores.join(', '), appid, isInstalled, existing.id);
                     updated++;
+                } else {
+                    db.prepare("UPDATE games SET Installed = ? WHERE id = ?").run(isInstalled, existing.id);
                 }
             } else {
-                insertStmt.run("Steam", name, appid, launchCommand);
+                db.prepare("INSERT INTO games (Store, Game, SteamAppID, LaunchCommand, FAV, WANT_TO_PLAY, Installed) VALUES (?, ?, ?, ?, 'NO', 'NO', ?)").run("Steam", name, appid, launchCommand, isInstalled);
                 added++;
             }
         }
@@ -1038,7 +1226,7 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
             if (!appId) {
                 const steamExt = igdb.external_games?.find(e => e.category === 1);
                 if (steamExt?.uid) {
-                    appId = steamExt.uid;
+                    appId = String(steamExt.uid).replace(/\.0+$/, '');
                     try {
                         const pr = await fetch(`https://www.protondb.com/api/v1/reports/summaries/${appId}.json`);
                         if (pr.ok) { const pd = await pr.json(); if (pd.tier) protonResult = pd.tier.toUpperCase(); }
