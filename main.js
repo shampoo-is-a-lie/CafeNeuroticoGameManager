@@ -307,8 +307,25 @@ ipcMain.handle('check-all-install-status', async () => {
         }
     }
 
+    // ── PHYSICAL / OTHERS / EMULATION / APPS: installed = has launch command ──
+    const manualResult = db.prepare(`
+        UPDATE games SET Installed = CASE WHEN LaunchCommand IS NOT NULL AND LaunchCommand != '' THEN 1 ELSE 0 END
+        WHERE (LOWER(Store) LIKE '%physical%' OR LOWER(Store) LIKE '%others%' OR LOWER(Store) LIKE '%emulation%' OR LOWER(Store) LIKE '%apps%')
+          AND LOWER(Store) NOT LIKE '%steam%' AND LOWER(Store) NOT LIKE '%epic%'
+          AND LOWER(Store) NOT LIKE '%gog%' AND LOWER(Store) NOT LIKE '%heroic%' AND LOWER(Store) NOT LIKE '%amazon%'
+    `).run();
+    updated += manualResult.changes;
+
     return { updated };
 });
+
+ipcMain.handle('set-launch-command', (e, gameId, cmd) => {
+    if (!db) return false;
+    const installed = (cmd && cmd.trim() !== '') ? 1 : 0;
+    db.prepare("UPDATE games SET LaunchCommand=?, Installed=? WHERE id=?").run(cmd || '', installed, gameId);
+    return true;
+});
+
 ipcMain.on('launch-crema', () => {
     const p = findCremaPath();
     if (!p) return;

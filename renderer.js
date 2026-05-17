@@ -1,6 +1,27 @@
 let allGames = [];
 let currentGameId = null;
 
+function isManualCategory(game) {
+    const s = (game.Store || '').toLowerCase();
+    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic|amazon/.test(s);
+}
+
+function openAddCmdDialog(gameId, gameName) {
+    const modal = document.getElementById('modal-add-cmd');
+    const input = document.getElementById('add-cmd-input');
+    input.value = '';
+    modal.classList.add('active');
+    setTimeout(() => input.focus(), 50);
+    document.getElementById('add-cmd-save').onclick = async () => {
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        await window.api.setLaunchCommand(gameId, cmd);
+        modal.classList.remove('active');
+        await loadGames();
+    };
+    document.getElementById('add-cmd-cancel').onclick = () => modal.classList.remove('active');
+}
+
 function getInstallCommand(game) {
     const cmd = game.LaunchCommand || '';
     // Heroic: use the heroic:// URL — Heroic shows install prompt when not installed
@@ -337,11 +358,16 @@ function renderTable(recent, regular) {
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
         const installCmd = getInstallCommand(game);
-        const actionCell = game.LaunchCommand
-            ? (isInstalled
+        let actionCell;
+        if (game.LaunchCommand) {
+            actionCell = isInstalled
                 ? `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`
-                : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`))
-            : `<span style="color:#555; font-size:12px;">${t('game.no_cmd')}</span>`;
+                : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`);
+        } else if (isManualCategory(game)) {
+            actionCell = `<button class="btn-install" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+        } else {
+            actionCell = `<span style="color:#555; font-size:12px;">${t('game.no_cmd')}</span>`;
+        }
         tr.innerHTML = `
         <td>${actionCell}</td>
         <td style="color: #ffeb3b;">${game.FAV === 'YES' ? '★' : ''}</td>
@@ -376,7 +402,11 @@ function renderTable(recent, regular) {
     document.querySelectorAll('.btn-install').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.api.openInstallUrl(btn.getAttribute('data-url'));
+            if (btn.getAttribute('data-addcmd')) {
+                openAddCmdDialog(btn.getAttribute('data-id'), btn.getAttribute('data-name'));
+            } else {
+                window.api.openInstallUrl(btn.getAttribute('data-url'));
+            }
         });
     });
 }
@@ -416,6 +446,8 @@ function renderGallery(recent, regular) {
                 const installCmd = getInstallCommand(game);
                 actionBtn = installCmd ? `<button class="btn-install-gallery" data-url="${installCmd}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>` : '';
             }
+        } else if (isManualCategory(game)) {
+            actionBtn = `<button class="btn-install-gallery" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
         }
         div.innerHTML = `
         <div class="gallery-cover-wrap">${imgHtml}${dotHtml}${badgeHtml}</div>
@@ -465,7 +497,11 @@ function renderGallery(recent, regular) {
     document.querySelectorAll('.btn-install-gallery').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            window.api.openInstallUrl(btn.getAttribute('data-url'));
+            if (btn.getAttribute('data-addcmd')) {
+                openAddCmdDialog(btn.getAttribute('data-id'), btn.getAttribute('data-name'));
+            } else {
+                window.api.openInstallUrl(btn.getAttribute('data-url'));
+            }
         });
     });
 }
@@ -547,7 +583,7 @@ function openGamepage(game) {
         loadGames();
     };
 
-    // Play / Install Button
+    // Play / Install / Add Command Button
     if (currentLaunchCmd) {
         playBtn.style.display = 'block';
         const isInstalled = game.Installed == null || game.Installed == 1;
@@ -562,6 +598,11 @@ function openGamepage(game) {
             playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
             if (!installCmd) playBtn.style.display = 'none';
         }
+    } else if (isManualCategory(game)) {
+        playBtn.style.display = 'block';
+        playBtn.innerText = t('status.install');
+        playBtn.className = 'btn-install-primary';
+        playBtn.onclick = () => openAddCmdDialog(currentGameId, game.Game);
     } else {
         playBtn.style.display = 'none';
         playBtn.onclick = null;
