@@ -217,43 +217,156 @@ document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
 document.getElementById('btn-about').addEventListener('click', () => { document.getElementById('modal-about').classList.add('active'); });
 document.getElementById('btn-close-about').addEventListener('click', () => { document.getElementById('modal-about').classList.remove('active'); });
 
-// --- FLOATING MANUAL LOGIC ---
-const floatingManual = document.getElementById('floating-manual');
-const manualHeader = document.getElementById('manual-header');
+// --- MANUAL (opens as separate window) ---
+document.addEventListener('click', (e) => { if (e.target.id === 'btn-open-manual') { document.getElementById('modal-about').classList.remove('active'); window.api.openManual(); } });
+document.getElementById('btn-tools-manual').addEventListener('click', () => { document.getElementById('modal-tools').classList.remove('active'); window.api.openManual(); });
 
-document.addEventListener('click', (e) => { if (e.target.id === 'btn-open-manual') { document.getElementById('modal-about').classList.remove('active'); floatingManual.style.display = 'flex'; } });
-document.getElementById('btn-tools-manual').addEventListener('click', () => { document.getElementById('modal-tools').classList.remove('active'); floatingManual.style.display = 'flex'; });
-document.getElementById('btn-close-floating-manual').addEventListener('click', () => { floatingManual.style.display = 'none'; });
+// --- FIRST-RUN WELCOME ---
+// Shown every launch unless the user has checked "Don't show again"
+// (stored in the settings DB, not localStorage, so a fresh GameManagerConfig always shows it).
+const _welcomeModal = document.getElementById('modal-welcome');
 
-let isDraggingManual = false; let manualOffsetX = 0; let manualOffsetY = 0;
-manualHeader.addEventListener('mousedown', (e) => {
-    isDraggingManual = true;
-    manualOffsetX = e.clientX - floatingManual.getBoundingClientRect().left;
-    manualOffsetY = e.clientY - floatingManual.getBoundingClientRect().top;
-    document.addEventListener('mousemove', manualDrag);
-    document.addEventListener('mouseup', manualStopDrag);
+function dismissWelcome() {
+    _welcomeModal.classList.remove('active');
+    if (document.getElementById('chk-welcome-noshow').checked) {
+        window.api.setSetting('welcome_shown', '1');
+    }
+}
+
+// Only these two buttons close the modal
+document.getElementById('btn-welcome-done').addEventListener('click', dismissWelcome);
+document.getElementById('btn-welcome-manual').addEventListener('click', () => { dismissWelcome(); window.api.openManual(); });
+
+// ── Step 1: Heroic sync (inline, no close) ──────────────────────────────────
+document.getElementById('btn-welcome-heroic').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-welcome-heroic');
+    const status = document.getElementById('wlc-heroic-status');
+    btn.disabled = true;
+    btn.textContent = t('status.syncing');
+    status.style.color = 'var(--text_dim)';
+    status.textContent = 'Syncing Heroic library…';
+    const result = await window.api.syncHeroic();
+    if (result.success) loadGames();
+    btn.disabled = false;
+    btn.textContent = 'Sync Heroic Games';
+    status.style.color = result.success ? '#66bb6a' : '#ef5350';
+    status.textContent = result.success ? '✓ Heroic library synced!' : '✗ ' + result.message;
 });
-function manualDrag(e) {
-    if (!isDraggingManual) return;
-    floatingManual.style.left = (e.clientX - manualOffsetX) + 'px';
-    floatingManual.style.top = (e.clientY - manualOffsetY) + 'px';
-}
-function manualStopDrag() {
-    isDraggingManual = false;
-    document.removeEventListener('mousemove', manualDrag);
-    document.removeEventListener('mouseup', manualStopDrag);
-}
 
-const manualNavBtns = document.querySelectorAll('.manual-nav-btn');
-const manualContent = document.getElementById('manual-content');
-manualNavBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        manualNavBtns.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        const targetId = e.target.getAttribute('data-target');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) { manualContent.scrollTo({ top: targetEl.offsetTop - manualContent.offsetTop, behavior: 'smooth' }); }
-    });
+// ── Step 1: Steam sync (inline, no close) ───────────────────────────────────
+document.getElementById('btn-welcome-sync-steam').addEventListener('click', async () => {
+    const steamId = document.getElementById('wlc-steam-id').value.trim();
+    const apiKey  = document.getElementById('wlc-steam-api-key').value.trim();
+    const btn     = document.getElementById('btn-welcome-sync-steam');
+    const status  = document.getElementById('wlc-steam-status');
+    if (!steamId || !apiKey) {
+        status.style.color = '#f57c00';
+        status.textContent = '⚠ Enter both SteamID64 and API Key.';
+        return;
+    }
+    await window.api.setSetting('steam_id', steamId);
+    await window.api.setSetting('steam_api_key', apiKey);
+    // Mirror into the Connect modal fields so they're pre-filled when opened later
+    document.getElementById('steam-id').value = steamId;
+    document.getElementById('steam-api-key').value = apiKey;
+    btn.disabled = true;
+    btn.textContent = t('status.fetching');
+    status.style.color = 'var(--text_dim)';
+    status.textContent = 'Fetching Steam library…';
+    const result = await window.api.syncSteam(steamId, apiKey);
+    if (result.success) loadGames();
+    btn.disabled = false;
+    btn.textContent = 'Fetch Steam Library';
+    status.style.color = result.success ? '#66bb6a' : '#ef5350';
+    status.textContent = result.success ? '✓ Steam library synced!' : '✗ ' + result.message;
+});
+
+// ── Step 2: Batch fetch (inline progress, no close) ─────────────────────────
+document.getElementById('btn-welcome-batch').addEventListener('click', async () => {
+    const btn          = document.getElementById('btn-welcome-batch');
+    const statusEl     = document.getElementById('wlc-batch-status');
+    const progressWrap = document.getElementById('wlc-batch-progress-wrap');
+    const progressFill = document.getElementById('wlc-batch-progress-fill');
+    const hasImg  = v => v && String(v).startsWith('GameManagerConfig');
+    const hasTxt  = v => v && String(v).trim() !== '';
+    const toFetch = allGames.filter(g =>
+        !hasImg(g.CoverArt) || !hasImg(g.HeroArt) || !hasImg(g.Logo) ||
+        !hasImg(g.Icon) || !hasImg(g.Screenshot) ||
+        !hasTxt(g.Description) || !hasTxt(g.DEV) || !hasTxt(g.GENRE));
+    if (toFetch.length === 0) { statusEl.style.color = '#66bb6a'; statusEl.textContent = '✓ All games are already up to date!'; return; }
+    btn.disabled = true;
+    progressWrap.style.display = 'block';
+    progressFill.style.width = '0%';
+    for (let i = 0; i < toFetch.length; i++) {
+        const g = toFetch[i];
+        statusEl.style.color = 'var(--text_dim)';
+        statusEl.textContent = `Fetching ${i + 1} / ${toFetch.length}: ${g.Game}…`;
+        progressFill.style.width = `${Math.round(((i + 1) / toFetch.length) * 100)}%`;
+        await window.api.autoFetch(g.id, g.Game, g.SteamAppID);
+        await new Promise(r => setTimeout(r, 500));
+    }
+    progressFill.style.width = '100%';
+    statusEl.style.color = '#66bb6a';
+    statusEl.textContent = `✓ Finished fetching ${toFetch.length} games!`;
+    setTimeout(() => { progressWrap.style.display = 'none'; progressFill.style.width = '0%'; }, 3000);
+    btn.disabled = false;
+    loadGames();
+});
+
+// ── Step 3: SteamGridDB key (inline, no close) ──────────────────────────────
+document.getElementById('btn-welcome-save-sgdb').addEventListener('click', async () => {
+    const key    = document.getElementById('wlc-sgdb-key').value.trim();
+    const status = document.getElementById('wlc-sgdb-status');
+    if (!key) { status.style.color = '#f57c00'; status.textContent = '⚠ Paste your API key above.'; return; }
+    await window.api.setSetting('steamgriddb_api', key);
+    // Mirror into the SGDB api modal input
+    document.getElementById('sgdb-api-input').value = key;
+    status.style.color = '#66bb6a';
+    status.textContent = '✓ SteamGridDB key saved!';
+});
+
+// ── Step 3: IGDB credentials (inline, no close) ─────────────────────────────
+document.getElementById('btn-welcome-save-igdb').addEventListener('click', async () => {
+    const clientId = document.getElementById('wlc-igdb-client-id').value.trim();
+    const secret   = document.getElementById('wlc-igdb-client-secret').value.trim();
+    const status   = document.getElementById('wlc-igdb-status');
+    if (!clientId || !secret) { status.style.color = '#f57c00'; status.textContent = '⚠ Enter both Client ID and Secret.'; return; }
+    await window.api.setSetting('igdb_client_id', clientId);
+    await window.api.setSetting('igdb_client_secret', secret);
+    await window.api.setSetting('igdb_token', '');
+    await window.api.setSetting('igdb_token_expiry', '0');
+    // Mirror into the Connect modal fields
+    document.getElementById('igdb-client-id').value = clientId;
+    document.getElementById('igdb-client-secret').value = '••••••••';
+    status.style.color = 'var(--text_dim)';
+    status.textContent = 'Testing connection…';
+    const result = await window.api.igdbTest();
+    status.style.color = result.success ? '#66bb6a' : '#ef5350';
+    status.textContent = (result.success ? '✓ ' : '✗ ') + result.message;
+});
+
+// ── Tools menu: re-open welcome screen ──────────────────────────────────────
+document.getElementById('btn-show-welcome').addEventListener('click', () => {
+    document.getElementById('modal-tools').classList.remove('active');
+    // Reset the "don't show again" flag and uncheck the box so the user starts fresh
+    window.api.setSetting('welcome_shown', '');
+    document.getElementById('chk-welcome-noshow').checked = false;
+    _welcomeModal.classList.add('active');
+});
+
+// ── Step 5: Add to system menu (inline, no close) ───────────────────────────
+document.getElementById('btn-welcome-add-menu').addEventListener('click', async () => {
+    const btn    = document.getElementById('btn-welcome-add-menu');
+    const status = document.getElementById('wlc-menu-status');
+    btn.disabled = true;
+    btn.textContent = 'Installing…';
+    status.style.color = 'var(--text_dim)';
+    status.textContent = 'Registering shortcuts…';
+    const result = await window.api.installToMenu();
+    btn.disabled = false;
+    btn.textContent = 'Add to Application Menu';
+    status.style.color = result.success ? '#66bb6a' : '#ef5350';
+    status.textContent = (result.success ? '✓ ' : '✗ ') + result.message;
 });
 
 function switchView(viewId) {
@@ -773,6 +886,8 @@ function openGamepage(game) {
 
 // --- DETAILED VIEW / EDIT LOGIC ---
 function openDetails(game) {
+    currentGameId = game.id;
+    currentLaunchCmd = game.LaunchCommand || '';
     let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
 
     document.getElementById('edit-name').value = game.Game || '';
@@ -1211,6 +1326,29 @@ document.getElementById('btn-open-connect').addEventListener('click', async () =
     if (savedIgdbSecret) document.getElementById('igdb-client-secret').value = '••••••••';
     modalConnect.classList.add('active');
     document.getElementById('igdb-status').innerText = '';
+    document.getElementById('connect-search').value = '';
+    document.querySelectorAll('.connect-section').forEach(c => c.style.display = '');
+    document.getElementById('connect-no-results').style.display = 'none';
+    setTimeout(() => document.getElementById('connect-search').focus(), 150);
+});
+
+document.getElementById('btn-close-modal').addEventListener('click', () => {
+    modalConnect.classList.remove('active');
+    document.getElementById('connect-search').value = '';
+    document.querySelectorAll('.connect-section').forEach(c => c.style.display = '');
+    document.getElementById('connect-no-results').style.display = 'none';
+});
+
+document.getElementById('connect-search').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    let visible = 0;
+    document.querySelectorAll('.connect-section').forEach(card => {
+        const haystack = (card.dataset.search || '') + ' ' + card.textContent.toLowerCase();
+        const show = !q || haystack.includes(q);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('connect-no-results').style.display = visible === 0 ? 'block' : 'none';
 });
 
 document.getElementById('btn-save-igdb').addEventListener('click', async () => {
@@ -1227,7 +1365,6 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     statusEl.style.color = result.success ? '#4caf50' : '#f44336';
     statusEl.innerText = result.message;
 });
-document.getElementById('btn-close-modal').addEventListener('click', () => modalConnect.classList.remove('active'));
 
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-heroic');
@@ -1245,7 +1382,7 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
 
     function setWatching(on) {
         watching = on;
-        launchBtn.innerText = on ? t('status.heroic_watching') : t('html.btn_launch_watch_heroic');
+        launchBtn.innerText = on ? t('status.heroic_watching') : t('html.btn_refresh_heroic');
         launchBtn.style.opacity = on ? '0.7' : '1';
     }
 
@@ -1419,7 +1556,15 @@ document.getElementById('btn-restore-zip').addEventListener('click', async () =>
 });
 
 const modalTools = document.getElementById('modal-tools');
-document.getElementById('btn-open-tools').addEventListener('click', () => { modalTools.classList.add('active'); document.getElementById('batch-status').innerText = ""; document.getElementById('install-menu-status').innerText = ""; });
+document.getElementById('btn-open-tools').addEventListener('click', () => {
+    modalTools.classList.add('active');
+    document.getElementById('batch-status').innerText = '';
+    document.getElementById('install-menu-status').innerText = '';
+    document.getElementById('tools-search').value = '';
+    document.querySelectorAll('.tools-section').forEach(c => c.style.display = '');
+    document.getElementById('tools-no-results').style.display = 'none';
+    setTimeout(() => document.getElementById('tools-search').focus(), 150);
+});
 
 document.getElementById('btn-install-menu').addEventListener('click', async () => {
     const btn = document.getElementById('btn-install-menu');
@@ -1430,7 +1575,24 @@ document.getElementById('btn-install-menu').addEventListener('click', async () =
     status.style.color = result.success ? '#66bb6a' : '#ef5350';
     status.innerText = result.message;
 });
-document.getElementById('btn-close-tools').addEventListener('click', () => modalTools.classList.remove('active'));
+document.getElementById('btn-close-tools').addEventListener('click', () => {
+    modalTools.classList.remove('active');
+    document.getElementById('tools-search').value = '';
+    document.querySelectorAll('.tools-section').forEach(c => c.style.display = '');
+    document.getElementById('tools-no-results').style.display = 'none';
+});
+
+document.getElementById('tools-search').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    let visible = 0;
+    document.querySelectorAll('.tools-section').forEach(card => {
+        const haystack = (card.dataset.search || '') + ' ' + card.textContent.toLowerCase();
+        const show = !q || haystack.includes(q);
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('tools-no-results').style.display = visible === 0 ? 'block' : 'none';
+});
 
 // Upgraded Batch Fetcher
 document.getElementById('btn-batch-fetch').addEventListener('click', async () => {
@@ -1484,13 +1646,28 @@ document.getElementById('btn-check-install').addEventListener('click', async () 
     loadGames();
 });
 
-document.getElementById('btn-add-game').addEventListener('click', async () => {
-    const result = await window.api.addGame();
-    if (result.success) {
-        await loadGames();
-        const newGame = allGames.find(g => g.id === result.id);
-        if (newGame) { openDetails(newGame); document.getElementById('edit-name').focus(); }
-    } else { alert(t('alert.add_failed')); }
+document.getElementById('btn-add-game').addEventListener('click', () => {
+    const modal = document.getElementById('modal-add-game');
+    const input = document.getElementById('add-game-name-input');
+    input.value = '';
+    modal.classList.add('active');
+    setTimeout(() => input.focus(), 50);
+
+    const doCreate = async () => {
+        const name = input.value.trim();
+        if (!name) { input.focus(); return; }
+        modal.classList.remove('active');
+        const result = await window.api.addGame(name);
+        if (result.success) {
+            await loadGames();
+            const newGame = allGames.find(g => g.id === result.id);
+            if (newGame) { openDetails(newGame); document.getElementById('edit-name').focus(); }
+        } else { alert(t('alert.add_failed')); }
+    };
+
+    document.getElementById('add-game-create').onclick = doCreate;
+    document.getElementById('add-game-cancel').onclick = () => modal.classList.remove('active');
+    input.onkeydown = (e) => { if (e.key === 'Enter') doCreate(); else if (e.key === 'Escape') modal.classList.remove('active'); };
 });
 
 document.getElementById('btn-template-csv').addEventListener('click', async () => { const result = await window.api.downloadCsvTemplate(); if (result && result.message) alert(result.message); });
@@ -1684,4 +1861,10 @@ function renderThemesInCategory(category) {
     });
 }
 
-window.api.getSetting('cngm_theme').then(saved => { applyTheme(saved && THEMES[saved] ? saved : activeTheme); window.api.signalReady(); });
+window.api.getSetting('cngm_theme').then(saved => {
+    applyTheme(saved && THEMES[saved] ? saved : activeTheme);
+    window.api.signalReady();
+    return window.api.getSetting('welcome_shown');
+}).then(shown => {
+    if (!shown) _welcomeModal.classList.add('active');
+});

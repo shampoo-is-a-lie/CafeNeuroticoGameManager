@@ -365,6 +365,16 @@ ipcMain.handle('install-to-menu', () => {
     } catch(err) { return { success: false, message: err.message }; }
 });
 
+let manualWin = null;
+ipcMain.on('open-manual', () => {
+    if (manualWin && !manualWin.isDestroyed()) { manualWin.focus(); return; }
+    manualWin = new BrowserWindow({ width: 1100, height: 800, minWidth: 800, minHeight: 500, frame: false, backgroundColor: '#2C1E16',
+        webPreferences: { contextIsolation: true, nodeIntegration: false } });
+    manualWin.loadFile('manual.html');
+    manualWin.setMenu(null);
+    manualWin.on('closed', () => { manualWin = null; });
+});
+
 ipcMain.on('window-minimize', () => { const win = BrowserWindow.getFocusedWindow(); if(win) win.minimize(); });
 ipcMain.on('window-maximize', () => {
     const win = BrowserWindow.getFocusedWindow();
@@ -575,9 +585,10 @@ ipcMain.handle('get-games', () => {
     catch (err) { return { games: [] }; }
 });
 
-ipcMain.handle('add-game', () => {
+ipcMain.handle('add-game', (e, name) => {
     try {
-        const info = db.prepare(`INSERT INTO games (Game, Store, LaunchCommand, FAV, WANT_TO_PLAY) VALUES ('New Game', '', '', 'NO', 'NO')`).run();
+        const gameName = (name && name.trim()) ? name.trim() : 'New Game';
+        const info = db.prepare("INSERT INTO games (Game, Store, LaunchCommand, FAV, WANT_TO_PLAY) VALUES (?, '', '', 'NO', 'NO')").run(gameName);
         return { success: true, id: info.lastInsertRowid };
     } catch (err) { return { success: false }; }
 });

@@ -1,1198 +1,643 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cafe Neurotico — User Manual</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;700;900&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg:          #100a05;
-      --bg_panel:    #2C1E16;
-      --bg_card:     #311a0e;
-      --bg_menu:     #432818;
-      --accent:      #D4A373;
-      --accent_dim:  rgba(212,163,115,0.10);
-      --accent_glow: rgba(212,163,115,0.25);
-      --text_main:   #FFE6A7;
-      --text_sec:    #D9C38A;
-      --text_dim:    #8a6040;
-      --border:      rgba(212,163,115,0.12);
-      --border_s:    #4a2e18;
-      --sidebar:     260px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; font-size: 14px; }
-    body { background: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; font-weight: 400; line-height: 1.7; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNGM System Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            try {
+                const cached = JSON.parse(localStorage.getItem('cngm_theme_cache') || '{}');
+                if (Object.keys(cached).length) {
+                    const root = document.documentElement;
+                    for (const [key, val] of Object.entries(cached)) {
+                        root.style.setProperty('--' + key, val);
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <style>
+        :root {
+            --bg: #1a0f0a;
+            --bg_menu: #2d1a10;
+            --bg_panel: #261510;
+            --text_main: #f5e8d0;
+            --text_sec: #c4a882;
+            --text_dim: #8B7355;
+            --accent: #d4813a;
+            --border_solid: #8B5A2B;
+        }
 
-    /* ── SCROLLBAR ── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border_s); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { margin: 0; background: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      position: fixed; top: 0; left: 0;
-      width: var(--sidebar); height: 100vh;
-      background: var(--bg_panel);
-      border-right: 1px solid var(--border_s);
-      overflow-y: auto; z-index: 200;
-      display: flex; flex-direction: column;
-    }
-    .sidebar-logo {
-      padding: 28px 22px 22px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-    }
-    .sidebar-logo .cn { font-size: 11px; font-weight: 900; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; }
-    .sidebar-logo .manual { font-size: 9px; letter-spacing: 3px; color: var(--text_dim); text-transform: uppercase; margin-top: 3px; }
-    .nav-group { padding: 14px 0 4px; }
-    .nav-group-label { font-size: 8px; font-weight: 900; letter-spacing: 4px; color: var(--text_dim); text-transform: uppercase; padding: 0 22px 6px; }
-    .nav-link {
-      display: block; padding: 7px 22px 7px 26px;
-      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-      color: var(--text_sec); text-decoration: none; text-transform: uppercase;
-      border-left: 2px solid transparent; transition: all 0.15s;
-    }
-    .nav-link:hover, .nav-link.active { color: var(--accent); background: var(--accent_dim); border-left-color: var(--accent); }
-    .nav-link.sub { padding-left: 38px; font-size: 10px; font-weight: 400; letter-spacing: 0.8px; color: var(--text_dim); }
-    .nav-link.sub:hover, .nav-link.sub.active { color: var(--text_sec); }
+        /* TITLEBAR */
+        #manual-titlebar { height: 35px; flex-shrink: 0; background: var(--bg_menu); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border_solid); user-select: none; -webkit-app-region: drag; z-index: 9999; }
+        .titlebar-brand { padding-left: 20px; font-size: 11px; font-weight: 900; color: var(--text_dim); letter-spacing: 3px; }
+        .titlebar-controls { display: flex; height: 100%; -webkit-app-region: no-drag; }
+        .win-btn { border: none; border-radius: 0; background: transparent; width: 45px; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: background-color 0.1s; cursor: pointer; color: var(--text_main); }
+        .win-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .win-close:hover { background-color: #d32f2f; color: white; }
 
-    /* ── MAIN ── */
-    .main { margin-left: var(--sidebar); min-height: 100vh; }
+        /* BODY LAYOUT */
+        #manual-body { display: flex; flex: 1; overflow: hidden; }
 
-    /* ── HERO ── */
-    .hero {
-      background: linear-gradient(160deg, #180e06 0%, #2a1509 50%, var(--bg_panel) 100%);
-      padding: 90px 80px 80px;
-      border-bottom: 1px solid var(--border_s);
-      position: relative; overflow: hidden;
-    }
-    .hero::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 20% 60%, rgba(212,163,115,0.07) 0%, transparent 65%);
-      pointer-events: none;
-    }
-    .hero-eyebrow {
-      display: flex; gap: 10px; align-items: center; margin-bottom: 28px;
-    }
-    .pill { display: inline-block; padding: 3px 13px; border-radius: 100px; font-size: 9px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
-    .pill-accent { background: var(--accent); color: #100a05; }
-    .pill-outline { border: 1px solid var(--border_s); color: var(--text_dim); }
-    .hero-title { font-size: 64px; font-weight: 900; letter-spacing: 10px; color: var(--accent); text-transform: uppercase; line-height: 1; margin-bottom: 4px; }
-    .hero-sub { font-size: 14px; font-weight: 700; letter-spacing: 8px; color: var(--text_dim); text-transform: uppercase; margin-bottom: 28px; }
-    .hero-body { font-size: 14px; color: var(--text_sec); max-width: 600px; line-height: 1.9; }
-    .hero-cards { display: flex; gap: 18px; margin-top: 44px; flex-wrap: wrap; }
-    .hero-card {
-      background: rgba(67,40,24,0.4); border: 1px solid var(--border_s);
-      border-radius: 12px; padding: 20px 26px; min-width: 170px;
-      transition: border-color 0.2s;
-    }
-    .hero-card:hover { border-color: var(--accent); }
-    .hero-card-name { font-size: 15px; font-weight: 900; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
-    .hero-card-role { font-size: 10px; color: var(--text_dim); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 5px; line-height: 1.5; }
+        /* NAV SIDEBAR */
+        #manual-nav { width: 220px; flex-shrink: 0; background: var(--bg_panel); border-right: 2px solid var(--border_solid); overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 2px; }
+        #manual-nav::-webkit-scrollbar { width: 4px; }
+        #manual-nav::-webkit-scrollbar-track { background: transparent; }
+        #manual-nav::-webkit-scrollbar-thumb { background: var(--border_solid); border-radius: 2px; }
 
-    /* ── CONTENT ── */
-    .content { padding: 64px 80px; }
-    section { margin-bottom: 86px; }
-    .section-eye { font-size: 9px; font-weight: 900; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
-    h2 { font-size: 34px; font-weight: 900; letter-spacing: 3px; color: var(--text_main); text-transform: uppercase; line-height: 1.1; margin-bottom: 4px; }
-    .divider { height: 2px; background: linear-gradient(90deg, var(--accent) 0%, transparent 55%); margin: 14px 0 34px; }
-    h3 { font-size: 16px; font-weight: 900; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin: 38px 0 14px; }
-    h4 { font-size: 11px; font-weight: 900; letter-spacing: 2.5px; color: var(--text_sec); text-transform: uppercase; margin: 26px 0 10px; }
-    p { color: var(--text_sec); font-size: 13px; margin-bottom: 13px; line-height: 1.85; }
-    a { color: var(--accent); }
-    strong { color: var(--text_main); font-weight: 700; }
+        .nav-group-label { font-size: 9px; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; padding: 14px 8px 5px; border-top: 1px solid var(--border_solid); margin-top: 4px; }
+        .nav-group-label:first-child { border-top: none; margin-top: 0; padding-top: 5px; }
 
-    /* ── APP BANNER ── */
-    .app-banner {
-      background: linear-gradient(135deg, var(--bg_menu) 0%, var(--bg_card) 100%);
-      border: 1px solid var(--border_s); border-radius: 14px;
-      padding: 30px 36px; margin-bottom: 36px; position: relative; overflow: hidden;
-    }
-    .app-banner::after {
-      content: ''; position: absolute; top: -30px; right: -30px;
-      width: 180px; height: 180px; border-radius: 50%;
-      background: radial-gradient(circle, var(--accent_glow) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .app-banner-name { font-size: 26px; font-weight: 900; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; }
-    .app-banner-full { font-size: 10px; letter-spacing: 2.5px; color: var(--text_dim); text-transform: uppercase; margin-top: 4px; }
-    .app-banner-desc { margin-top: 14px; font-size: 13px; color: var(--text_sec); max-width: 580px; line-height: 1.85; }
+        .manual-nav-btn { background: transparent; border: 1px solid transparent; color: var(--text_sec); text-align: left; padding: 7px 8px; font-size: 11px; text-transform: uppercase; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: 'Raleway', sans-serif; letter-spacing: 0.5px; }
+        .manual-nav-btn:hover, .manual-nav-btn.active { background: var(--border_solid); color: var(--text_main); border-color: var(--accent); }
 
-    /* ── FEATURE GRID ── */
-    .feat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; margin: 18px 0 24px; }
-    .feat-card {
-      background: var(--bg_card); border: 1px solid var(--border_s);
-      border-radius: 10px; padding: 18px 20px; transition: border-color 0.2s;
-    }
-    .feat-card:hover { border-color: var(--accent); }
-    .feat-icon { font-size: 20px; margin-bottom: 10px; }
-    .feat-title { font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
-    .feat-body { font-size: 11px; color: var(--text_dim); line-height: 1.7; }
+        /* CONTENT */
+        #manual-content { flex: 1; padding: 35px 45px; overflow-y: auto; scroll-behavior: smooth; }
+        #manual-content::-webkit-scrollbar { width: 6px; }
+        #manual-content::-webkit-scrollbar-track { background: transparent; }
+        #manual-content::-webkit-scrollbar-thumb { background: var(--border_solid); border-radius: 3px; }
 
-    /* ── STEPS ── */
-    .steps { list-style: none; margin: 14px 0; }
-    .steps li { display: flex; gap: 16px; margin-bottom: 14px; align-items: flex-start; }
-    .step-n {
-      flex-shrink: 0; width: 24px; height: 24px; background: var(--accent); color: #100a05;
-      border-radius: 50%; font-size: 10px; font-weight: 900;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .step-body { font-size: 13px; color: var(--text_sec); padding-top: 2px; }
+        #manual-content h2 { color: var(--accent); border-bottom: 2px solid var(--border_solid); padding-bottom: 8px; font-weight: 900; text-transform: uppercase; margin-top: 55px; font-size: 17px; letter-spacing: 2px; }
+        #manual-content h2:first-child { margin-top: 0; }
+        #manual-content h3 { color: var(--text_sec); font-weight: bold; text-transform: uppercase; margin-top: 28px; margin-bottom: 10px; font-size: 12px; letter-spacing: 1.5px; }
+        #manual-content p { font-size: 14px; line-height: 1.75; color: var(--text_sec); margin-bottom: 12px; }
+        #manual-content ul, #manual-content ol { padding-left: 22px; margin-bottom: 12px; }
+        #manual-content li { font-size: 14px; line-height: 1.75; color: var(--text_sec); margin-bottom: 6px; }
+        #manual-content strong { color: var(--text_main); }
+        #manual-content em { color: var(--text_dim); font-style: italic; }
+        #manual-content code { background: var(--bg_panel); border: 1px solid var(--border_solid); border-radius: 3px; padding: 1px 6px; font-size: 12px; color: var(--accent); font-family: monospace; }
 
-    /* ── CALLOUT ── */
-    .callout {
-      border-left: 3px solid var(--accent); background: var(--accent_dim);
-      border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 20px 0;
-    }
-    .callout-title { font-size: 9px; font-weight: 900; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
-    .callout p { font-size: 12px; color: var(--text_sec); margin: 0; }
+        /* BOXES */
+        .manual-box { background: var(--bg_panel); border: 1px solid var(--border_solid); border-left: 4px solid var(--accent); border-radius: 6px; padding: 18px 22px; margin: 20px 0; }
+        .manual-box-title { color: var(--accent) !important; font-weight: 900 !important; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px !important; }
+        .tip-box { background: rgba(102, 187, 106, 0.06); border: 1px solid rgba(102, 187, 106, 0.3); border-left: 4px solid #66bb6a; border-radius: 6px; padding: 14px 18px; margin: 15px 0; }
+        .tip-box p { color: var(--text_sec); margin: 0; }
+        .tip-box strong { color: #66bb6a; }
+        .warn-box { background: rgba(255, 152, 0, 0.06); border: 1px solid rgba(255, 152, 0, 0.3); border-left: 4px solid #ff9800; border-radius: 6px; padding: 14px 18px; margin: 15px 0; }
+        .warn-box p { color: var(--text_sec); margin: 0; }
+        .warn-box strong { color: #ff9800; }
 
-    /* ── BULLET LIST ── */
-    ul.blist { list-style: none; margin: 10px 0; }
-    ul.blist li {
-      position: relative; padding: 6px 0 6px 20px;
-      font-size: 13px; color: var(--text_sec);
-      border-bottom: 1px solid var(--border);
-    }
-    ul.blist li:last-child { border-bottom: none; }
-    ul.blist li::before { content: '◈'; position: absolute; left: 0; color: var(--accent); font-size: 9px; top: 9px; }
+        /* CONTROLS TABLE */
+        .controls-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .controls-table th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); border-bottom: 2px solid var(--border_solid); }
+        .controls-table td { padding: 8px 12px; font-size: 13px; color: var(--text_sec); border-bottom: 1px solid rgba(139, 90, 43, 0.3); vertical-align: middle; }
+        .controls-table tr:last-child td { border-bottom: none; }
+        .key { color: var(--text_main); font-weight: bold; font-family: monospace; background: var(--bg_panel); border: 1px solid var(--border_solid); border-radius: 3px; padding: 2px 7px; white-space: nowrap; font-size: 12px; }
 
-    /* ── TABLE ── */
-    .tbl-wrap { overflow-x: auto; margin: 14px 0 24px; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { background: var(--bg_menu); color: var(--accent); font-weight: 900; letter-spacing: 2px; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border_s); }
-    td { padding: 9px 14px; color: var(--text_sec); border-bottom: 1px solid var(--border); vertical-align: middle; }
-    tr:hover td { background: var(--accent_dim); }
-    td:first-child { color: var(--text_main); font-weight: 700; }
-    td.dim { color: var(--text_dim); font-style: italic; font-weight: 400; }
+        /* END FOOTER */
+        .manual-footer { text-align: center; margin-top: 60px; padding: 25px; border: 1px solid var(--border_solid); background: var(--bg_panel); border-radius: 6px; }
+        .manual-footer .accent-line { color: var(--accent); font-weight: bold; letter-spacing: 2px; }
+        .manual-footer h3 { color: var(--text_main); margin: 8px 0; }
+        .manual-footer .mono { color: var(--text_sec); font-family: monospace; font-size: 12px; margin: 3px 0; }
 
-    /* ── KEY/BTN TAGS ── */
-    kbd { display: inline-block; background: var(--bg_menu); border: 1px solid var(--border_s); border-radius: 4px; padding: 2px 9px; font-family: monospace; font-size: 11px; color: var(--text_main); }
-    .btn-a { display: inline-block; background: #4caf50; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 10px; font-weight: 900; }
-    .btn-b { display: inline-block; background: #e53935; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 10px; font-weight: 900; }
-    .btn-x { display: inline-block; background: #1e88e5; color: #fff; border-radius: 4px; padding: 1px 8px; font-size: 10px; font-weight: 900; }
-    .btn-y { display: inline-block; background: #fbc02d; color: #100a05; border-radius: 4px; padding: 1px 8px; font-size: 10px; font-weight: 900; }
-    .btn-sys { display: inline-block; background: var(--border_s); color: var(--text_sec); border-radius: 4px; padding: 1px 8px; font-size: 10px; font-weight: 900; }
-
-    /* ── THEME SECTION ── */
-    .theme-cat { margin-bottom: 30px; }
-    .theme-cat-title { font-size: 10px; font-weight: 900; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-    .theme-pills { display: flex; flex-wrap: wrap; gap: 7px; }
-    .theme-pill { padding: 4px 13px; border-radius: 100px; border: 1px solid var(--border_s); font-size: 11px; color: var(--text_sec); letter-spacing: 0.3px; transition: all 0.15s; }
-    .theme-pill:hover { border-color: var(--accent); color: var(--accent); }
-    .theme-pill.star { border-color: var(--accent); color: var(--accent); }
-
-    /* ── TWO-COL ── */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-
-    /* ── RULE ── */
-    hr { border: none; border-top: 1px solid var(--border); margin: 36px 0; }
-
-    /* ── FOOTER ── */
-    .footer { background: var(--bg_panel); border-top: 1px solid var(--border_s); padding: 44px 80px; }
-    .footer-name { font-size: 22px; font-weight: 900; letter-spacing: 5px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
-    .footer-body { font-size: 12px; color: var(--text_dim); line-height: 1.9; max-width: 540px; }
-    .footer-body a { color: var(--text_dim); }
-    .footer-credits { margin-top: 24px; font-size: 10px; color: var(--text_dim); letter-spacing: 1px; }
-
-    /* ── MOBILE ── */
-    @media (max-width: 860px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; }
-      .hero, .content { padding: 44px 28px; }
-      .hero-title { font-size: 36px; letter-spacing: 5px; }
-      .two-col { grid-template-columns: 1fr; }
-      .feat-grid { grid-template-columns: 1fr; }
-      .footer { padding: 36px 28px; }
-    }
-  </style>
+        /* SEARCH */
+        mark { background: var(--accent); color: var(--bg); border-radius: 2px; padding: 0 2px; }
+        #manual-search-wrap { position: relative; padding: 10px 10px 0; flex-shrink: 0; }
+        #manual-search { width: 100%; padding: 6px 26px 6px 9px; background: var(--bg); border: 1px solid var(--border_solid); border-radius: 4px; font-size: 11px; color: var(--text_main); font-family: 'Raleway', sans-serif; box-sizing: border-box; outline: none; }
+        #manual-search::placeholder { color: var(--text_dim); }
+        #manual-search:focus { border-color: var(--accent); }
+        #manual-search-clear { position: absolute; right: 14px; top: 55%; transform: translateY(-50%); background: transparent; border: none; color: var(--text_dim); cursor: pointer; font-size: 12px; padding: 0; display: none; line-height: 1; }
+        #manual-search-clear:hover { color: var(--text_main); }
+        #search-count { font-size: 9px; font-weight: 900; letter-spacing: 1px; color: var(--text_dim); padding: 5px 10px 6px; display: block; min-height: 20px; text-transform: uppercase; }
+    </style>
 </head>
 <body>
-
-<!-- ═══════════════════════════════════════════════════════════ SIDEBAR -->
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="cn">Cafe Neurotico</div>
-    <div class="manual">User Manual</div>
-  </div>
-
-  <nav>
-    <div class="nav-group">
-      <div class="nav-group-label">Overview</div>
-      <a class="nav-link" href="#intro">Introduction</a>
+    <div id="manual-titlebar">
+        <div class="titlebar-brand">CAFE NEUROTICO SYSTEM MANUAL</div>
+        <div class="titlebar-controls">
+            <button class="win-btn win-close" onclick="window.close()" title="Close">&#x2715;</button>
+        </div>
     </div>
 
-    <div class="nav-group">
-      <div class="nav-group-label">CNGM</div>
-      <a class="nav-link" href="#cngm">Overview</a>
-      <a class="nav-link sub" href="#cngm-start">Getting Started</a>
-      <a class="nav-link sub" href="#cngm-import">Importing Games</a>
-      <a class="nav-link sub" href="#cngm-library">Library Management</a>
-      <a class="nav-link sub" href="#cngm-metadata">Metadata & Details</a>
-      <a class="nav-link sub" href="#cngm-media">Artwork & Media</a>
-      <a class="nav-link sub" href="#cngm-settings">Tools & Settings</a>
+    <div id="manual-body">
+        <div id="manual-nav">
+            <div id="manual-search-wrap">
+                <input id="manual-search" type="text" placeholder="Search manual&hellip;" autocomplete="off" spellcheck="false">
+                <button id="manual-search-clear" title="Clear">&#x2715;</button>
+            </div>
+            <span id="search-count"></span>
+            <div class="nav-group-label">Core</div>
+            <button class="manual-nav-btn" data-target="man-1">1. Manifesto</button>
+            <button class="manual-nav-btn" data-target="man-2">2. Quick Start</button>
+
+            <div class="nav-group-label">CNGM</div>
+            <button class="manual-nav-btn" data-target="man-3">3. Adding Games</button>
+            <button class="manual-nav-btn" data-target="man-4">4. Views &amp; Navigation</button>
+            <button class="manual-nav-btn" data-target="man-5">5. Installed Status</button>
+            <button class="manual-nav-btn" data-target="man-6">6. The Gamepage</button>
+            <button class="manual-nav-btn" data-target="man-7">7. Edit &amp; Auto-Fetch</button>
+            <button class="manual-nav-btn" data-target="man-8">8. Media, SGDB &amp; Trailers</button>
+            <button class="manual-nav-btn" data-target="man-9">9. Tools &amp; Settings</button>
+
+            <div class="nav-group-label">CREMA</div>
+            <button class="manual-nav-btn" data-target="man-10">10. Overview</button>
+            <button class="manual-nav-btn" data-target="man-11">11. Controls</button>
+            <button class="manual-nav-btn" data-target="man-12">12. Gallery &amp; Gamepage</button>
+            <button class="manual-nav-btn" data-target="man-13">13. Scraping</button>
+            <button class="manual-nav-btn" data-target="man-14">14. Music &amp; Atmosphere</button>
+        </div>
+
+        <div id="manual-content">
+
+            <!-- ====== SECTION 1 ====== -->
+            <h2 id="man-1">1. Manifesto &amp; Philosophy</h2>
+
+            <div class="manual-box">
+                <p class="manual-box-title">Your Library. Manageable. Searchable. Portable.</p>
+                <p>I wanted an app that could organize and launch all my games &mdash; from Steam, Heroic (Epic and GOG), Flatpak, Emulators, or whatever &mdash; in just one place.</p>
+                <p>I wanted it to be complete with all the features I&rsquo;ve always wished I had in a Linux game manager: checking YouTube videos, HowLongToBeat, and ProtonDB right from inside the app, among other things.</p>
+                <p>I wanted it to be simple, beautiful and themeable.</p>
+                <p>And most importantly, I wanted it to be completely <strong>PORTABLE</strong> and <strong>BACKUPABLE</strong>.</p>
+
+                <p class="manual-box-title" style="margin-top: 18px;">The Local-Only Philosophy</p>
+                <p>CNGM is built with a strict <strong>Offline-First, Local-Only</strong> philosophy for your media. Once you fetch artwork, covers, logos, or download a trailer, it is saved securely into your local <code>GameManagerConfig</code> folder.</p>
+                <p>This means your library will never suffer from &ldquo;link rot&rdquo; or broken web images if a storefront changes its API. It also means you can pack up the entire folder, put it on a thumb drive, and take your flawlessly curated library to another PC entirely.</p>
+
+                <p class="manual-box-title" style="margin-top: 18px;">The Launch Command</p>
+                <p>The crucial feature. Inside the Edit Details screen, there is a field where you can put a command to launch any game. Anything goes &mdash; if you can run it on Linux, you can run it from here.</p>
+                <p><strong>If you imported your games via Steam or Heroic Sync, the launch commands are filled in automatically, even if the game is not installed.</strong> Clicking PLAY will prompt you to install if needed.</p>
+            </div>
+
+            <!-- ====== SECTION 2 ====== -->
+            <h2 id="man-2">2. Quick Start</h2>
+            <p>CNGM and CREMA are two apps that share one library database and live in the same folder. CNGM is the desktop manager; CREMA is the fullscreen couch companion. Neither requires system installation &mdash; just run the AppImage.</p>
+
+            <h3>The Welcome &amp; Setup Guide</h3>
+            <p>Every time CNGM launches, it shows a <strong>Welcome &amp; Setup Guide</strong> screen that walks you through the recommended first-run workflow step by step. Each step has live action buttons built right into the panel &mdash; you can sync Heroic, enter your Steam credentials, run a batch fetch, save API keys, and register your system shortcuts all without leaving the screen.</p>
+
+            <div class="manual-box">
+                <p class="manual-box-title">What the Welcome Screen Contains</p>
+                <ul style="margin: 0;">
+                    <li><strong>Step 1 &mdash; Connect Your Stores:</strong> Sync Heroic Games (Epic, GOG, Amazon) with one button. Paste your SteamID64 and API Key inline to fetch your Steam library directly from the screen.</li>
+                    <li><strong>Step 2 &mdash; Fetch Artwork &amp; Metadata:</strong> Runs Batch Fetch with an inline progress bar &mdash; no need to open the Tools menu.</li>
+                    <li><strong>Step 3 &mdash; API Keys (Optional):</strong> Paste and save your SteamGridDB key and IGDB credentials directly, with a live connection test for IGDB.</li>
+                    <li><strong>Step 4 &mdash; CREMA Companion:</strong> Explains where to place <code>CREMA.AppImage</code> to activate the fullscreen companion.</li>
+                    <li><strong>Step 5 &mdash; System Menu Shortcuts:</strong> Registers both CNGM and CREMA in your desktop launcher with a single button press.</li>
+                </ul>
+            </div>
+
+            <p>The action buttons in the Welcome Screen perform their tasks <strong>without closing the screen</strong>, so you can complete the entire setup in sequence from top to bottom. Only <strong>Let&rsquo;s Go</strong> and <strong>Open User Manual</strong> dismiss it.</p>
+
+            <div class="tip-box">
+                <p><strong>Don&rsquo;t show again:</strong> A checkbox at the bottom of the Welcome Screen lets you opt out of seeing it on future launches. If you ever want to bring it back, go to <strong>Tools &rarr; System &rarr; Show Welcome &amp; Setup Guide</strong>. This also resets the &ldquo;don&rsquo;t show again&rdquo; flag so the screen appears on the next launch as well.</p>
+            </div>
+
+            <h3>Your Files</h3>
+            <p>On first launch, CNGM creates a <code>GameManagerConfig</code> folder next to the app. Inside:</p>
+            <ul>
+                <li><code>game_library.db</code> &mdash; your SQLite library database (all your games and metadata)</li>
+                <li><code>images/</code> &mdash; covers, hero art, logos, icons, screenshots</li>
+                <li><code>trailers/</code> &mdash; locally downloaded MP4 trailers</li>
+            </ul>
+            <div class="tip-box">
+                <p><strong>Portability tip:</strong> Back up the entire <code>GameManagerConfig</code> folder and you have your complete library &mdash; artwork, trailers, metadata, everything. Restore it anywhere, run the app, and it all works immediately.</p>
+            </div>
+
+            <h3>Recommended First-Run Workflow</h3>
+            <ol>
+                <li>On first launch, the <strong>Welcome &amp; Setup Guide</strong> appears automatically &mdash; follow the steps there for the fastest setup.</li>
+                <li>Open <strong>Connect</strong> and sync your stores &mdash; Heroic first, then Steam.</li>
+                <li>Open <strong>Tools &rarr; Library</strong> and run <strong>Batch Fetch Missing Data</strong> to pull artwork for all synced games at once.</li>
+                <li>Set up <strong>SteamGridDB</strong> (free API key at steamgriddb.com) and <strong>IGDB</strong> (free Twitch dev key at dev.twitch.tv) in the Connect menu for richer metadata and custom logo art.</li>
+                <li>Place <code>CREMA.AppImage</code> in the same folder as CNGM &mdash; the <em>Go Fullscreen With CREMA</em> button appears automatically at the bottom of the sidebar.</li>
+                <li>Open <strong>Tools &rarr; System</strong> and click <strong>Add to Application Menu</strong> to register both CNGM and CREMA in your desktop launcher with proper icons &mdash; no terminal required.</li>
+            </ol>
+
+            <!-- ====== SECTION 3 ====== -->
+            <h2 id="man-3">3. CNGM &mdash; Adding Games &amp; Store Sync</h2>
+            <p>Click <strong>Connect</strong> in the sidebar to reach the store sync menu. All data is stored locally &mdash; no cloud accounts are required to use the app.</p>
+
+            <h3>Heroic Sync (Epic / GOG / Amazon) &mdash; Recommended</h3>
+            <p>If you use Heroic Games Launcher, this is the best way to import your library. CNGM reads Heroic&rsquo;s local configuration files directly &mdash; no login window, no API key. It imports everything you own, installed or not, <strong>with the correct native launch commands already filled in</strong>.</p>
+            <ul>
+                <li><strong>Sync Heroic Games:</strong> Imports all Epic, GOG, and Amazon libraries from your local Heroic installation in one shot.</li>
+                <li><strong>Refresh Heroic New Games</strong> (in Tools &rarr; Library): Opens Heroic, waits for you to update its library, and auto-syncs when Heroic finishes &mdash; use this after buying a new game in Epic or GOG via Heroic.</li>
+            </ul>
+            <div class="tip-box">
+                <p><strong>Amazon Games</strong> via Heroic are fully supported. If you have Amazon Games connected in Heroic, they appear in CNGM automatically under the <em>Amazon</em> category, with launch commands ready.</p>
+            </div>
+
+            <h3>Steam API Import</h3>
+            <p>Valve&rsquo;s scraping protection makes direct scraping unreliable. The official Steam API is the right way:</p>
+            <ol>
+                <li>Get a free API Key at <code>steamcommunity.com/dev/apikey</code></li>
+                <li>Find your 17-digit <strong>SteamID64</strong> (from your profile URL or steamid.io)</li>
+                <li>Enter both in the Connect menu and click <strong>Fetch Steam Library</strong></li>
+            </ol>
+            <div class="warn-box">
+                <p><strong>Important:</strong> Your Steam profile&rsquo;s <em>Game Details</em> must be set to <strong>Public</strong> for the API to return your game list.</p>
+            </div>
+
+            <h3>IGDB Integration</h3>
+            <p>IGDB (Internet Game Database) enriches metadata with franchise info, ratings, and additional game data. Get free credentials at <code>dev.twitch.tv</code>: register a Twitch developer app and copy the Client ID and Client Secret into the Connect menu. Once set, Auto-Fetch automatically pulls IGDB data alongside Steam data.</p>
+
+            <h3>GOG Direct Login</h3>
+            <p>Opens a secure internal browser login window. Log in and close it &mdash; CNGM will import your owned GOG titles. <strong>However, this method cannot auto-generate launch commands.</strong> You will need to fill them in manually for each game. The strongly recommended alternative is connecting GOG to Heroic and using Heroic Sync, which provides launch commands automatically.</p>
+
+            <h3>Adding Games Manually</h3>
+            <p>Hit <strong>+ Add Game</strong> in the sidebar. Enter the game&rsquo;s title &mdash; a new blank entry is created in the database. From there, open Edit Details and click <strong>&#x2728; Auto-Fetch</strong> to pull all metadata and artwork automatically. For Physical, Emulation, or other non-store games, type any terminal command into the Launch Command field.</p>
+
+            <h3>CSV Import / Export</h3>
+            <p>Prefer bulk-adding via spreadsheet? Download the <strong>CSV Template</strong> from Tools &rarr; Library, fill it in, and import it back. All standard fields are supported. Export CSV does the reverse &mdash; dumps your entire library to a spreadsheet for editing or archiving.</p>
+
+            <!-- ====== SECTION 4 ====== -->
+            <h2 id="man-4">4. CNGM &mdash; Views &amp; Navigation</h2>
+            <p>Three main views, one persistent sidebar. The sidebar filter applies instantly from anywhere &mdash; even from deep inside a Gamepage, clicking a filter button snaps you back to the last grid view you were using without needing to navigate manually.</p>
+
+            <h3>The List View</h3>
+            <p>High-density, spreadsheet-style. Shows launch status, Favs, Want to Play, Store badge, Genre, and Release Year at a glance. Double-click any row to open its Gamepage. If Gaming History is enabled in Tools, your most recently played games are pinned to the top of the list.</p>
+
+            <h3>The Gallery View</h3>
+            <p>Visual cover-art grid. At the top, a dynamic <strong>Hero header</strong> cycles through hero art and screenshots from your currently filtered selection &mdash; a built-in animated screensaver effect using a Ken Burns zoom and crossfade. Your recent games appear first when history tracking is active. Each card shows the game cover, store badge, and an install status dot.</p>
+
+            <h3>Sidebar Filters (See Section)</h3>
+            <ul>
+                <li><strong>All Games</strong> &mdash; entire library</li>
+                <li><strong>Installed</strong> &mdash; games currently detected as installed on this machine</li>
+                <li><strong>Favs / Want</strong> &mdash; your personal curation lists</li>
+                <li><strong>Steam / Epic / GOG / Amazon</strong> &mdash; filter by store</li>
+                <li><strong>Physical / Others / Emulation / Apps</strong> &mdash; manual categories for non-store games</li>
+            </ul>
+
+            <h3>The CREMA Companion Button</h3>
+            <p>If <code>CREMA.AppImage</code> (any capitalization) is in the same folder as CNGM, a <strong>Go Fullscreen With CREMA</strong> button appears at the bottom of the sidebar. Clicking it minimizes CNGM and launches CREMA as a separate fullscreen process. Both apps access the same <code>game_library.db</code> &mdash; any change in one is immediately reflected in the other.</p>
+
+            <!-- ====== SECTION 5 ====== -->
+            <h2 id="man-5">5. CNGM &mdash; Installed Status</h2>
+            <p>CNGM tracks whether each game is currently installed on your system and reflects it visually everywhere.</p>
+
+            <h3>The Install Dot</h3>
+            <p>A small colored dot overlays every cover card (top-left corner) and list row. <strong>Green</strong> = installed. <strong>Orange</strong> = not installed or status unknown.</p>
+
+            <h3>How Detection Works</h3>
+            <ul>
+                <li><strong>Steam games:</strong> Detected by scanning <code>appmanifest_*.acf</code> files across all your configured Steam library folders, including secondary drives. A live file watcher updates statuses automatically when you install or uninstall a game in Steam &mdash; no manual refresh needed.</li>
+                <li><strong>Heroic games (Epic / GOG / Amazon):</strong> Read from Heroic&rsquo;s <code>installed.json</code> files. Run Sync Heroic Games or Check Installed Games to refresh these.</li>
+                <li><strong>Physical / Others / Emulation / Apps:</strong> A game in these categories is considered installed only if it has a Launch Command saved. Adding the command marks it installed immediately.</li>
+            </ul>
+
+            <h3>Install / Play Buttons</h3>
+            <p>In Gallery and List view, uninstalled games show an <strong>INSTALL</strong> button. Clicking it:</p>
+            <ul>
+                <li><strong>Steam:</strong> Opens the Steam store install page for that game.</li>
+                <li><strong>Heroic / Epic / GOG / Amazon:</strong> Opens the Heroic install page for that game.</li>
+                <li><strong>Physical / Others / Emulation / Apps:</strong> Opens an Add Command dialog so you can type the launch command directly.</li>
+            </ul>
+            <div class="tip-box">
+                <p><strong>Check Installed Games</strong> in Tools &rarr; Library manually rescans your entire library and updates all statuses at once. Use it after a big Heroic session or if statuses look stale after syncing.</p>
+            </div>
+
+            <!-- ====== SECTION 6 ====== -->
+            <h2 id="man-6">6. CNGM &mdash; The Gamepage</h2>
+            <p>Double-click any entry to enter the immersive Gamepage &mdash; a premium storefront-style view for that game.</p>
+
+            <h3>What You See</h3>
+            <ul>
+                <li><strong>Hero Banner:</strong> A full-width cropped image at the top. The transparent Logo is overlaid at the center.</li>
+                <li><strong>Action Bar:</strong> Play / Install button, Edit Details, Watch Trailer (if downloaded), FAV toggle, and WANT TO PLAY toggle.</li>
+                <li><strong>Stats Panel:</strong> Release year, Developer, Publisher, Genre, HLTB, Metacritic, ProtonDB rating, Co-op info, Player count, Franchise / Series, and Similar Games.</li>
+                <li><strong>Description:</strong> A plain-text summary first, followed by the full rich HTML description pulled from the Steam store page.</li>
+                <li><strong>Screenshots:</strong> An animated Ken Burns slideshow at the bottom. Click any screenshot to enter a fullscreen slideshow. Click the fullscreen view to advance frames.</li>
+            </ul>
+
+            <h3>Live Toggles</h3>
+            <p>The <strong>&#x2605; FAV</strong> and <strong>&#x2691; WANT TO PLAY</strong> buttons in the action bar toggle instantly and write directly to the database &mdash; no need to open Edit mode.</p>
+
+            <h3>The Trailer Button</h3>
+            <p>The <strong>&#x1F3AC; WATCH TRAILER</strong> button only appears if a trailer video has been downloaded locally. It never streams from the internet &mdash; if the button is there, the video plays instantly at full quality, entirely offline.</p>
+
+            <!-- ====== SECTION 7 ====== -->
+            <h2 id="man-7">7. CNGM &mdash; Edit Details &amp; Auto-Fetch</h2>
+            <p>Click <strong>&#x2699;&#xFE0F; EDIT DETAILS</strong> from any Gamepage. Every field is editable and saved directly to the database on demand.</p>
+
+            <h3>&#x2728; Auto-Fetch</h3>
+            <p>The single most powerful button. It runs a comprehensive scrape and pulls everything it can find in one go:</p>
+            <ul>
+                <li>Cover art, Hero Art, Logo (with SGDB fallback if API key is set), Icon, up to 5 Screenshots</li>
+                <li>Short blurb description and full rich HTML store description</li>
+                <li>Release Year, Developer, Publisher, Genre, Franchise / Series</li>
+                <li>HLTB (HowLongToBeat main story hours)</li>
+                <li>ProtonDB compatibility tier (Platinum, Gold, Silver, Bronze, etc.)</li>
+                <li>Metacritic score, Co-op info, and Player count</li>
+            </ul>
+
+            <div class="manual-box">
+                <p class="manual-box-title">Step-by-Step: Building the Ultimate Gamepage</p>
+                <ol>
+                    <li><strong>Auto-Fetch first</strong> &mdash; covers ~90% of everything automatically.</li>
+                    <li>If the Hero Art or Logo looks generic, click the <strong>SGDB</strong> button next to those fields to browse stunning custom fan art from SteamGridDB.</li>
+                    <li>Click <strong>&#x25B6; WATCH TRAILER</strong> in the edit bar &mdash; search YouTube, pick the best result, and download it locally with one click.</li>
+                    <li>Save and return to the Gamepage. You now have a fully curated, completely offline, beautiful entry.</li>
+                </ol>
+            </div>
+
+            <h3>HLTB &amp; ProtonDB Live Lookups</h3>
+            <p>The &#x1F50D; icons next to HLTB and ProtonDB fields trigger live API queries. If the lookup succeeds, the value drops into the field automatically. If it fails (unusual title, API momentarily down), CNGM opens a secure internal browser window directly to the search results page &mdash; read the value, close the window, type it in. No dead ends.</p>
+
+            <h3>Asset Management (Left Column)</h3>
+            <p>Each image asset (Cover, Hero, Logo, Icon) has its own row with four options: <strong>Auto</strong> (fetch from Steam CDN), <strong>SGDB</strong> (browse community art), <strong>Local</strong> (pick any file from your disk), and <strong>Delete</strong> (remove the current asset).</p>
+
+            <h3>&#x1F9F9; Clear Meta</h3>
+            <p>Wipes all scraped metadata fields (description, stats, etc.) without touching images or launch commands. Useful when you want to re-scrape a game completely from scratch.</p>
+
+            <!-- ====== SECTION 8 ====== -->
+            <h2 id="man-8">8. CNGM &mdash; Media, SGDB &amp; Trailers</h2>
+
+            <h3>SteamGridDB (SGDB)</h3>
+            <p>SteamGridDB is a massive community art archive with custom transparent logos and textless hero backgrounds. Get a free API key at <code>steamgriddb.com</code> and paste it into the Connect menu. Once configured, every <strong>SGDB</strong> button in the Edit screen opens a browsable grid of top-rated art for that asset type.</p>
+            <p>If the auto-search picks the wrong game (e.g., &ldquo;Doom 2016&rdquo; instead of &ldquo;Doom 1993&rdquo;), use the <strong>manual search box</strong> inside the SGDB window to hunt for the exact variation you want. Click an image to download and apply it immediately.</p>
+
+            <h3>YouTube Trailers &amp; The Local Rule</h3>
+            <p>Clicking <strong>&#x25B6; WATCH TRAILER</strong> in the edit bar queries YouTube for the game&rsquo;s trailer. A list of results appears &mdash; pick the best one. CNGM uses <code>yt-dlp</code> internally to download the highest-quality MP4 to your local <code>trailers/</code> folder.</p>
+            <p><strong>The Local Rule:</strong> The <em>&#x1F3AC; WATCH TRAILER</em> button on the Gamepage only appears if the trailer has been downloaded to disk. CNGM never streams from the internet on the Gamepage. If the button is visible, the video plays instantly, offline, at maximum quality.</p>
+            <div class="tip-box">
+                <p><strong>yt-dlp</strong> must be installed on your system. Verify with <code>which yt-dlp</code> in a terminal. Install via your package manager (<code>dnf</code>, <code>apt</code>, <code>pacman</code>) or <code>pip install yt-dlp</code>.</p>
+            </div>
+
+            <!-- ====== SECTION 9 ====== -->
+            <h2 id="man-9">9. CNGM &mdash; Tools &amp; Settings</h2>
+            <p>Click <strong>Tools</strong> in the sidebar. Cards are organized by function. Use the search bar at the top to jump directly to any setting by keyword.</p>
+
+            <h3>&#x1F3A8; Appearance</h3>
+            <p><strong>Theme Selection</strong> opens the full theme picker organized by category. Live-preview any color scheme instantly without committing. <strong>UI Scale</strong> zooms the entire interface from 50% to 150% &mdash; useful for Steam Deck or 4K displays.</p>
+
+            <h3>&#x1F552; Gaming History</h3>
+            <p>Controls how many recently launched games CNGM pins to the top of the library views (OFF, 5, 10, 15, or 20 recent games). <strong>Clear History</strong> wipes the timestamps without touching any other data. Note: CNGM and CREMA maintain separate history counts, independently configured in each app.</p>
+
+            <h3>&#x2728; Library</h3>
+            <ul>
+                <li><strong>Refresh Heroic New Games:</strong> Opens Heroic Games Launcher, watches for library changes, and auto-syncs when Heroic finishes updating. Use after buying a new game in Epic or GOG via Heroic.</li>
+                <li><strong>Batch Fetch Missing Data:</strong> Scans all five asset types (Cover, Hero, Logo, Icon, Screenshots) for every game and silently pulls whatever is missing from Steam. Run it once after a big sync.</li>
+                <li><strong>Check Installed Games:</strong> Manually rescans Steam appmanifests and Heroic installed files, updating the Installed status for your entire library in one shot.</li>
+                <li><strong>Update Library:</strong> Forces a full library reload from the database, refreshing the current view.</li>
+                <li><strong>Export CSV / Import CSV / CSV Template:</strong> Move your library in and out of spreadsheet format. Template downloads a blank CSV with all correct column headers.</li>
+            </ul>
+
+            <h3>&#x1F5C4;&#xFE0F; System</h3>
+            <ul>
+                <li><strong>Backup ZIP:</strong> Packs your entire <code>GameManagerConfig</code> folder &mdash; database, covers, logos, screenshots, trailers &mdash; into a single ZIP archive. This is your complete migration package.</li>
+                <li><strong>Restore ZIP:</strong> Unpacks a backup archive. <em>Warning: this overwrites your current library entirely.</em></li>
+                <li><strong>Add to Application Menu:</strong> Registers both CNGM and CREMA in your desktop launcher (GNOME, KDE, XFCE, etc.). Writes <code>.desktop</code> files, extracts icons, and refreshes the launcher database &mdash; no terminal required. Re-run it if you move the app folder.</li>
+                <li><strong>Show Welcome &amp; Setup Guide:</strong> Reopens the first-run Welcome Screen at any time. Also resets the &ldquo;don&rsquo;t show again&rdquo; flag, so the screen will appear again on the next launch until you opt out again.</li>
+            </ul>
+
+            <h3>&#x1F9F9; Cleanup</h3>
+            <ul>
+                <li><strong>Clean Images:</strong> Cross-references every image assigned in the database and deletes orphaned files. Safe and surgical &mdash; nothing assigned to a current game is touched.</li>
+                <li><strong>Clear All Images:</strong> The nuclear option. Wipes all downloaded artwork and screenshots from disk. Your text metadata is preserved, but all visual assets must be re-fetched.</li>
+                <li><strong>Wipe Secure Browser Data:</strong> Clears the internal Chromium cache used by the GOG login window and Steam API popups. First thing to try if a store sync is behaving strangely.</li>
+            </ul>
+
+            <!-- ====== CREMA SECTIONS ====== -->
+
+            <h2 id="man-10">10. CREMA &mdash; Overview</h2>
+            <div class="manual-box">
+                <p class="manual-box-title">What Is CREMA?</p>
+                <p><strong>CREMA</strong> is the sweet foam on top of the coffee. It is CNGM&rsquo;s fullscreen companion app &mdash; laidback, easygoing, and focused purely on fun. Designed for couch play with a gamepad, CREMA presents your library in a bold, beautiful TV-mode interface with ambient music integration. Grab a controller and enjoy.</p>
+            </div>
+
+            <h3>Launching CREMA</h3>
+            <p>Place <code>CREMA.AppImage</code> (any capitalization: <code>.AppImage</code>, <code>.appimage</code>) in the same folder as <code>CNGM.AppImage</code>. A <strong>Go Fullscreen With CREMA</strong> button appears at the bottom of CNGM&rsquo;s sidebar. Clicking it minimizes CNGM and launches CREMA as a separate fullscreen process.</p>
+            <p>CREMA can also be launched independently &mdash; from your desktop launcher, terminal, or as an autostart entry. It always reads from and writes to the shared <code>GameManagerConfig/game_library.db</code> in the same folder, so the library is always in sync.</p>
+
+            <h3>Shared Library</h3>
+            <p>CNGM and CREMA always access the same SQLite database file. Any game you add, scrape, or edit in CNGM is immediately visible in CREMA. Install status updates from Steam are pushed live to both apps simultaneously via a background file watcher &mdash; no manual action required.</p>
+
+            <!-- ====== SECTION 11 ====== -->
+            <h2 id="man-11">11. CREMA &mdash; Controls</h2>
+
+            <h3>Gamepad Controls</h3>
+            <table class="controls-table">
+                <thead><tr><th>Button</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="key">Left Stick / D-Pad</span></td><td>Navigate the game grid and menus</td></tr>
+                    <tr><td><span class="key">A / Cross</span></td><td>Confirm / Open Gamepage / Launch game</td></tr>
+                    <tr><td><span class="key">B / Circle</span></td><td>Back / Close overlay / Return to gallery</td></tr>
+                    <tr><td><span class="key">X / Square</span></td><td>Scrape metadata for the selected game</td></tr>
+                    <tr><td><span class="key">LB / L1</span></td><td>Previous category</td></tr>
+                    <tr><td><span class="key">RB / R1</span></td><td>Next category</td></tr>
+                    <tr><td><span class="key">Start / Menu</span></td><td>Open Sound Settings</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Keyboard Controls</h3>
+            <table class="controls-table">
+                <thead><tr><th>Key</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td><span class="key">Arrow Keys</span></td><td>Navigate the game grid</td></tr>
+                    <tr><td><span class="key">Enter</span></td><td>Confirm / Select / Open Gamepage</td></tr>
+                    <tr><td><span class="key">Escape / Backspace</span></td><td>Back / Close overlay</td></tr>
+                    <tr><td><span class="key">Left / Right</span></td><td>Switch category (when gallery header is focused)</td></tr>
+                    <tr><td><span class="key">, + .</span></td><td>Wake from screensaver (hold both simultaneously)</td></tr>
+                </tbody>
+            </table>
+
+            <h3>The On-Screen Keyboard (OSK)</h3>
+            <p>For Physical, Emulation, Others, or Apps games without a launch command, pressing Play opens the On-Screen Keyboard so you can type the command directly with your gamepad or keyboard. Navigate keys with the D-pad or stick, confirm characters with A / Enter. Press B or Escape to cancel without saving.</p>
+
+            <div class="tip-box">
+                <p><strong>Wake from screensaver:</strong> If CREMA enters its idle screensaver mode, hold <strong>comma (,) and period (.)</strong> simultaneously on the keyboard to wake it instantly back to the gallery.</p>
+            </div>
+
+            <!-- ====== SECTION 12 ====== -->
+            <h2 id="man-12">12. CREMA &mdash; Gallery &amp; Gamepage</h2>
+
+            <h3>The Gallery</h3>
+            <p>CREMA&rsquo;s main view is a fullscreen cover-art grid. Categories are shown at the top &mdash; navigate between them with LB/RB (gamepad) or Left/Right arrow keys. The grid reloads instantly for the selected category.</p>
+
+            <h3>Available Categories in CREMA</h3>
+            <ul>
+                <li><strong>All Games, Installed</strong> &mdash; full library or just installed games</li>
+                <li><strong>Steam, GOG, Epic, Amazon</strong> &mdash; by store</li>
+                <li><strong>Others, Physical, Emulation, Apps</strong> &mdash; manual categories</li>
+                <li><strong>Want to Play, Favs</strong> &mdash; your personal lists</li>
+            </ul>
+
+            <h3>The Gamepage</h3>
+            <p>Select a game and press A / Enter to open its Gamepage. You&rsquo;ll see:</p>
+            <ul>
+                <li><strong>Hero Banner</strong> &mdash; cinematic, takes up ~40% of screen height. The transparent Logo is overlaid at center.</li>
+                <li><strong>Stats Panel</strong> &mdash; Release Year, HLTB, ProtonDB, Genre, Co-op, Players, Metacritic.</li>
+                <li><strong>Description</strong> &mdash; a short summary of the game.</li>
+                <li><strong>Screenshots</strong> &mdash; animated Ken Burns slideshow. Confirm to enter fullscreen slideshow; confirm again to advance frames.</li>
+                <li><strong>Play / Install Button</strong> &mdash; launches the game. For uninstalled store games, shows Install instead. For manual categories without a command, opens the OSK.</li>
+                <li><strong>Trailer Button</strong> &mdash; appears only if a trailer was downloaded in CNGM. Plays instantly, offline. BGM fades out automatically.</li>
+            </ul>
+
+            <h3>FAV &amp; Want to Play</h3>
+            <p>From the Gamepage menu, you can toggle Favorites and Want to Play. Changes write instantly to the shared database and are reflected in CNGM immediately.</p>
+
+            <!-- ====== SECTION 13 ====== -->
+            <h2 id="man-13">13. CREMA &mdash; Scraping &amp; Metadata</h2>
+            <p>CREMA can scrape metadata for individual games without going through CNGM. The scope matches CNGM&rsquo;s Auto-Fetch: Cover, Hero Art, Logo, HLTB, ProtonDB, Description, Genre, Developer, Publisher, Co-op, Players, Metacritic, Screenshots.</p>
+
+            <h3>How to Scrape</h3>
+            <p>Navigate to a game in the gallery and press <strong>X / Square</strong> (or use the scrape option in the Game Menu). CREMA will:</p>
+            <ol>
+                <li>Search Steam for the game by name. If found, proceed with a full Steam + IGDB scrape.</li>
+                <li>If Steam search finds nothing or the result looks wrong, CREMA automatically offers an <strong>IGDB fallback</strong> &mdash; a search overlay where you can type the correct game name and select from results.</li>
+            </ol>
+
+            <h3>IGDB Fallback</h3>
+            <p>When the Steam search fails, a search overlay appears with results from IGDB. Select the correct entry and CREMA fetches all available metadata. This is especially useful for older games, non-English titles, or games not on Steam at all.</p>
+
+            <div class="warn-box">
+                <p><strong>IGDB credentials required:</strong> The IGDB fallback path requires a Twitch dev API key configured in CNGM&rsquo;s Connect menu. Without it, only Steam-based data is available.</p>
+            </div>
+
+            <!-- ====== SECTION 14 ====== -->
+            <h2 id="man-14">14. CREMA &mdash; Music &amp; Atmosphere</h2>
+            <p>CREMA has a built-in music player for ambient game-room atmosphere. It runs continuously while you browse your library and integrates seamlessly with the rest of the experience.</p>
+
+            <h3>BGM Categories</h3>
+            <p>CREMA ships with curated music organized into genre and mood categories. The default on first launch is <strong>Ambient</strong>. Switch between categories in the Sound Settings overlay (Start button or the on-screen menu icon).</p>
+
+            <h3>Sound Settings Controls</h3>
+            <ul>
+                <li>Switch BGM category / style</li>
+                <li>Adjust BGM volume</li>
+                <li>Toggle BGM on or off</li>
+                <li>Adjust sound effects volume</li>
+            </ul>
+
+            <h3>Trailer Fade</h3>
+            <p>When you play a trailer from the Gamepage, CREMA automatically fades out the BGM. When the trailer ends or you close the player, the BGM fades smoothly back in. This ensures a seamless, cinematic experience without jarring audio overlap.</p>
+
+            <div class="manual-footer">
+                <p class="accent-line">=========================================</p>
+                <h3>/// END OF FILE ///</h3>
+                <p class="mono">SYSTEM OPERATIONS CONCLUDED.</p>
+                <p class="mono">COPYRIGHT &copy; CAFE NEUROTICO SYSTEMS.</p>
+                <p class="accent-line" style="margin-top: 15px;">NOW GO PLAY SOME GAMES.</p>
+                <p class="accent-line">=========================================</p>
+            </div>
+
+        </div>
     </div>
 
-    <div class="nav-group">
-      <div class="nav-group-label">CREMA</div>
-      <a class="nav-link" href="#crema">Overview</a>
-      <a class="nav-link sub" href="#crema-setup">First-Time Setup</a>
-      <a class="nav-link sub" href="#crema-nav">Navigation Modes</a>
-      <a class="nav-link sub" href="#crema-library">Game Library</a>
-      <a class="nav-link sub" href="#crema-gamepage">Gamepage</a>
-      <a class="nav-link sub" href="#crema-options">Game Options</a>
-      <a class="nav-link sub" href="#crema-jukebox">Jukebox</a>
-      <a class="nav-link sub" href="#crema-screensaver">Screensaver</a>
-      <a class="nav-link sub" href="#crema-menu">System Menu</a>
-      <a class="nav-link sub" href="#crema-controls">Controls Reference</a>
-    </div>
-
-    <div class="nav-group">
-      <div class="nav-group-label">Reference</div>
-      <a class="nav-link" href="#themes">Theme Catalog</a>
-      <a class="nav-link" href="#credits">Credits</a>
-    </div>
-  </nav>
-</aside>
-
-<!-- ═══════════════════════════════════════════════════════════ MAIN -->
-<main class="main">
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-eyebrow">
-      <span class="pill pill-accent">User Manual</span>
-      <span class="pill pill-outline">v1.0</span>
-    </div>
-    <div class="hero-title">Cafe Neurotico</div>
-    <div class="hero-sub">Game Ecosystem</div>
-    <p class="hero-body">
-      Two apps. One purpose. <strong>CNGM</strong> is the detail-obsessed desktop manager that does all the heavy lifting —
-      importing, scraping, organizing. <strong>CREMA</strong> is its fullscreen companion: laidback,
-      gamepad-first, and focused purely on the joy of playing.
-    </p>
-    <div class="hero-cards">
-      <div class="hero-card">
-        <div class="hero-card-name">CNGM</div>
-        <div class="hero-card-role">Desktop Game Manager<br>The Neurotic One</div>
-      </div>
-      <div class="hero-card">
-        <div class="hero-card-name">CREMA</div>
-        <div class="hero-card-role">Fullscreen Launcher<br>The Laidback One</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONTENT -->
-  <div class="content">
-
-    <!-- ═══════════ INTRODUCTION -->
-    <section id="intro">
-      <div class="section-eye">The Ecosystem</div>
-      <h2>Introduction</h2>
-      <div class="divider"></div>
-
-      <p>
-        <em>Crema</em> — the reddish-brown, frothy foam that sits atop a freshly brewed espresso — is
-        created by water, coffee oils, and pressurized CO₂ during high-pressure extraction. It signals
-        freshness, quality, and craft. That's the metaphor this project lives by.
-      </p>
-      <p>
-        <strong>Cafe Neurotico Game Manager (CNGM)</strong> is the espresso machine: exacting, thorough,
-        neurotic about your library. It imports from stores, scrapes artwork, manages metadata, and keeps
-        everything organized with obsessive precision.
-      </p>
-      <p>
-        <strong>CREMA</strong> is the sweet foam on top: the fullscreen experience you drop into when it's
-        time to play. Grab a controller, pick a game, and enjoy — CREMA handles the rest.
-      </p>
-
-      <div class="callout">
-        <div class="callout-title">How they connect</div>
-        <p>Both apps share the same database. CNGM builds and enriches it; CREMA reads and presents it.
-        Set up your library in CNGM first, then launch CREMA for the couch experience.</p>
-      </div>
-
-      <h3>System Requirements</h3>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Component</th><th>Minimum</th></tr>
-          <tr><td>Operating System</td><td>Linux (AppImage), Windows (planned)</td></tr>
-          <tr><td>Display</td><td>1280 × 720 or higher</td></tr>
-          <tr><td>Internet</td><td>Required for importing and scraping; not needed to play</td></tr>
-          <tr><td>Gamepad</td><td>Optional — CREMA fully supports keyboard fallback</td></tr>
-        </table>
-      </div>
-    </section>
-
-    <!-- ═══════════ CNGM -->
-    <section id="cngm">
-      <div class="section-eye">Desktop Application</div>
-      <h2>CNGM</h2>
-      <div class="divider"></div>
-
-      <div class="app-banner">
-        <div class="app-banner-name">CNGM</div>
-        <div class="app-banner-full">Cafe Neurotico Game Manager</div>
-        <div class="app-banner-desc">
-          The desktop app: detail-focused, neurotic about your library, handling all the heavy lifting
-          with automatic and manual importing, deep metadata editing, and a powerful scraping engine.
-          Think of it as the gerentão — the manager who gets things done so CREMA can stay carefree.
-        </div>
-      </div>
-
-      <div class="feat-grid">
-        <div class="feat-card">
-          <div class="feat-icon">📥</div>
-          <div class="feat-title">Multi-Store Import</div>
-          <div class="feat-body">Import from Steam, GOG, Epic, Heroic, or add games manually via CSV or the built-in form.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🎨</div>
-          <div class="feat-title">Scraping Engine</div>
-          <div class="feat-body">Auto-fetch covers, hero art, screenshots, logos, and full metadata in one click.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">✏️</div>
-          <div class="feat-title">Deep Editing</div>
-          <div class="feat-body">Edit every field: title, genre, developer, HLTB, Metacritic, similar games, franchise, and more.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🎬</div>
-          <div class="feat-title">Trailer Download</div>
-          <div class="feat-body">Search YouTube and download trailers directly to your library with a progress indicator.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🖼️</div>
-          <div class="feat-title">SteamGridDB</div>
-          <div class="feat-body">Browse and apply community artwork for any game using the SteamGridDB integration.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🎨</div>
-          <div class="feat-title">50+ Themes</div>
-          <div class="feat-body">Fully themed UI with over 50 color schemes across six curated categories.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══════════ CNGM: Getting Started -->
-    <section id="cngm-start">
-      <h3>Getting Started</h3>
-      <div class="divider"></div>
-
-      <p>On first launch, CNGM opens to an empty library. Follow these steps to get up and running:</p>
-
-      <ol class="steps">
-        <li>
-          <span class="step-n">1</span>
-          <div class="step-body"><strong>Launch the app.</strong> The main window opens with the Library panel active and an empty game list.</div>
-        </li>
-        <li>
-          <span class="step-n">2</span>
-          <div class="step-body"><strong>Set up your API keys.</strong> Open the <strong>Import</strong> panel to configure Steam, IGDB, and SteamGridDB credentials. See each import method below for where to get keys.</div>
-        </li>
-        <li>
-          <span class="step-n">3</span>
-          <div class="step-body"><strong>Import your games.</strong> Use any of the store import methods or add games manually.</div>
-        </li>
-        <li>
-          <span class="step-n">4</span>
-          <div class="step-body"><strong>Run Batch Scrape.</strong> Go to <strong>Tools → Batch Scrape Missing Data</strong> to automatically download covers, hero art, and metadata for your entire library.</div>
-        </li>
-        <li>
-          <span class="step-n">5</span>
-          <div class="step-body"><strong>Launch CREMA.</strong> Click the <strong>Launch CREMA</strong> button to open the fullscreen launcher — your library is already there, ready to play.</div>
-        </li>
-      </ol>
-
-      <div class="callout">
-        <div class="callout-title">API Key Sources</div>
-        <p>
-          <strong>Steam API Key</strong> → <a href="https://store.steampowered.com/dev/apikey" target="_blank">store.steampowered.com/dev/apikey</a> (requires a public profile)<br>
-          <strong>IGDB</strong> → <a href="https://dev.twitch.tv" target="_blank">dev.twitch.tv</a> — create an app, get Client ID + Client Secret<br>
-          <strong>SteamGridDB</strong> → <a href="https://www.steamgriddb.com" target="_blank">steamgriddb.com</a> → Account → Preferences → API Key
-        </p>
-      </div>
-    </section>
-
-    <!-- ═══════════ CNGM: Importing -->
-    <section id="cngm-import">
-      <h3>Importing Games</h3>
-      <div class="divider"></div>
-
-      <p>CNGM supports six import paths. All methods add games to the same shared library.</p>
-
-      <h4>Steam</h4>
-      <ul class="blist">
-        <li>Requires your <strong>SteamID64</strong> and a <strong>Steam API Key</strong></li>
-        <li>Your Steam profile must be set to <strong>Public</strong></li>
-        <li>Imports the full owned game list with Steam App IDs pre-filled</li>
-        <li>Launch commands are generated automatically for Steam games</li>
-      </ul>
-
-      <h4>GOG</h4>
-      <ul class="blist">
-        <li>Uses a secure <strong>OAuth login window</strong> — your credentials are never stored</li>
-        <li>Fetches the full GOG library for the logged-in account</li>
-      </ul>
-
-      <h4>Epic Games</h4>
-      <ul class="blist">
-        <li>Direct import from your Epic Games library</li>
-      </ul>
-
-      <h4>Heroic Games Launcher</h4>
-      <ul class="blist">
-        <li>Syncs games already imported into Heroic</li>
-        <li>Heroic must be installed and configured with your accounts</li>
-      </ul>
-
-      <h4>CSV Import</h4>
-      <ul class="blist">
-        <li>Download the <strong>CSV Template</strong> from the Import panel</li>
-        <li>Fill in game details using any spreadsheet app</li>
-        <li>Import the completed file to batch-add custom games</li>
-        <li>Use <strong>Export CSV</strong> to back up or migrate your library data</li>
-      </ul>
-
-      <h4>Manual Add</h4>
-      <ul class="blist">
-        <li>Click <strong>Add Game</strong> to open the game creation form</li>
-        <li>Fill in the title and any other known fields</li>
-        <li>Use the Scraping Engine afterwards to fill in artwork and metadata</li>
-      </ul>
-    </section>
-
-    <!-- ═══════════ CNGM: Library -->
-    <section id="cngm-library">
-      <h3>Library Management</h3>
-      <div class="divider"></div>
-
-      <h4>Views</h4>
-      <div class="two-col">
-        <div class="feat-card">
-          <div class="feat-title">Gallery View</div>
-          <div class="feat-body">Visual grid of cover art. Best for browsing a well-scraped library. Click a cover to open the full game page.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-title">List View</div>
-          <div class="feat-body">Tabular view with title, store, genre, release date, favorites, and launch controls visible at a glance.</div>
-        </div>
-      </div>
-
-      <h4>Filtering & Categories</h4>
-      <ul class="blist">
-        <li><strong>All Games</strong> — your entire library</li>
-        <li><strong>Playable</strong> — games with a launch command configured</li>
-        <li><strong>Favorites</strong> — games you've starred</li>
-        <li><strong>Want to Play</strong> — your personal wishlist / backlog</li>
-        <li><strong>By Store</strong> — Steam, GOG, Epic, Amazon, Physical, Emulation, Apps, Others</li>
-      </ul>
-
-      <h4>Search</h4>
-      <p>The search bar filters across game titles, descriptions, genres, developers, publishers, and series — results sorted with title matches first.</p>
-
-      <h4>Gaming History</h4>
-      <p>CNGM tracks which games you've launched and when. The <strong>Recently Played</strong> section shows your most recent games at the top of the library. Configure how many entries appear (5, 9, or 18 games) or disable it entirely. Clear history at any time from the Tools panel.</p>
-    </section>
-
-    <!-- ═══════════ CNGM: Metadata -->
-    <section id="cngm-metadata">
-      <h3>Metadata & Game Details</h3>
-      <div class="divider"></div>
-
-      <p>Click any game to open its full detail page. The editor panel lets you view and modify every field.</p>
-
-      <h4>Auto-Fetch (IGDB)</h4>
-      <ol class="steps">
-        <li><span class="step-n">1</span><div class="step-body">Open a game's detail page.</div></li>
-        <li><span class="step-n">2</span><div class="step-body">Click <strong>Fetch Metadata</strong> — CNGM queries IGDB using the game title.</div></li>
-        <li><span class="step-n">3</span><div class="step-body">If multiple matches are found, a selection list appears. Choose the correct entry.</div></li>
-        <li><span class="step-n">4</span><div class="step-body">Metadata is applied. Review and save any adjustments.</div></li>
-      </ol>
-
-      <h4>Editable Fields</h4>
-      <div class="two-col">
-        <ul class="blist">
-          <li>Title</li>
-          <li>Store / Platform</li>
-          <li>Launch Command</li>
-          <li>Genre</li>
-          <li>Release Year</li>
-          <li>Developer</li>
-          <li>Publisher</li>
-          <li>Series / Franchise</li>
-        </ul>
-        <ul class="blist">
-          <li>Steam App ID</li>
-          <li>ProtonDB Tier</li>
-          <li>Metacritic Score</li>
-          <li>HLTB (How Long to Beat)</li>
-          <li>Co-op Support</li>
-          <li>Player Count</li>
-          <li>Similar Games</li>
-          <li>Description</li>
-        </ul>
-      </div>
-
-      <h4>Launch Commands</h4>
-      <p>The launch command is what CREMA executes when you press Play. Examples:</p>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Store</th><th>Example Command</th></tr>
-          <tr><td>Steam</td><td><kbd>steam steam://rungameid/440</kbd></td></tr>
-          <tr><td>Heroic / Epic</td><td><kbd>heroic://launch/app-name</kbd></td></tr>
-          <tr><td>Native Binary</td><td><kbd>/home/user/games/mygame/start.sh</kbd></td></tr>
-          <tr><td>Emulator</td><td><kbd>retroarch -L core.so /path/to/rom.bin</kbd></td></tr>
-        </table>
-      </div>
-    </section>
-
-    <!-- ═══════════ CNGM: Media -->
-    <section id="cngm-media">
-      <h3>Artwork & Media</h3>
-      <div class="divider"></div>
-
-      <h4>Asset Types</h4>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Asset</th><th>Used In</th><th>Recommended Ratio</th></tr>
-          <tr><td>Cover Art</td><td>Gallery grid, game page, CREMA</td><td>2:3 portrait</td></tr>
-          <tr><td>Hero Art</td><td>Game page background, CREMA hero</td><td>16:9 landscape</td></tr>
-          <tr><td>Logo</td><td>CREMA gallery hero overlay</td><td>Wide transparent PNG</td></tr>
-          <tr><td>Icon</td><td>Small list view icon</td><td>Square</td></tr>
-          <tr><td>Screenshots</td><td>Game page carousel, CREMA slideshow</td><td>16:9 preferred</td></tr>
-          <tr><td>Trailer</td><td>CREMA fullscreen trailer popup</td><td>YouTube download</td></tr>
-        </table>
-      </div>
-
-      <h4>Batch Scraping</h4>
-      <p>
-        The <strong>Batch Scrape</strong> tool scans your entire library and downloads missing artwork
-        and metadata automatically. Progress is shown per-game. This is the fastest way to populate a
-        freshly imported library.
-      </p>
-
-      <h4>SteamGridDB Integration</h4>
-      <p>
-        For games not found by the default scraper, or when you want alternative artwork, use
-        <strong>SteamGridDB</strong>. Enter your API key once; then for any game, select
-        <strong>Custom Cover (SteamGridDB)</strong> to browse community-made assets and apply them
-        with a single click.
-      </p>
-
-      <h4>Trailer Downloading</h4>
-      <ol class="steps">
-        <li><span class="step-n">1</span><div class="step-body">Open a game's detail page and click <strong>Download Trailer</strong>.</div></li>
-        <li><span class="step-n">2</span><div class="step-body">CNGM searches YouTube for the game's trailer.</div></li>
-        <li><span class="step-n">3</span><div class="step-body">Select the best result from the list.</div></li>
-        <li><span class="step-n">4</span><div class="step-body">The trailer downloads locally. CREMA will play it from disk — no internet needed at launch time.</div></li>
-      </ol>
-
-      <h4>Manual Asset Assignment</h4>
-      <p>
-        Click the <strong>folder icon</strong> next to any asset slot to browse your disk and assign
-        a custom image. Useful for physical games, emulation, or any title not indexed by online databases.
-      </p>
-    </section>
-
-    <!-- ═══════════ CNGM: Settings -->
-    <section id="cngm-settings">
-      <h3>Tools & Settings</h3>
-      <div class="divider"></div>
-
-      <h4>Appearance</h4>
-      <ul class="blist">
-        <li><strong>Theme</strong> — 50+ color schemes across six categories. See the <a href="#themes">Theme Catalog</a>.</li>
-        <li><strong>UI Scale</strong> — 0.8×, 0.9×, 1.0×, 1.1×, or 1.2× zoom. Useful for high-DPI displays.</li>
-        <li><strong>Language</strong> — English or Português (BR). Reloads the interface instantly.</li>
-      </ul>
-
-      <h4>Library Utilities</h4>
-      <ul class="blist">
-        <li><strong>Update Library</strong> — Refreshes the game list from the database.</li>
-        <li><strong>Batch Scrape Missing Data</strong> — Downloads artwork and metadata for all games that lack it.</li>
-        <li><strong>Backup ZIP</strong> — Exports your entire library (database + images) as a ZIP archive.</li>
-        <li><strong>Clean Images</strong> — Removes image files no longer referenced by any game.</li>
-        <li><strong>Clear All Images</strong> — Wipes all visual assets (cover, hero, screenshots) from the library.</li>
-        <li><strong>Clear Gaming History</strong> — Resets the recently-played list.</li>
-        <li><strong>Wipe Secure Browser Data</strong> — Clears stored login sessions (e.g., GOG OAuth).</li>
-      </ul>
-    </section>
-
-    <hr>
-
-    <!-- ═══════════ CREMA -->
-    <section id="crema">
-      <div class="section-eye">Fullscreen Launcher</div>
-      <h2>CREMA</h2>
-      <div class="divider"></div>
-
-      <div class="app-banner">
-        <div class="app-banner-name">CREMA</div>
-        <div class="app-banner-full">The Fullscreen Companion</div>
-        <div class="app-banner-desc">
-          CREMA is the sweet foam on top of the espresso. It's the fullscreen experience:
-          laidback, easygoing, gamepad-first, and focused purely on fun. A connoisseur of
-          good gaming and good music. Grab a controller and be happy.
-        </div>
-      </div>
-
-      <div class="feat-grid">
-        <div class="feat-card">
-          <div class="feat-icon">🎮</div>
-          <div class="feat-title">Gamepad-First</div>
-          <div class="feat-body">Fully navigable with a gamepad. Xbox, PlayStation, and generic layouts supported.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">⌨️</div>
-          <div class="feat-title">Keyboard Fallback</div>
-          <div class="feat-body">No gamepad? No problem. CREMA detects keyboard input and adapts the UI and hints instantly.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🖼️</div>
-          <div class="feat-title">Three View Modes</div>
-          <div class="feat-body">List, Gallery, and Start Screen modes for different tastes and TV sizes.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🎵</div>
-          <div class="feat-title">Built-In Jukebox</div>
-          <div class="feat-body">Full music player with playlists, Now Playing widget, and background music styles.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">📺</div>
-          <div class="feat-title">Trailers & Media</div>
-          <div class="feat-body">Screenshot slideshows and fullscreen trailer playback with BGM auto-fade.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-icon">🌙</div>
-          <div class="feat-title">Screensaver</div>
-          <div class="feat-body">Auto-activating wallpaper or screenshot slideshow when idle.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═══════════ CREMA: Setup -->
-    <section id="crema-setup">
-      <h3>First-Time Setup</h3>
-      <div class="divider"></div>
-
-      <p>
-        The first time you launch CREMA, a two-step setup wizard guides you through the essentials.
-        This screen only appears once; all choices can be changed later via the System Menu.
-      </p>
-
-      <ol class="steps">
-        <li>
-          <span class="step-n">1</span>
-          <div class="step-body">
-            <strong>Choose your Start Screen style.</strong> Three visual modes are shown as preview cards:
-            <strong>List</strong> (vertical category list), <strong>Carousel</strong> (horizontal scrolling),
-            or <strong>Grid</strong> (3×3 category tiles). Navigate with the D-pad or arrow keys.
-          </div>
-        </li>
-        <li>
-          <span class="step-n">2</span>
-          <div class="step-body">
-            <strong>Choose your input preference.</strong> Select <strong>Gamepad</strong> or <strong>Keyboard</strong>.
-            CREMA will auto-detect input type during normal use, so this is just a hint for the default hints.
-          </div>
-        </li>
-        <li>
-          <span class="step-n">3</span>
-          <div class="step-body">
-            <strong>Confirm.</strong> Press <span class="btn-a">A</span> or <kbd>Enter</kbd> to finish.
-            Your library appears immediately.
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <!-- ═══════════ CREMA: Navigation Modes -->
-    <section id="crema-nav">
-      <h3>Navigation Modes</h3>
-      <div class="divider"></div>
-
-      <p>CREMA offers three distinct ways to browse your library. Switch between them anytime via <strong>System Menu → Start Screen</strong>.</p>
-
-      <div class="feat-grid">
-        <div class="feat-card">
-          <div class="feat-title">List Mode</div>
-          <div class="feat-body">A vertical category menu with a large hero media section. Clean and fast — ideal for large libraries or keyboard users. D-pad up/down navigates; left/right changes category.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-title">Carousel Mode</div>
-          <div class="feat-body">Categories scroll horizontally as large cards with hero art. A cinematic browsing experience best enjoyed on a TV.</div>
-        </div>
-        <div class="feat-card">
-          <div class="feat-title">Grid Mode</div>
-          <div class="feat-body">Categories displayed as a 3×3 tile grid with a hero banner above. Touch-screen friendly and visually dense.</div>
-        </div>
-      </div>
-
-      <div class="callout">
-        <div class="callout-title">Browse Mode</div>
-        <p>Within each category, toggle between <strong>List View</strong> (scrollable game list with metadata sidebar) and <strong>Gallery View</strong> (cover art grid with hero banner) via the System Menu → Browse Mode.</p>
-      </div>
-    </section>
-
-    <!-- ═══════════ CREMA: Library -->
-    <section id="crema-library">
-      <h3>Game Library</h3>
-      <div class="divider"></div>
-
-      <h4>Categories</h4>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Category</th><th>Contains</th></tr>
-          <tr><td>All Games</td><td>Your entire library</td></tr>
-          <tr><td>Playable</td><td>Games with a launch command set</td></tr>
-          <tr><td>Favorites ★</td><td>Games you've starred</td></tr>
-          <tr><td>Want to Play ⚑</td><td>Your personal backlog/wishlist</td></tr>
-          <tr><td>Physical</td><td>Games tagged as physical media</td></tr>
-          <tr><td>Emulation</td><td>ROM-based games via emulators</td></tr>
-          <tr><td>Apps</td><td>Non-game applications</td></tr>
-          <tr><td>Others</td><td>Everything else</td></tr>
-        </table>
-      </div>
-
-      <h4>Global Search</h4>
-      <p>
-        Press <span class="btn-y">Y</span> (gamepad) or <kbd>Y</kbd> (keyboard) to open the on-screen keyboard.
-        Type to filter games by title, description, genre, developer, publisher, or series.
-        Press <span class="btn-a">A</span> or <kbd>Enter</kbd> to confirm; the list filters instantly.
-        Press <span class="btn-b">B</span> or <kbd>Esc</kbd> to clear and return.
-      </p>
-
-      <h4>Gallery View Navigation</h4>
-      <ul class="blist">
-        <li>D-pad / Arrow keys — move between game tiles</li>
-        <li><kbd>LB</kbd> / <kbd>RB</kbd> or <kbd>,</kbd> / <kbd>.</kbd> — switch category left / right</li>
-        <li>The selected tile is always kept centered on screen with smooth scrolling</li>
-        <li>The top row shows <strong>Recently Played</strong> games</li>
-        <li>Store badges (Steam, GOG, etc.) appear at the bottom-right of each tile</li>
-      </ul>
-    </section>
-
-    <!-- ═══════════ CREMA: Gamepage -->
-    <section id="crema-gamepage">
-      <h3>Gamepage</h3>
-      <div class="divider"></div>
-
-      <p>
-        Press <span class="btn-a">A</span> on any game (in List View or Gallery View) to open its
-        full Gamepage — an immersive detail view with all available art and metadata.
-      </p>
-
-      <h4>Layout</h4>
-      <ul class="blist">
-        <li><strong>Hero</strong> — full-width animated banner (Ken Burns pan-zoom)</li>
-        <li><strong>Action Buttons</strong> — Play, Favorite, Want to Play, accessible directly from the hero area</li>
-        <li><strong>Cover Art</strong> — displayed on the left of the content area</li>
-        <li><strong>Descriptions</strong> — short summary followed by the full description</li>
-        <li><strong>Game Stats</strong> — Developer, Publisher, Genre, HLTB, ProtonDB, Metacritic, Co-op, Players, Series, Similar Games</li>
-        <li><strong>Screenshots Banner</strong> — scrollable screenshot slideshow; press <span class="btn-x">X</span> to open fullscreen</li>
-      </ul>
-
-      <h4>Trailer Playback</h4>
-      <p>
-        If a trailer has been downloaded via CNGM, press <span class="btn-x">X</span> in the hero area or select
-        <strong>Watch Trailer</strong> to open the trailer popup. The BGM fades out automatically during
-        playback and fades back in when you close the overlay. Press <span class="btn-b">B</span> to return.
-      </p>
-
-      <h4>Games Without Artwork</h4>
-      <p>
-        If a game has no scraped artwork or metadata, CREMA shows a styled placeholder with a hint:
-        press <strong>SELECT → Scraping Engine</strong> to download assets, or use CNGM for more
-        detailed editing tools.
-      </p>
-    </section>
-
-    <!-- ═══════════ CREMA: Game Options -->
-    <section id="crema-options">
-      <h3>Game Options</h3>
-      <div class="divider"></div>
-
-      <p>
-        Press <span class="btn-sys">SELECT</span> (gamepad) or <kbd>Tab</kbd> (keyboard) on any game
-        to open the Game Options menu.
-      </p>
-
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Option</th><th>Description</th></tr>
-          <tr><td>Download Trailer</td><td>Search YouTube and download a trailer for this game</td></tr>
-          <tr><td>Delete Trailer</td><td>Remove the downloaded trailer to free space</td></tr>
-          <tr><td>Add / Remove Favorite</td><td>Toggle the game's starred status</td></tr>
-          <tr><td>Add / Remove Want to Play</td><td>Toggle the game's backlog/wishlist status</td></tr>
-          <tr><td>Add / Edit Launch Command</td><td>Set or change the command used to launch the game</td></tr>
-          <tr><td>Rename Game</td><td>Change the display title of the game</td></tr>
-          <tr><td>Scraping Engine</td><td>Open the per-game scraper to download artwork and metadata</td></tr>
-        </table>
-      </div>
-
-      <h4>Scraping Engine</h4>
-      <p>
-        The scraper fetches data from the Steam database and IGDB. Available actions:
-      </p>
-      <ul class="blist">
-        <li><strong>Scrape All (Default)</strong> — cover, screenshots, and full metadata in one pass</li>
-        <li><strong>Cover Only</strong> — download cover art without changing other data</li>
-        <li><strong>Screenshots Only</strong> — download screenshot set only</li>
-        <li><strong>Metadata Only</strong> — fetch text data (developer, genre, descriptions, etc.)</li>
-        <li><strong>Custom Cover (SteamGridDB)</strong> — browse and apply community cover art</li>
-        <li><strong>Remove Cover / Screenshots / Metadata</strong> — delete specific asset types</li>
-        <li><strong>Clear All Scraped Data</strong> — wipe everything for a clean slate</li>
-      </ul>
-
-      <div class="callout">
-        <div class="callout-title">Refine Search</div>
-        <p>If the automatic scrape doesn't find the right game, select <strong>Refine Search</strong> to type a custom search term and pick from a list of matches manually.</p>
-      </div>
-    </section>
-
-    <!-- ═══════════ CREMA: Jukebox -->
-    <section id="crema-jukebox">
-      <h3>Jukebox</h3>
-      <div class="divider"></div>
-
-      <p>
-        CREMA includes a full music player. Open it from the System Menu or press
-        <span class="btn-sys">START</span> → <strong>Jukebox Mode</strong>.
-      </p>
-
-      <h4>Adding Music</h4>
-      <p>
-        Place audio files (MP3, FLAC, OGG, WAV) in the <strong>CREMA_CUSTOM_MUSIC</strong> folder
-        inside the CREMA directory. Close and reopen the Jukebox to scan for new tracks.
-      </p>
-
-      <h4>Library Organization</h4>
-      <ul class="blist">
-        <li><strong>All Songs</strong> — complete track listing</li>
-        <li><strong>Artists</strong> — grouped by artist tag</li>
-        <li><strong>Albums</strong> — grouped by album tag</li>
-        <li><strong>Playlists</strong> — your custom playlists</li>
-        <li><strong>Shuffle All</strong> — randomize and play the entire collection</li>
-      </ul>
-
-      <h4>Playlist Management</h4>
-      <ul class="blist">
-        <li>Create a new playlist with <strong>+ Create New Playlist</strong></li>
-        <li>Add any song to a playlist via its song options menu</li>
-        <li>Rename, duplicate, or delete playlists from the playlist options menu</li>
-      </ul>
-
-      <h4>Now Playing</h4>
-      <p>
-        The Now Playing widget shows the current track's cover art, title, and artist with animated
-        visualizer bars. The <strong>Up Next</strong> section shows what's coming.
-      </p>
-
-      <h4>Background Music Styles</h4>
-      <p>
-        When not in Jukebox mode, CREMA plays ambient background music. Configure the style via
-        <strong>System Menu → Sound Settings → Music Style</strong>:
-      </p>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Style</th><th>Description</th></tr>
-          <tr><td>Ambient (Default)</td><td>Atmospheric, calming background music</td></tr>
-          <tr><td>Piano</td><td>Gentle piano compositions</td></tr>
-          <tr><td>Jazz</td><td>Easy-listening jazz tracks</td></tr>
-          <tr><td>Lo-Fi</td><td>Lo-fi hip-hop study beats</td></tr>
-          <tr><td>Custom</td><td>Your own music from CREMA_CUSTOM_MUSIC</td></tr>
-          <tr><td>Off</td><td>No background music</td></tr>
-        </table>
-      </div>
-      <p style="font-size:11px; color:var(--text_dim);">Default BGM styles composed by Schwarzenegger Belonio (Migfus20) — freesound.org/people/Migfus20/</p>
-    </section>
-
-    <!-- ═══════════ CREMA: Screensaver -->
-    <section id="crema-screensaver">
-      <h3>Screensaver</h3>
-      <div class="divider"></div>
-
-      <p>
-        CREMA activates a screensaver after a configurable idle period. Configure via
-        <strong>System Menu → Screensaver</strong>.
-      </p>
-
-      <h4>Settings</h4>
-      <ul class="blist">
-        <li><strong>Delay</strong> — 1 to 30 minutes of inactivity before activation</li>
-        <li><strong>Mode</strong> — CN Wallpapers (curated art) or Screenshots (your scraped game screenshots)</li>
-        <li><strong>View Now</strong> — manually trigger the screensaver immediately</li>
-      </ul>
-
-      <h4>Screensaver Display</h4>
-      <ul class="blist">
-        <li>Full-screen image slideshow with Ken Burns animation</li>
-        <li>Floating clock (12-hour format)</li>
-        <li>Game title and store badge overlays</li>
-        <li>Quick-action hints: <span class="btn-a">A</span> Launch, <span class="btn-y">Y</span> Favorite, <span class="btn-x">X</span> Want to Play</li>
-      </ul>
-
-      <h4>Waking Up</h4>
-      <p>
-        Press any button on the gamepad or keyboard to exit the screensaver and return to your library.
-        Configure the wake input method via <strong>System Menu → Wake Method</strong>.
-      </p>
-    </section>
-
-    <!-- ═══════════ CREMA: System Menu -->
-    <section id="crema-menu">
-      <h3>System Menu</h3>
-      <div class="divider"></div>
-
-      <p>
-        Open the System Menu with <span class="btn-sys">START</span> (gamepad) or <kbd>M</kbd> (keyboard)
-        from any screen.
-      </p>
-
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Menu Item</th><th>Description</th></tr>
-          <tr><td>Game Options</td><td>Per-game context menu (same as SELECT on a game)</td></tr>
-          <tr><td>Jukebox Mode</td><td>Switch to the full music player</td></tr>
-          <tr><td>Sound Settings</td><td>Music style, BGM on/off, SFX on/off, volume control</td></tr>
-          <tr><td>Color Scheme</td><td>Browse and apply any of the 50+ themes</td></tr>
-          <tr><td>Start Screen</td><td>Choose between List, Carousel, or Grid start screen</td></tr>
-          <tr><td>Browse Mode</td><td>Toggle between List View and Gallery View within categories</td></tr>
-          <tr><td>Screensaver</td><td>Set idle delay, display mode, or trigger manually</td></tr>
-          <tr><td>Keybindings</td><td>View a full reference of all controls (gamepad and keyboard)</td></tr>
-          <tr><td>Gamepad Icons</td><td>Switch button icon style: Xbox, PlayStation, or generic</td></tr>
-          <tr><td>Wake Method</td><td>Choose how to wake from screensaver or game-running mode</td></tr>
-          <tr><td>Batch Scrape</td><td>Run a library-wide scrape for missing artwork and metadata</td></tr>
-          <tr><td>History</td><td>View recently played games; option to clear the history</td></tr>
-          <tr><td>About CREMA</td><td>Project information and credits</td></tr>
-          <tr><td>Language</td><td>Switch between English and Português (BR)</td></tr>
-          <tr><td>Quit CREMA</td><td>Exit the application (asks for confirmation)</td></tr>
-        </table>
-      </div>
-    </section>
-
-    <!-- ═══════════ CREMA: Controls -->
-    <section id="crema-controls">
-      <h3>Controls Reference</h3>
-      <div class="divider"></div>
-
-      <p>CREMA auto-detects input type. Footer hints update in real time when you switch from gamepad to keyboard or vice versa.</p>
-
-      <h4>Main Navigation</h4>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Action</th><th>Gamepad</th><th>Keyboard</th></tr>
-          <tr><td>Select / Launch Game</td><td><span class="btn-a">A</span></td><td><kbd>Enter</kbd></td></tr>
-          <tr><td>Back / Cancel</td><td><span class="btn-b">B</span></td><td><kbd>Esc</kbd> / <kbd>Backspace</kbd></td></tr>
-          <tr><td>Navigate List</td><td>D-Pad ↑↓ / Stick</td><td><kbd>↑</kbd> <kbd>↓</kbd></td></tr>
-          <tr><td>Change Category</td><td>D-Pad ←→</td><td><kbd>←</kbd> <kbd>→</kbd></td></tr>
-          <tr><td>Jump Page</td><td><kbd>LB</kbd> / <kbd>RB</kbd></td><td><kbd>,</kbd> / <kbd>.</kbd></td></tr>
-          <tr><td>Game Options</td><td><span class="btn-sys">SELECT</span></td><td><kbd>Tab</kbd></td></tr>
-          <tr><td>System Menu</td><td><span class="btn-sys">START</span></td><td><kbd>M</kbd></td></tr>
-          <tr><td>Toggle Media / Fullscreen</td><td><span class="btn-x">X</span></td><td><kbd>X</kbd></td></tr>
-          <tr><td>Global Search</td><td><span class="btn-y">Y</span></td><td><kbd>Y</kbd></td></tr>
-        </table>
-      </div>
-
-      <h4>Jukebox & Music Controls</h4>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Action</th><th>Gamepad</th><th>Keyboard</th></tr>
-          <tr><td>Previous Track / Restart</td><td>L3 (left stick click)</td><td class="dim">—</td></tr>
-          <tr><td>Next Track</td><td>R3 (right stick click)</td><td class="dim">—</td></tr>
-          <tr><td>Play / Pause (Jukebox)</td><td><span class="btn-a">A</span></td><td><kbd>Enter</kbd></td></tr>
-          <tr><td>Exit Fullscreen</td><td><span class="btn-x">X</span> / <span class="btn-b">B</span></td><td><kbd>Esc</kbd></td></tr>
-        </table>
-      </div>
-
-      <h4>Gamepage Navigation</h4>
-      <div class="tbl-wrap">
-        <table>
-          <tr><th>Action</th><th>Gamepad</th><th>Keyboard</th></tr>
-          <tr><td>Navigate Buttons / Content</td><td>D-Pad ↑↓</td><td><kbd>↑</kbd> <kbd>↓</kbd></td></tr>
-          <tr><td>Scroll Content</td><td><kbd>LB</kbd> / <kbd>RB</kbd></td><td><kbd>PgUp</kbd> / <kbd>PgDn</kbd></td></tr>
-          <tr><td>Activate Button</td><td><span class="btn-a">A</span></td><td><kbd>Enter</kbd></td></tr>
-          <tr><td>Back to Library</td><td><span class="btn-b">B</span></td><td><kbd>Esc</kbd></td></tr>
-          <tr><td>Open Screensaver / Slideshow</td><td><span class="btn-x">X</span></td><td><kbd>X</kbd></td></tr>
-        </table>
-      </div>
-
-      <div class="callout">
-        <div class="callout-title">Gamepad Icons</div>
-        <p>
-          All button hints in CREMA use the gamepad icon style set in <strong>System Menu → Gamepad Icons</strong>.
-          Choose between Xbox (A/B/X/Y), PlayStation (Cross/Circle/Square/Triangle), or generic symbols.
-        </p>
-      </div>
-    </section>
-
-    <hr>
-
-    <!-- ═══════════ THEMES -->
-    <section id="themes">
-      <div class="section-eye">Reference</div>
-      <h2>Theme Catalog</h2>
-      <div class="divider"></div>
-
-      <p>
-        Both CNGM and CREMA share the same theme library — over 50 color schemes organized into six
-        categories. Change themes at any time; the switch is instant and persistent.
-      </p>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Originals &amp; System</div>
-        <div class="theme-pills">
-          <span class="theme-pill star">CREMA (Default)</span>
-          <span class="theme-pill">Dark Gray</span>
-          <span class="theme-pill">Cyberpunk</span>
-          <span class="theme-pill">Snow</span>
-          <span class="theme-pill">MoviesFlIX</span>
-          <span class="theme-pill">Vapour OS</span>
-          <span class="theme-pill">PSIV Blue</span>
-          <span class="theme-pill">Green Box</span>
-          <span class="theme-pill">Win XP</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Gaming Legends</div>
-        <div class="theme-pills">
-          <span class="theme-pill">Game Boy DMG</span>
-          <span class="theme-pill">Pip Boy</span>
-          <span class="theme-pill">Sevastopol</span>
-          <span class="theme-pill">Rip and Tear Classic</span>
-          <span class="theme-pill">Super Brothers</span>
-          <span class="theme-pill">Green Hill</span>
-          <span class="theme-pill">NES</span>
-          <span class="theme-pill">SNES</span>
-          <span class="theme-pill">Bloodborne</span>
-          <span class="theme-pill">Metroid Prime</span>
-          <span class="theme-pill">Silent Hill</span>
-          <span class="theme-pill">Diablo</span>
-          <span class="theme-pill">Half-Life</span>
-          <span class="theme-pill">Shovel Knight</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Aesthetics</div>
-        <div class="theme-pills">
-          <span class="theme-pill">Earthy &amp; Organic</span>
-          <span class="theme-pill">Dopamine Brights</span>
-          <span class="theme-pill">Retro Revival</span>
-          <span class="theme-pill">Vaporwave</span>
-          <span class="theme-pill">Aurora</span>
-          <span class="theme-pill">Noir</span>
-          <span class="theme-pill">Bioluminescence</span>
-          <span class="theme-pill">Brutalist</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Linux Ricing</div>
-        <div class="theme-pills">
-          <span class="theme-pill">Dracula</span>
-          <span class="theme-pill">Gruvbox</span>
-          <span class="theme-pill">Nord</span>
-          <span class="theme-pill">Solarized Dark</span>
-          <span class="theme-pill">Catppuccin Mocha</span>
-          <span class="theme-pill">Catppuccin Macchiato</span>
-          <span class="theme-pill">Catppuccin Frappé</span>
-          <span class="theme-pill">Tokyo Night</span>
-          <span class="theme-pill">Everforest</span>
-          <span class="theme-pill">Rosé Pine</span>
-          <span class="theme-pill">Oxocarbon</span>
-          <span class="theme-pill">Material Dark</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Sci-Fi Universes</div>
-        <div class="theme-pills">
-          <span class="theme-pill">N7</span>
-          <span class="theme-pill">Tron Legacy</span>
-          <span class="theme-pill">Dead Space</span>
-          <span class="theme-pill">Colony Ship</span>
-          <span class="theme-pill">Necromorph</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">Horror Realm</div>
-        <div class="theme-pills">
-          <span class="theme-pill">Crimson Peak</span>
-          <span class="theme-pill">Lakeside Curse</span>
-          <span class="theme-pill">The Backrooms</span>
-        </div>
-      </div>
-
-      <div class="theme-cat">
-        <div class="theme-cat-title">PSIII Colors</div>
-        <div class="theme-pills">
-          <span class="theme-pill">PSIII Classic</span>
-          <span class="theme-pill">PSIII Red</span>
-          <span class="theme-pill">PSIII Green</span>
-          <span class="theme-pill">PSIII Blue</span>
-          <span class="theme-pill">PSIII Purple</span>
-          <span class="theme-pill">PSIII Gold</span>
-          <span class="theme-pill">PSIII Silver</span>
-        </div>
-      </div>
-    </section>
-
-  </div><!-- /content -->
-
-  <!-- ═══════════ FOOTER / CREDITS -->
-  <footer class="footer" id="credits">
-    <div class="footer-name">Cafe Neurotico</div>
-    <div class="footer-body">
-      Proudly designed and built in Brazil 🇧🇷 by J.R.A.<br>
-      <a href="mailto:shampooisalie@gmail.com">shampooisalie@gmail.com</a><br><br>
-      Default background music styles composed by
-      <strong>Schwarzenegger Belonio (Migfus20)</strong> —
-      <a href="https://freesound.org/people/Migfus20/" target="_blank">freesound.org/people/Migfus20</a>
-    </div>
-    <div class="footer-credits">
-      CAFE NEUROTICO GAME MANAGER &nbsp;·&nbsp; CREMA &nbsp;·&nbsp; User Manual
-    </div>
-  </footer>
-
-</main><!-- /main -->
-
-<script>
-  // Active nav link highlighting on scroll
-  const sections = document.querySelectorAll('section[id], footer[id], .hero');
-  const navLinks = document.querySelectorAll('.nav-link');
-
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.id;
-        navLinks.forEach(link => {
-          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+    <script>
+        const navBtns = document.querySelectorAll('.manual-nav-btn');
+        const content = document.getElementById('manual-content');
+        const searchInput = document.getElementById('manual-search');
+        const searchClear = document.getElementById('manual-search-clear');
+        const searchCount = document.getElementById('search-count');
+        const originalContent = content.innerHTML;
+        let searchActive = false;
+        let searchTimeout = null;
+
+        // --- NAV CLICK ---
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const target = document.getElementById(btn.dataset.target);
+                if (target) content.scrollTo({ top: target.offsetTop - content.offsetTop - 10, behavior: 'smooth' });
+            });
         });
-      }
-    });
-  }, { rootMargin: '-20% 0px -70% 0px' });
 
-  sections.forEach(s => observer.observe(s));
+        // --- SCROLL SPY ---
+        content.addEventListener('scroll', () => {
+            if (searchActive) return;
+            const sections = document.querySelectorAll('[id^="man-"]');
+            const contentTop = content.getBoundingClientRect().top;
+            let activeId = null;
+            sections.forEach(sec => {
+                if (sec.getBoundingClientRect().top - contentTop <= 60) activeId = sec.id;
+            });
+            if (activeId) navBtns.forEach(b => b.classList.toggle('active', b.dataset.target === activeId));
+        });
 
-  // Smooth internal link scroll offset compensation
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-</script>
+        // --- SEARCH ---
+        function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+        function highlightText(query) {
+            content.innerHTML = originalContent;
+            if (!query) return 0;
+            const regex = new RegExp(escapeRegex(query), 'gi');
+            let count = 0;
+            const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null);
+            const textNodes = [];
+            let n;
+            while ((n = walker.nextNode())) textNodes.push(n);
+            textNodes.forEach(tn => {
+                if (!tn.nodeValue.toLowerCase().includes(query.toLowerCase())) return;
+                regex.lastIndex = 0;
+                const frag = document.createDocumentFragment();
+                let lastIdx = 0, m;
+                while ((m = regex.exec(tn.nodeValue)) !== null) {
+                    if (m.index > lastIdx) frag.appendChild(document.createTextNode(tn.nodeValue.slice(lastIdx, m.index)));
+                    const mark = document.createElement('mark');
+                    mark.textContent = m[0];
+                    frag.appendChild(mark);
+                    lastIdx = regex.lastIndex;
+                    count++;
+                }
+                if (lastIdx < tn.nodeValue.length) frag.appendChild(document.createTextNode(tn.nodeValue.slice(lastIdx)));
+                tn.parentNode.replaceChild(frag, tn);
+            });
+            return count;
+        }
+
+        function updateNavDimming(query) {
+            if (!query) { navBtns.forEach(b => { b.style.opacity = '1'; }); return; }
+            const sectionIds = [...navBtns].map(b => b.dataset.target);
+            const marks = [...content.querySelectorAll('mark')];
+            sectionIds.forEach((id, i) => {
+                const startEl = document.getElementById(id);
+                const endEl = i < sectionIds.length - 1 ? document.getElementById(sectionIds[i + 1]) : null;
+                const btn = navBtns[i];
+                if (!startEl) { btn.style.opacity = '0.3'; return; }
+                const hasMatch = marks.some(mark => {
+                    const afterStart = startEl.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING;
+                    if (!afterStart) return false;
+                    if (!endEl) return true;
+                    return !!(endEl.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_PRECEDING);
+                });
+                btn.style.opacity = hasMatch ? '1' : '0.3';
+            });
+        }
+
+        function performSearch(query) {
+            const count = highlightText(query);
+            updateNavDimming(query);
+            if (query && count > 0) {
+                const firstMark = content.querySelector('mark');
+                if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            searchCount.textContent = query ? (count > 0 ? `${count} match${count !== 1 ? 'es' : ''}` : 'no matches') : '';
+        }
+
+        function clearSearch() {
+            searchInput.value = '';
+            searchClear.style.display = 'none';
+            searchActive = false;
+            content.innerHTML = originalContent;
+            navBtns.forEach(b => { b.style.opacity = '1'; });
+            searchCount.textContent = '';
+        }
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            const q = searchInput.value.trim();
+            searchClear.style.display = q ? 'block' : 'none';
+            if (q.length === 0) { clearSearch(); return; }
+            if (q.length < 2) { searchCount.textContent = 'type more…'; return; }
+            searchActive = true;
+            searchTimeout = setTimeout(() => performSearch(q), 220);
+        });
+
+        searchClear.addEventListener('click', clearSearch);
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') clearSearch();
+        });
+    </script>
 </body>
 </html>

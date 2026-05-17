@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer, webFrame } = require('electron');
 contextBridge.exposeInMainWorld('api', {
     getBaseDir: () => ipcRenderer.invoke('get-basedir'),
                                 getGames: () => ipcRenderer.invoke('get-games'),
-                                addGame: () => ipcRenderer.invoke('add-game'),
+                                addGame: (name) => ipcRenderer.invoke('add-game', name),
                                 updateGame: (id, data) => ipcRenderer.invoke('update-game', id, data),
                                 deleteGame: (id) => ipcRenderer.invoke('delete-game', id),
                                 signalReady: () => ipcRenderer.send('renderer-ready'),
@@ -74,6 +74,9 @@ contextBridge.exposeInMainWorld('api', {
 
                                 // --- I18N ---
                                 getStrings: (lang) => ipcRenderer.invoke('get-strings', lang),
+
+                                // --- MANUAL ---
+                                openManual: () => ipcRenderer.send('open-manual'),
 
                                 // --- WINDOW CONTROLS ---
                                 minimizeApp: () => ipcRenderer.send('window-minimize'),
