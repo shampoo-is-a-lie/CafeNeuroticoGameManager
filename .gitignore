@@ -6,3 +6,4 @@ GameManagerConfig
 .vscode/
 assets/bin/linux/yt-dlp
 assets/bin/linux/ffmpeg
+assets/bin/linux/ffprobe
