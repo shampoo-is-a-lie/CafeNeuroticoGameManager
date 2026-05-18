@@ -85,7 +85,7 @@ CNGM bundles the following tools:
 
 ## License
 
-Copyright (C) 2025 J.R.A. (Shampoo is a Lie)
+Copyright (C) 2026 J.R.A. (Shampoo is a Lie)
 
 This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License v3.0** as published by the Free Software Foundation.
 
