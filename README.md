@@ -29,8 +29,8 @@ Everything lives in a single portable `GameManagerConfig` folder. Back it up, mo
 
 | | | |
 |:---:|:---:|:---:|
-| ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_02.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_05.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_08.jpg) |
-| ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_11.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_14.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_17.jpg) |
+| ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_02.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_03.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_04.jpg) |
+| ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_05.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_06.jpg) | ![](https://shampoo-is-a-lie.github.io/CafeNeuroticoWebSite/assets/images/cngm_scr_07.jpg) |
 
 ## Features
 
