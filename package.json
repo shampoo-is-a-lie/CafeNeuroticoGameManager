@@ -41,6 +41,7 @@
       "preload.js",
       "renderer.js",
       "index.html",
+      "manual.html",
       "i18n.js",
       "locales/**/*",
       "assets/**/*"
