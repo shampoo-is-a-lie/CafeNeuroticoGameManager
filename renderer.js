@@ -1649,12 +1649,14 @@ async function updateGrinderRow(game) {
     const openBtn   = document.getElementById('btn-open-grinder-detail');
     if (!row) return;
 
-    // Only show for Heroic Epic games when GRINDER is present
+    // Show for Heroic Epic AND GOG games when GRINDER is present
     const epicMatch = (game.LaunchCommand || '').match(/heroic:\/\/launch\/epic\/([^"\s]+)/i);
+    const gogMatch  = (game.LaunchCommand || '').match(/heroic:\/\/launch\/gog\/([^"\s]+)/i);
+    const storeMatch = epicMatch || gogMatch;
     const s = await window.api.grinderStatus();
-    if (!epicMatch || !s.found) { row.style.display = 'none'; return; }
+    if (!storeMatch || !s.found) { row.style.display = 'none'; return; }
 
-    const grinderGameId = `epic_${epicMatch[1]}`;
+    const grinderGameId = epicMatch ? `epic_${epicMatch[1]}` : `gog_${gogMatch[1]}`;
     row.style.display = 'flex';
     openBtn.style.display = 'none';
     toggleBtn.style.display = 'none';
@@ -1685,7 +1687,7 @@ async function updateGrinderRow(game) {
         statusEl.textContent = 'Not installed in GRINDER';
         statusEl.style.color = 'var(--text_dim)';
         openBtn.style.display = '';
-        openBtn.onclick = () => window.api.openGrinder();
+        openBtn.onclick = () => window.api.openGrinder(game.Game);
     }
 }
 

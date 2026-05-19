@@ -76,7 +76,7 @@ contextBridge.exposeInMainWorld('api', {
                                 getStrings: (lang) => ipcRenderer.invoke('get-strings', lang),
 
                                 // --- GRINDER ---
-                                openGrinder: () => ipcRenderer.invoke('open-grinder'),
+                                openGrinder: (name) => ipcRenderer.invoke('open-grinder', name),
                                 setGrinderGame: (id, gid) => ipcRenderer.invoke('set-grinder-game', id, gid),
                                 grinderStatus: () => ipcRenderer.invoke('grinder-status'),
 
