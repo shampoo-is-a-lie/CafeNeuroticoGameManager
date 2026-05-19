@@ -138,6 +138,7 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN IGDBTrailer TEXT DEFAULT ''").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN Installed INTEGER DEFAULT 1").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN GrinderGameId TEXT").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN prefer_heroic INTEGER DEFAULT 0").run(); } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
     } catch (err) {
@@ -347,8 +348,41 @@ ipcMain.handle('open-grinder', (_, gameName) => {
 
 ipcMain.handle('set-grinder-game', (_, gameId, grinderGameId) => {
     if (!db) return false;
-    db.prepare("UPDATE games SET GrinderGameId=? WHERE id=?").run(grinderGameId || null, gameId);
+    if (grinderGameId === null) {
+        // User explicitly chose Heroic — remember preference, clear GRINDER override
+        db.prepare("UPDATE games SET GrinderGameId=NULL, prefer_heroic=1 WHERE id=?").run(gameId);
+    } else {
+        // User chose GRINDER — clear Heroic preference
+        db.prepare("UPDATE games SET GrinderGameId=?, prefer_heroic=0 WHERE id=?").run(grinderGameId, gameId);
+    }
     return true;
+});
+
+// Auto-sync GRINDER installed status into CNGM library.
+// installedIds = array of GRINDER game IDs that are installed (from grinderStatus).
+// Sets GrinderGameId + Installed=1 for matching Heroic games unless user prefers Heroic.
+ipcMain.handle('sync-grinder-installed', (_, installedIds) => {
+    if (!db || !Array.isArray(installedIds)) return { synced: 0 };
+    const idSet = new Set(installedIds);
+    let synced = 0;
+    const games = db.prepare(
+        "SELECT id, LaunchCommand, GrinderGameId, prefer_heroic FROM games WHERE LaunchCommand LIKE '%heroic://launch/%'"
+    ).all();
+    for (const g of games) {
+        const epicMatch = (g.LaunchCommand || '').match(/heroic:\/\/launch\/epic\/([^"\s]+)/i);
+        const gogMatch  = (g.LaunchCommand || '').match(/heroic:\/\/launch\/gog\/([^"\s]+)/i);
+        const m = epicMatch || gogMatch;
+        if (!m) continue;
+        const gid = epicMatch ? `epic_${epicMatch[1]}` : `gog_${gogMatch[1]}`;
+        if (idSet.has(gid) && !g.prefer_heroic) {
+            db.prepare("UPDATE games SET GrinderGameId=?, Installed=1 WHERE id=?").run(gid, g.id);
+            synced++;
+        } else if (!idSet.has(gid) && g.GrinderGameId && !g.prefer_heroic) {
+            // No longer installed in GRINDER — clear the auto-set override
+            db.prepare("UPDATE games SET GrinderGameId=NULL WHERE id=?").run(g.id);
+        }
+    }
+    return { synced };
 });
 
 ipcMain.handle('grinder-status', () => {

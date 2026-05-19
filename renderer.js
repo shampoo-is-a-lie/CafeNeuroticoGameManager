@@ -1411,7 +1411,7 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
     btn.innerText = t('status.syncing');
     const result = await window.api.syncHeroic();
     await showAlert(result.message);
-    if (result.success) loadGames();
+    if (result.success) { await loadGames(); syncGrinderInstalled(); }
     btn.innerText = t('status.sync_heroic');
 });
 
@@ -1618,6 +1618,15 @@ checkGrinderConnect();
 
 document.getElementById('btn-check-grinder')?.addEventListener('click', checkGrinderConnect);
 
+// Pull GRINDER's installed game list and auto-set GrinderGameId in CNGM.
+// Called after any library sync and on startup.
+async function syncGrinderInstalled() {
+    const s = await window.api.grinderStatus();
+    if (!s.found || !s.installedGames?.length) return;
+    const { synced } = await window.api.syncGrinderInstalled(s.installedGames);
+    if (synced > 0) await loadGames();
+}
+
 async function checkGrinderConnect() {
     const statusEl = document.getElementById('grinder-connect-status');
     const openBtn  = document.getElementById('btn-open-grinder-tool');
@@ -1661,29 +1670,36 @@ async function updateGrinderRow(game) {
     openBtn.style.display = 'none';
     toggleBtn.style.display = 'none';
 
-    if (game.GrinderGameId) {
-        statusEl.textContent = 'Launching via GRINDER';
+    const inGrinder = s.installedGames?.includes(grinderGameId);
+
+    if (game.prefer_heroic) {
+        // User explicitly chose Heroic
+        statusEl.textContent = 'Launching via Heroic (by preference)';
+        statusEl.style.color = '#f57c00';
+        toggleBtn.style.display = inGrinder ? '' : 'none';
+        toggleBtn.textContent = 'Switch to GRINDER';
+        toggleBtn.onclick = async () => {
+            await window.api.setGrinderGame(game.id, grinderGameId);
+            const g = allGames.find(x => x.id == game.id);
+            if (g) { g.GrinderGameId = grinderGameId; g.prefer_heroic = 0; }
+            updateGrinderRow({ ...game, GrinderGameId: grinderGameId, prefer_heroic: 0 });
+            await loadGames();
+        };
+    } else if (game.GrinderGameId || inGrinder) {
+        // GRINDER is active (auto or manual)
+        statusEl.textContent = '✓ GRINDER — default launcher';
         statusEl.style.color = '#66bb6a';
         toggleBtn.textContent = 'Switch to Heroic';
         toggleBtn.style.display = '';
         toggleBtn.onclick = async () => {
             await window.api.setGrinderGame(game.id, null);
             const g = allGames.find(x => x.id == game.id);
-            if (g) g.GrinderGameId = null;
-            updateGrinderRow({ ...game, GrinderGameId: null });
-        };
-    } else if (s.installedGames?.includes(grinderGameId)) {
-        statusEl.textContent = 'Available in GRINDER';
-        statusEl.style.color = 'var(--text_sec)';
-        toggleBtn.textContent = 'Use GRINDER';
-        toggleBtn.style.display = '';
-        toggleBtn.onclick = async () => {
-            await window.api.setGrinderGame(game.id, grinderGameId);
-            const g = allGames.find(x => x.id == game.id);
-            if (g) g.GrinderGameId = grinderGameId;
-            updateGrinderRow({ ...game, GrinderGameId: grinderGameId });
+            if (g) { g.GrinderGameId = null; g.prefer_heroic = 1; }
+            updateGrinderRow({ ...game, GrinderGameId: null, prefer_heroic: 1 });
+            await loadGames();
         };
     } else {
+        // Not installed in GRINDER
         statusEl.textContent = 'Not installed in GRINDER';
         statusEl.style.color = 'var(--text_dim)';
         openBtn.style.display = '';
@@ -1983,4 +1999,6 @@ window.api.getSetting('cngm_theme').then(saved => {
     return window.api.getSetting('welcome_shown');
 }).then(shown => {
     if (!shown) _welcomeModal.classList.add('active');
+    // Auto-sync GRINDER installed status on every startup
+    syncGrinderInstalled();
 });
