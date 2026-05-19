@@ -356,10 +356,11 @@ ipcMain.handle('grinder-status', () => {
     const grinderPath = findGrinderPath();
     if (!grinderPath) return { found: false, installedGames: [] };
 
-    // Packaged GRINDER uses ~/.config/GRINDER/; dev uses GRINDERConfig/ next to source
+    // Electron uses lowercase app name for userData: ~/.config/grinder/
     const candidates = [
-        path.join(home, '.config', 'GRINDER', 'grinder.db'),
-        path.join(baseDir, 'GRINDERConfig', 'grinder.db'),
+        path.join(home, '.config', 'grinder', 'grinder.db'),   // packaged (actual)
+        path.join(home, '.config', 'GRINDER', 'grinder.db'),   // capitalised fallback
+        path.join(baseDir, 'GRINDERConfig', 'grinder.db'),     // dev mode fallback
     ];
     const grinderDb = candidates.find(p => fs.existsSync(p));
     if (!grinderDb) return { found: true, path: grinderPath, installedGames: [], error: 'Launch GRINDER once to create its database.' };
