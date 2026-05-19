@@ -369,6 +369,12 @@
                     <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;"><span data-i18n="html.lbl_store">Store:</span> <input type="text" id="edit-store" style="margin-top: 5px;"></label>
                 </div>
                 <label style="color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase; flex-shrink: 0;"><span data-i18n="html.lbl_launch">Launch Command:</span> <input type="text" id="edit-launch" placeholder="E.G. HEROIC HEROIC://LAUNCH/EPIC/MARMALADE" style="margin-top: 5px;"></label>
+                <div id="grinder-launch-row" style="display:none; align-items:center; gap:8px; padding:7px 10px; background:rgba(0,0,0,0.25); border-radius:5px; border:1px solid var(--border_solid); flex-shrink:0;">
+                  <span style="font-size:9px; font-weight:900; letter-spacing:1px; color:var(--accent); text-transform:uppercase; flex-shrink:0;">GRINDER</span>
+                  <span id="grinder-launch-status" style="font-size:11px; color:var(--text_sec); flex:1;"></span>
+                  <button id="btn-open-grinder-detail" style="font-size:10px; font-weight:900; padding:4px 12px; border-radius:4px; border:1px solid var(--border_solid); background:transparent; color:var(--text_sec); cursor:pointer; font-family:Raleway,sans-serif; letter-spacing:0.5px; display:none;">Open GRINDER</button>
+                  <button id="btn-toggle-grinder" style="font-size:10px; font-weight:900; padding:4px 12px; border-radius:4px; border:1px solid var(--accent); background:transparent; color:var(--accent); cursor:pointer; font-family:Raleway,sans-serif; letter-spacing:0.5px; display:none;"></button>
+                </div>
                 <div class="row" style="flex-shrink: 0;">
                   <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;"><span data-i18n="html.lbl_genre">Genre:</span> <input type="text" id="edit-genre" style="margin-top: 5px;"></label>
                   <label style="flex: 1; color: var(--text_sec); font-weight: bold; font-size: 11px; text-transform: uppercase;"><span data-i18n="html.lbl_year">Released (Year):</span> <input type="text" id="edit-released" style="margin-top: 5px;"></label>
@@ -692,6 +698,16 @@
           </div>
         </div>
 
+        <div class="tool-card tools-section" data-search="grinder epic install launcher proton wine umu">
+          <div class="tool-card-title">🎮 GRINDER</div>
+          <p style="font-size:11px; color:var(--text_sec); margin:0 0 8px; line-height:1.5;">Place <code>GRINDER.AppImage</code> in the same folder as CNGM to enable launching Epic games via umu-run + GE-Proton.</p>
+          <div id="grinder-connect-status" style="font-size:11px; color:var(--text_dim); min-height:16px; text-align:center;"></div>
+          <div class="row" style="margin-top:8px; gap:6px;">
+            <button id="btn-open-grinder-tool" style="display:none; flex:1; font-size:11px;">Open GRINDER</button>
+            <button id="btn-check-grinder" style="flex:1; font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Check</button>
+          </div>
+        </div>
+
         <div class="tool-card tools-section" data-search="system backup restore zip menu install desktop application welcome setup guide">
           <div class="tool-card-title" data-i18n="html.card_system">🗄️ System</div>
           <div class="row">
@@ -722,6 +738,16 @@
         <button id="btn-close-tools" style="flex: 1; padding: 10px;" data-i18n="html.close">Close</button>
       </div>
 
+    </div>
+  </div>
+
+  <div id="modal-dialog" class="modal-overlay">
+    <div class="modal-box" style="max-width: 420px; text-align: center;">
+      <p id="modal-dialog-body" style="font-size: 13px; color: var(--text_sec); line-height: 1.7; margin: 0 0 22px; white-space: pre-line;"></p>
+      <div style="display: flex; gap: 10px;">
+        <button id="modal-dialog-cancel" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Cancel</button>
+        <button id="modal-dialog-ok" style="flex:1;"></button>
+      </div>
     </div>
   </div>
 

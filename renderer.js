@@ -36,7 +36,25 @@ function getInstallCommand(game) {
     return null;
 }
 
-function verifyAndLaunch(gameId, launchCmd) {
+async function verifyAndLaunch(gameId, launchCmd) {
+    // Visual feedback on all matching play buttons + gamepage button
+    const playBtns = [...document.querySelectorAll(`[data-id="${gameId}"]`)];
+    const gpBtn = (String(currentGameId) === String(gameId)) ? document.getElementById('btn-play') : null;
+    const allBtns = [...playBtns, gpBtn].filter(Boolean);
+    const origText = new Map(allBtns.map(b => [b, b.textContent]));
+    allBtns.forEach(b => { b.textContent = '⏳ Launching…'; b.disabled = true; });
+    setTimeout(() => allBtns.forEach(b => { b.textContent = origText.get(b); b.disabled = false; }), 2500);
+
+    const game = allGames.find(g => g.id == gameId);
+    if (game?.GrinderGameId) {
+        const s = await window.api.grinderStatus();
+        if (s.found && s.path) {
+            window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
+            window.api.updateLastPlayed(gameId).then(() => loadGames());
+            window.api.verifyInstallStatus(gameId).then(() => loadGames());
+            return;
+        }
+    }
     window.api.launchGame(launchCmd);
     window.api.updateLastPlayed(gameId).then(() => loadGames());
     window.api.verifyInstallStatus(gameId).then(() => loadGames());
@@ -55,6 +73,36 @@ function t(key, vars = {}) {
   if (!val) return key;
   return String(val).replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : `{${k}}`);
 }
+// ── Custom alert / confirm dialogs ────────────────────────────────────────────
+const _dlg        = document.getElementById('modal-dialog');
+const _dlgBody    = document.getElementById('modal-dialog-body');
+const _dlgOk      = document.getElementById('modal-dialog-ok');
+const _dlgCancel  = document.getElementById('modal-dialog-cancel');
+
+function _openDialog(body, okLabel, isDanger, showCancel) {
+    return new Promise(resolve => {
+        _dlgBody.textContent = body;
+        _dlgOk.textContent   = okLabel;
+        _dlgOk.className     = isDanger ? '' : 'primary';
+        _dlgOk.style.cssText = isDanger
+            ? 'flex:1; background:rgba(198,40,40,0.15); border:1px solid #c62828; color:#ef5350;'
+            : 'flex:1;';
+        _dlgCancel.style.display = showCancel ? '' : 'none';
+        _dlg.classList.add('active');
+        const done = r => {
+            _dlg.classList.remove('active');
+            _dlgOk.onclick = _dlgCancel.onclick = _dlg.onclick = null;
+            resolve(r);
+        };
+        _dlgOk.onclick     = () => done(true);
+        _dlgCancel.onclick = () => done(false);
+        _dlg.onclick       = e => { if (e.target === _dlg) done(false); };
+    });
+}
+function showAlert(body)                            { return _openDialog(body, 'OK',     false, false); }
+function showConfirm(body, okLabel = 'Confirm', isDanger = false) { return _openDialog(body, okLabel, isDanger, true); }
+// ─────────────────────────────────────────────────────────────────────────────
+
 function getLocalizedDescription(game) {
   if (game.Description_i18n) {
     try { const d = JSON.parse(game.Description_i18n); return d[currentLang] || d['en'] || game.Description || ''; } catch(e) {}
@@ -152,13 +200,9 @@ document.querySelectorAll('.ui-scale-btn').forEach(btn => {
 
 // Clear Gaming History Logic
 document.getElementById('btn-clear-history').addEventListener('click', async () => {
-    const confirmClear = confirm(t('confirm.clear_history'));
-    if (confirmClear) {
+    if (await showConfirm(t('confirm.clear_history'), 'Clear', true)) {
         const success = await window.api.clearHistory();
-        if (success) {
-            await loadGames();
-            alert(t('alert.history_cleared'));
-        }
+        if (success) { await loadGames(); await showAlert(t('alert.history_cleared')); }
     }
 });
 
@@ -911,6 +955,8 @@ function openDetails(game) {
     document.getElementById('edit-fav').checked = game.FAV === 'YES';
     document.getElementById('edit-want').checked = game.WANT_TO_PLAY === 'YES';
 
+    updateGrinderRow(game);
+
     // Populate Left Column Asset Previews
     const coverDiv = document.getElementById('ui-cover');
     if (game.CoverArt && game.CoverArt.trim() !== "") { coverDiv.innerHTML = `<img src="${getSafePath(game.CoverArt)}" style="width: 100%; height: 100%; object-fit: cover;">`; } else { coverDiv.innerHTML = 'Cover Art'; }
@@ -956,7 +1002,7 @@ document.getElementById('btn-delete-trailer').addEventListener('click', async ()
     const gameName = document.getElementById('edit-name').value;
     if (!gameName) return;
     const success = await window.api.deleteTrailer(gameName);
-    if (success) alert(t('alert.trailer_deleted')); else alert(t('alert.no_trailer'));
+    await showAlert(success ? t('alert.trailer_deleted') : t('alert.no_trailer'));
 });
 
 document.getElementById('btn-clear-meta').addEventListener('click', () => {
@@ -1138,14 +1184,13 @@ document.getElementById('btn-save-game').addEventListener('click', async () => {
         const updatedGame = allGames.find(g => g.id === currentGameId);
         if (updatedGame) openGamepage(updatedGame); else switchView('view-gallery');
     } else {
-        alert(t('alert.save_failed'));
+        await showAlert(t('alert.save_failed'));
     }
 });
 
 document.getElementById('btn-delete-game').addEventListener('click', async () => {
     if (!currentGameId) return;
-    const confirmDelete = confirm(t('confirm.delete_game'));
-    if (confirmDelete) {
+    if (await showConfirm(t('confirm.delete_game'), 'Delete', true)) {
         const success = await window.api.deleteGame(currentGameId);
         if (success) {
             loadGames();
@@ -1210,11 +1255,11 @@ document.getElementById('btn-close-steam-results').addEventListener('click', () 
 async function executeAutoFetch(gameId, gameName, appId) {
     const btn = document.getElementById('btn-auto-fetch');
     const result = await window.api.autoFetch(gameId, gameName, appId);
-    alert(result.message);
+    await showAlert(result.message);
     if (result.success) {
         await loadGames();
         const updatedGame = allGames.find(g => g.id === gameId);
-        if (updatedGame) openDetails(updatedGame); // Refresh edit UI with new fields
+        if (updatedGame) openDetails(updatedGame);
     }
     btn.innerText = t('status.auto_fetch'); btn.disabled = false;
 }
@@ -1234,7 +1279,7 @@ document.getElementById('btn-fetch-hltb').addEventListener('click', async () => 
 
 document.getElementById('btn-fetch-proton').addEventListener('click', async () => {
     const appId = document.getElementById('edit-appid').value;
-    if (!appId) { alert(t('alert.proton_id_required')); return; }
+    if (!appId) { await showAlert(t('alert.proton_id_required')); return; }
     document.getElementById('btn-fetch-proton').innerText = "⏳";
     const result = await window.api.fetchProton(appId);
     document.getElementById('edit-proton').value = result.toUpperCase();
@@ -1294,12 +1339,7 @@ function openTrailerProgress(gameName, videoId) {
     document.getElementById('dl-progress-fill').style.width = "0%"; document.getElementById('dl-progress-text').innerText = "0%";
     window.api.downloadTrailer(gameName, videoId).then(success => {
         document.getElementById('modal-trailer-progress').classList.remove('active');
-        if (success) {
-            alert(t('status.download_complete'));
-            // Refresh logic to pick up the new video file could go here
-        } else {
-            alert(t('status.download_failed'));
-        }
+        showAlert(success ? t('status.download_complete') : t('status.download_failed'));
     });
 }
 window.api.onDownloadProgress((percentage) => {
@@ -1370,7 +1410,7 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
     const btn = document.getElementById('btn-sync-heroic');
     btn.innerText = t('status.syncing');
     const result = await window.api.syncHeroic();
-    alert(result.message);
+    await showAlert(result.message);
     if (result.success) loadGames();
     btn.innerText = t('status.sync_heroic');
 });
@@ -1417,12 +1457,12 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
 document.getElementById('btn-sync-steam').addEventListener('click', async () => {
     const steamId = document.getElementById('steam-id').value.trim();
     const apiKey = document.getElementById('steam-api-key').value.trim();
-    if (!steamId || !apiKey) { alert(t('alert.steam_id_required')); return; }
+    if (!steamId || !apiKey) { await showAlert(t('alert.steam_id_required')); return; }
     await window.api.setSetting('steam_id', steamId); await window.api.setSetting('steam_api_key', apiKey);
     const btn = document.getElementById('btn-sync-steam');
     btn.innerText = t('status.fetching'); btn.disabled = true;
     const result = await window.api.syncSteam(steamId, apiKey);
-    alert(result.message);
+    await showAlert(result.message);
     if (result.success) loadGames();
     btn.innerText = t('status.fetch_steam'); btn.disabled = false;
 });
@@ -1431,7 +1471,7 @@ document.getElementById('btn-sync-gog').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-gog');
     btn.innerText = t('status.wait_login'); btn.disabled = true;
     const result = await window.api.syncGog();
-    alert(result.message);
+    await showAlert(result.message);
     if (result.success) loadGames();
     btn.innerText = t('status.fetch_gog'); btn.disabled = false;
 });
@@ -1504,7 +1544,7 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
     if (anySuccess) {
         await loadGames();
         // Keep the Tools modal open so the user can see batch scrape progress
-        if (confirm(t('status.sync_batch_prompt'))) {
+        if (await showConfirm(t('status.sync_batch_prompt'), 'Fetch Now')) {
             document.getElementById('btn-batch-fetch').click();
         }
     }
@@ -1515,24 +1555,23 @@ document.getElementById('btn-close-update-info').addEventListener('click', () =>
 });
 
 document.getElementById('btn-clear-data').addEventListener('click', async () => {
-    const confirmed = confirm(t('confirm.clear_browser'));
-    if (confirmed) { const result = await window.api.clearBrowserData(); alert(result.message); }
+    if (await showConfirm(t('confirm.clear_browser'), 'Clear', true)) {
+        const result = await window.api.clearBrowserData(); await showAlert(result.message);
+    }
 });
 
 // Image Cleanup Handlers
 document.getElementById('btn-clean-images').addEventListener('click', async () => {
-    const confirmed = confirm(t('confirm.clean_images'));
-    if (confirmed) {
+    if (await showConfirm(t('confirm.clean_images'), 'Clean', true)) {
         const result = await window.api.cleanUnusedImages();
-        alert(result.message);
+        await showAlert(result.message);
     }
 });
 
 document.getElementById('btn-clear-all-images').addEventListener('click', async () => {
-    const confirmed = confirm(t('confirm.clear_all_images'));
-    if (confirmed) {
+    if (await showConfirm(t('confirm.clear_all_images'), 'Clear All', true)) {
         const result = await window.api.clearAllImages();
-        alert(result.message);
+        await showAlert(result.message);
         loadGames();
     }
 });
@@ -1543,15 +1582,14 @@ window.api.onZipStarted(() => { document.getElementById('modal-tools').classList
 document.getElementById('btn-backup-zip').addEventListener('click', async () => {
     const result = await window.api.backupZip();
     document.getElementById('modal-zip-progress').classList.remove('active');
-    if (result.message) alert(result.message);
+    if (result.message) await showAlert(result.message);
 });
 
 document.getElementById('btn-restore-zip').addEventListener('click', async () => {
-    const confirmed = confirm(t('confirm.restore_backup'));
-    if (confirmed) {
+    if (await showConfirm(t('confirm.restore_backup'), 'Restore', true)) {
         const result = await window.api.restoreZip();
         document.getElementById('modal-zip-progress').classList.remove('active');
-        if (result.message) alert(result.message);
+        if (result.message) await showAlert(result.message);
     }
 });
 
@@ -1575,6 +1613,82 @@ document.getElementById('btn-install-menu').addEventListener('click', async () =
     status.style.color = result.success ? '#66bb6a' : '#ef5350';
     status.innerText = result.message;
 });
+// ── GRINDER tool card ──────────────────────────────────────────────────────────
+checkGrinderConnect();
+
+document.getElementById('btn-check-grinder')?.addEventListener('click', checkGrinderConnect);
+
+async function checkGrinderConnect() {
+    const statusEl = document.getElementById('grinder-connect-status');
+    const openBtn  = document.getElementById('btn-open-grinder-tool');
+    if (!statusEl) return;
+    statusEl.textContent = 'Checking…';
+    statusEl.style.color = 'var(--text_dim)';
+    const s = await window.api.grinderStatus();
+    if (!s.found) {
+        statusEl.textContent = 'GRINDER.AppImage not found — place it in the same folder as CNGM.';
+        if (openBtn) openBtn.style.display = 'none';
+    } else if (s.error) {
+        statusEl.textContent = `⚠ ${s.error}`;
+        statusEl.style.color = '#f57c00';
+        if (openBtn) openBtn.style.display = '';
+    } else {
+        statusEl.textContent = `✓ Connected — ${s.installedGames.length} game${s.installedGames.length !== 1 ? 's' : ''} installed in GRINDER`;
+        statusEl.style.color = '#66bb6a';
+        if (openBtn) openBtn.style.display = '';
+    }
+}
+
+document.getElementById('btn-open-grinder-tool')?.addEventListener('click', () => window.api.openGrinder());
+
+// ── GRINDER row in detail panel ────────────────────────────────────────────────
+async function updateGrinderRow(game) {
+    const row       = document.getElementById('grinder-launch-row');
+    const statusEl  = document.getElementById('grinder-launch-status');
+    const toggleBtn = document.getElementById('btn-toggle-grinder');
+    const openBtn   = document.getElementById('btn-open-grinder-detail');
+    if (!row) return;
+
+    // Only show for Heroic Epic games when GRINDER is present
+    const epicMatch = (game.LaunchCommand || '').match(/heroic:\/\/launch\/epic\/([^"\s]+)/i);
+    const s = await window.api.grinderStatus();
+    if (!epicMatch || !s.found) { row.style.display = 'none'; return; }
+
+    const grinderGameId = `epic_${epicMatch[1]}`;
+    row.style.display = 'flex';
+    openBtn.style.display = 'none';
+    toggleBtn.style.display = 'none';
+
+    if (game.GrinderGameId) {
+        statusEl.textContent = 'Launching via GRINDER';
+        statusEl.style.color = '#66bb6a';
+        toggleBtn.textContent = 'Switch to Heroic';
+        toggleBtn.style.display = '';
+        toggleBtn.onclick = async () => {
+            await window.api.setGrinderGame(game.id, null);
+            const g = allGames.find(x => x.id == game.id);
+            if (g) g.GrinderGameId = null;
+            updateGrinderRow({ ...game, GrinderGameId: null });
+        };
+    } else if (s.installedGames?.includes(grinderGameId)) {
+        statusEl.textContent = 'Available in GRINDER';
+        statusEl.style.color = 'var(--text_sec)';
+        toggleBtn.textContent = 'Use GRINDER';
+        toggleBtn.style.display = '';
+        toggleBtn.onclick = async () => {
+            await window.api.setGrinderGame(game.id, grinderGameId);
+            const g = allGames.find(x => x.id == game.id);
+            if (g) g.GrinderGameId = grinderGameId;
+            updateGrinderRow({ ...game, GrinderGameId: grinderGameId });
+        };
+    } else {
+        statusEl.textContent = 'Not installed in GRINDER';
+        statusEl.style.color = 'var(--text_dim)';
+        openBtn.style.display = '';
+        openBtn.onclick = () => window.api.openGrinder();
+    }
+}
+
 document.getElementById('btn-close-tools').addEventListener('click', () => {
     modalTools.classList.remove('active');
     document.getElementById('tools-search').value = '';
@@ -1662,7 +1776,7 @@ document.getElementById('btn-add-game').addEventListener('click', () => {
             await loadGames();
             const newGame = allGames.find(g => g.id === result.id);
             if (newGame) { openDetails(newGame); document.getElementById('edit-name').focus(); }
-        } else { alert(t('alert.add_failed')); }
+        } else { await showAlert(t('alert.add_failed')); }
     };
 
     document.getElementById('add-game-create').onclick = doCreate;
@@ -1670,13 +1784,13 @@ document.getElementById('btn-add-game').addEventListener('click', () => {
     input.onkeydown = (e) => { if (e.key === 'Enter') doCreate(); else if (e.key === 'Escape') modal.classList.remove('active'); };
 });
 
-document.getElementById('btn-template-csv').addEventListener('click', async () => { const result = await window.api.downloadCsvTemplate(); if (result && result.message) alert(result.message); });
-document.getElementById('btn-export-csv').addEventListener('click', async () => { const result = await window.api.exportCsv(); if (result && result.message) alert(result.message); });
+document.getElementById('btn-template-csv').addEventListener('click', async () => { const result = await window.api.downloadCsvTemplate(); if (result?.message) await showAlert(result.message); });
+document.getElementById('btn-export-csv').addEventListener('click', async () => { const result = await window.api.exportCsv(); if (result?.message) await showAlert(result.message); });
 document.getElementById('btn-import-csv').addEventListener('click', async () => {
     const btn = document.getElementById('btn-import-csv');
     btn.innerText = t('status.importing'); btn.disabled = true;
     const result = await window.api.importCsv();
-    if (result && result.message) { alert(result.message); if (result.success) loadGames(); }
+    if (result?.message) { await showAlert(result.message); if (result.success) loadGames(); }
     btn.innerText = t('status.import_csv'); btn.disabled = false;
 });
 

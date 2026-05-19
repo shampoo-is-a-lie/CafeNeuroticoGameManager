@@ -7,7 +7,8 @@
     "postinstall": "electron-builder install-app-deps",
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --linux AppImage"
+    "dist": "electron-builder --linux AppImage",
+    "postdist": "D=/home/jose/Games/CNGM; F=CNGM.AppImage; [ -f $D/$F ] && mv $D/$F $D/CNGM_old.AppImage; cp dist/$F $D/$F && echo \"Deployed $F to $D\""
   },
   "keywords": [
     "game",
