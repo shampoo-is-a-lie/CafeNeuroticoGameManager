@@ -36,17 +36,61 @@ function getInstallCommand(game) {
     return null;
 }
 
-async function verifyAndLaunch(gameId, launchCmd) {
-    // Visual feedback on all matching play buttons + gamepage button
-    const playBtns = [...document.querySelectorAll(`[data-id="${gameId}"]`)];
-    const gpBtn = (String(currentGameId) === String(gameId)) ? document.getElementById('btn-play') : null;
-    const allBtns = [...playBtns, gpBtn].filter(Boolean);
-    const origText = new Map(allBtns.map(b => [b, b.textContent]));
-    allBtns.forEach(b => { b.textContent = '⏳ Launching…'; b.disabled = true; });
-    setTimeout(() => allBtns.forEach(b => { b.textContent = origText.get(b); b.disabled = false; }), 2500);
+// ── Now Playing popup ─────────────────────────────────────────────────────────
+let _npTimer = null;
 
+function showNowPlaying(game) {
+    const modal    = document.getElementById('modal-now-playing');
+    const artBg    = document.getElementById('np-art-bg');
+    const logoImg  = document.getElementById('np-logo-img');
+    const coverImg = document.getElementById('np-cover-img');
+    const artWrap  = document.getElementById('np-art');
+    const titleEl  = document.getElementById('np-title');
+    if (!modal) return;
+
+    titleEl.textContent = game.Game || '';
+
+    const logo  = game.Logo     ? getSafePath(game.Logo)     : null;
+    const cover = game.CoverArt ? getSafePath(game.CoverArt) : null;
+    const hero  = game.HeroArt  ? getSafePath(game.HeroArt)  : null;
+
+    logoImg.style.display  = 'none';
+    coverImg.style.display = 'none';
+    artBg.style.backgroundImage = '';
+
+    if (logo) {
+        artWrap.style.display = 'flex';
+        logoImg.src = logo; logoImg.style.display = '';
+        if (cover || hero) artBg.style.backgroundImage = `url('${cover || hero}')`;
+    } else if (cover) {
+        artWrap.style.display = 'flex';
+        coverImg.src = cover; coverImg.style.display = '';
+        artBg.style.backgroundImage = `url('${cover}')`;
+    } else {
+        artWrap.style.display = 'none';
+    }
+
+    modal.classList.add('active');
+    clearTimeout(_npTimer);
+    _npTimer = setTimeout(closeNowPlaying, 5000);
+}
+
+function closeNowPlaying() {
+    clearTimeout(_npTimer);
+    document.getElementById('modal-now-playing')?.classList.remove('active');
+}
+
+document.getElementById('modal-now-playing')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-now-playing')) closeNowPlaying();
+});
+document.getElementById('np-close-btn')?.addEventListener('click', closeNowPlaying);
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function verifyAndLaunch(gameId, launchCmd) {
     const game = allGames.find(g => g.id == gameId);
-    if (game?.GrinderGameId) {
+    if (game) showNowPlaying(game);
+
+    if (game?.GrinderGameId && !game?.prefer_heroic) {
         const s = await window.api.grinderStatus();
         if (s.found && s.path) {
             window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
