@@ -574,12 +574,16 @@ function renderTable(recent, regular) {
         tr.style.cursor = "pointer";
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
+        const storeLc = (game.Store || '').toLowerCase();
+        const isGrinderStore = storeLc.includes('gog') || storeLc.includes('epic');
         const installCmd = getInstallCommand(game);
         let actionCell;
         if (game.LaunchCommand) {
             actionCell = isInstalled
                 ? `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`
-                : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`);
+                : (isGrinderStore
+                    ? `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`
+                    : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`));
         } else if (isManualCategory(game)) {
             actionCell = `<button class="btn-install" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="padding: 4px 8px;">${t('status.install')}</button>`;
         } else {
@@ -618,7 +622,7 @@ _tbody.addEventListener('click', (e) => {
     const play = e.target.closest('.btn-play');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install');
-    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
 });
 _tbody.addEventListener('dblclick', (e) => {
     const tr = e.target.closest('tr[data-id]');
@@ -657,8 +661,13 @@ function renderGallery(recent, regular) {
             if (isInstalled) {
                 actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
             } else {
-                const installCmd = getInstallCommand(game);
-                actionBtn = installCmd ? `<button class="btn-install-gallery" data-url="${installCmd}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>` : '';
+                const stL = (game.Store || '').toLowerCase();
+                if (stL.includes('gog') || stL.includes('epic')) {
+                    actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
+                } else {
+                    const installCmd = getInstallCommand(game);
+                    actionBtn = installCmd ? `<button class="btn-install-gallery" data-url="${installCmd}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>` : '';
+                }
             }
         } else if (isManualCategory(game)) {
             actionBtn = `<button class="btn-install-gallery" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
@@ -710,7 +719,7 @@ _grid.addEventListener('click', (e) => {
     const play = e.target.closest('.btn-play-gallery');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install-gallery');
-    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
 });
 _grid.addEventListener('dblclick', (e) => {
     const item = e.target.closest('.gallery-item[data-id]');
@@ -803,11 +812,18 @@ function openGamepage(game) {
             playBtn.className = 'primary';
             playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
         } else {
-            const installCmd = getInstallCommand(game);
+            const store = (game.Store || '').toLowerCase();
+            const isGrinderStore = store.includes('gog') || store.includes('epic');
             playBtn.innerText = t('status.install');
             playBtn.className = 'btn-install-primary';
-            playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
-            if (!installCmd) playBtn.style.display = 'none';
+            playBtn.style.display = 'block';
+            if (isGrinderStore) {
+                playBtn.onclick = () => window.api.openGrinder(game.Game);
+            } else {
+                const installCmd = getInstallCommand(game);
+                playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
+                if (!installCmd) playBtn.style.display = 'none';
+            }
         }
     } else if (isManualCategory(game)) {
         playBtn.style.display = 'block';
