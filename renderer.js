@@ -1444,6 +1444,16 @@ document.getElementById('connect-search').addEventListener('input', (e) => {
     document.getElementById('connect-no-results').style.display = visible === 0 ? 'block' : 'none';
 });
 
+document.getElementById('btn-connect-save-sgdb').addEventListener('click', async () => {
+    const key    = document.getElementById('connect-sgdb-key').value.trim();
+    const status = document.getElementById('connect-sgdb-status');
+    if (!key || key === '••••••••') { status.style.color = '#f57c00'; status.innerText = 'Paste your API key above.'; return; }
+    await window.api.setSetting('steamgriddb_api', key);
+    document.getElementById('sgdb-api-input').value = key;
+    document.getElementById('connect-sgdb-key').value = '••••••••';
+    status.style.color = '#66bb6a'; status.innerText = '✓ Key saved!';
+});
+
 document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     const clientId = document.getElementById('igdb-client-id').value.trim();
     const secret   = document.getElementById('igdb-client-secret').value.trim();
@@ -1457,16 +1467,6 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     const result = await window.api.igdbTest();
     statusEl.style.color = result.success ? '#4caf50' : '#f44336';
     statusEl.innerText = result.message;
-});
-
-document.getElementById('btn-connect-save-sgdb').addEventListener('click', async () => {
-    const key    = document.getElementById('connect-sgdb-key').value.trim();
-    const status = document.getElementById('connect-sgdb-status');
-    if (!key || key === '••••••••') { status.style.color = '#f57c00'; status.innerText = 'Paste your API key above.'; return; }
-    await window.api.setSetting('steamgriddb_api', key);
-    document.getElementById('sgdb-api-input').value = key;
-    document.getElementById('connect-sgdb-key').value = '••••••••';
-    status.style.color = '#66bb6a'; status.innerText = '✓ Key saved!';
 });
 
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
