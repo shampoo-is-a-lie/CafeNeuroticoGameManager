@@ -26,17 +26,17 @@
 
     #app-container { display: flex; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.2s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     .modal-box { background: var(--bg_menu); padding: 30px; border-radius: 12px; border: 2px solid var(--border_solid); width: 400px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
 
     #gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-    .gallery-item { background: var(--bg_panel); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.2s; text-align: center; display: flex; flex-direction: column; }
-    .gallery-item:hover { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+    .gallery-item { background: var(--bg_panel); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, box-shadow 0.2s; text-align: center; display: flex; flex-direction: column; }
+    .gallery-item:hover { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0,0,0,0.45); }
     .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; display: block; }
     .gallery-cover-wrap { position: relative; width: 100%; }
-    .gallery-store-badge { position: absolute; bottom: 7px; right: 7px; width: 22px; height: 22px; background-color: rgba(255,255,255,0.7); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.8)); }
-    .install-dot { position: absolute; top: 8px; left: 8px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.4); pointer-events: none; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7)); z-index: 2; }
+    .gallery-store-badge { position: absolute; bottom: 7px; right: 7px; width: 22px; height: 22px; background-color: rgba(255,255,255,0.75); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; pointer-events: none; }
+    .install-dot { position: absolute; top: 8px; left: 8px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.5); pointer-events: none; z-index: 2; }
     .install-dot.is-installed { background: #66bb6a; }
     .install-dot.not-installed { background: #ff9800; }
     .btn-install-gallery { margin: 5px; font-size: 12px; padding: 4px; background: #e65100; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 700; letter-spacing: 1px; }
@@ -51,13 +51,13 @@
     #main-content { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; overflow: hidden; }
 
     .row { display: flex; gap: 10px; }
-    button { background-color: var(--bg_panel); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px 12px; font-family: 'Raleway', sans-serif; font-weight: 900; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
-    button:hover { background-color: var(--text_main); color: var(--bg); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+    button { background-color: var(--bg_panel); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px 12px; font-family: 'Raleway', sans-serif; font-weight: 900; cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+    button:hover { background-color: var(--text_main); color: var(--bg); }
     button.primary { background-color: var(--accent); color: var(--bg); border: none; }
-    button.primary:hover { background-color: var(--text_main); color: var(--bg); box-shadow: 0 0 15px var(--accent); }
+    button.primary:hover { background-color: var(--text_main); color: var(--bg); }
 
     .segmented-control { display: flex; width: 100%; border: 1px solid var(--border_solid); border-radius: 6px; overflow: hidden; margin-top: 5px; }
-    .segmented-btn { flex: 1; background: var(--bg_panel); color: var(--text_sec); border: none; border-right: 1px solid var(--border_solid); padding: 8px 0; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; border-radius: 0; box-shadow: none; transform: none; }
+    .segmented-btn { flex: 1; background: var(--bg_panel); color: var(--text_sec); border: none; border-right: 1px solid var(--border_solid); padding: 8px 0; font-size: 11px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, color 0.2s; border-radius: 0; }
     .segmented-btn:last-child { border-right: none; }
     .segmented-btn:hover { background: var(--border_solid); color: var(--text_main); transform: none; box-shadow: none; }
     .segmented-btn.active { background: var(--accent); color: var(--bg); }
@@ -94,6 +94,8 @@
         100% { transform: scale(1.15) translate(2%, 2%); }
     }
     .hero-kb-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; animation: panZoom 8s infinite alternate ease-in-out; opacity: 0; transition: opacity 0.5s ease; }
+    /* Pause Ken Burns animation when the gallery view is not active */
+    .view:not(.active) .hero-kb-img { animation-play-state: paused; }
 
     /* GAMEPAGE SPECIFIC CSS */
     .gamepage-stat { display: flex; flex-direction: column; gap: 2px; }
@@ -114,8 +116,8 @@
     .btn-toggle:hover { border-color: var(--accent); color: var(--text_main); }
     .btn-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
-    .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; overflow: hidden; }
-    .screenshots-banner:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: var(--accent); }
+    .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; overflow: hidden; }
+    .screenshots-banner:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: var(--accent); }
     .screenshots-banner-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 1; }
     .screenshots-banner:hover .screenshots-banner-overlay { background: rgba(0,0,0,0.2); }
     .screenshots-banner-text { font-size: 28px; font-weight: 900; color: #fff; letter-spacing: 4px; text-shadow: 0 4px 10px rgba(0,0,0,0.9); }
@@ -208,7 +210,7 @@
 
         <div style="flex: 1;"></div>
 
-        <div id="btn-about" style="text-align: center; padding: 20px 0 10px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+        <div id="btn-about" style="text-align: center; padding: 20px 0 10px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.75';" onmouseout="this.style.opacity='1';">
           <div style="color: var(--text_dim); font-size: 14px; font-weight: 900; letter-spacing: 4px;">CAFE NEUROTICO</div>
           <div style="color: var(--text_main); font-size: 22px; font-weight: 900; letter-spacing: 1px;">GAME MANAGER</div>
           <div><p style="font-size: 11px; color: var(--text_dim); margin: 0;" data-i18n="html.click_to_learn">CLICK TO LEARN ABOUT</p></div>
@@ -229,7 +231,7 @@
             <div style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 40%, rgba(0,0,0,0.5) 100%); z-index: 1;"></div>
 
             <div id="gallery-category-header" style="position: absolute; top: 20px; left: 25px; z-index: 10; display: flex; align-items: center; gap: 15px;">
-              <div id="gallery-category-icon" style="width: 45px; height: 45px; background-color: var(--accent); -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));"></div>
+              <div id="gallery-category-icon" style="width: 45px; height: 45px; background-color: var(--accent); -webkit-mask-size: contain; -webkit-mask-position: center; -webkit-mask-repeat: no-repeat;"></div>
               <div style="display: flex; flex-direction: column; gap: 2px;">
                 <span id="gallery-category-text" style="font-size: 36px; font-weight: 900; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); letter-spacing: 2px;" data-i18n="html.all_games">ALL GAMES</span>
                 <span id="gallery-category-count" style="font-size: 11px; font-weight: bold; color: #dddddd; opacity: 0.8; letter-spacing: 2px; text-shadow: 0 1px 5px rgba(0,0,0,0.9);"></span>
@@ -263,7 +265,7 @@
                         <button id="btn-gamepage-want" class="btn-toggle">WANT TO PLAY</button>
                         <button id="btn-gamepage-trailer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); display: none; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;" data-i18n="html.btn_watch">🎬 WATCH TRAILER</button>
                         <button id="btn-gamepage-edit" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;" data-i18n="html.btn_edit">⚙️ EDIT DETAILS</button>
-                        <button id="btn-gamepage-play" class="primary" style="font-size: 20px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); letter-spacing: 2px; display: none;" data-i18n="html.btn_play">▶ PLAY</button>
+<button id="btn-gamepage-play" class="primary" style="font-size: 20px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); letter-spacing: 2px; display: none;" data-i18n="html.btn_play">▶ PLAY</button>
                     </div>
                 </div>
             </div>

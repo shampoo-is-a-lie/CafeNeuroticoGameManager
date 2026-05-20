@@ -67,6 +67,58 @@ if (process.env.APPIMAGE) {
 }
 
 const configDir = path.join(baseDir, 'GameManagerConfig');
+
+// Write a minimal game entry to GRINDER's DB (called before opening GRINDER for setup)
+function ensureInGrinderDb(id, title, store, appId, installed) {
+    const home = os.homedir();
+    const candidates = [
+        path.join(home, '.config', 'grinder', 'grinder.db'),
+        path.join(home, '.config', 'GRINDER', 'grinder.db'),
+        path.join(baseDir, 'GRINDERConfig', 'grinder.db'),
+    ];
+    const gdbPath = candidates.find(p => fs.existsSync(p));
+    if (!gdbPath) return false; // GRINDER has never been launched — can't write yet
+    try {
+        const gdb = new Database(gdbPath, { timeout: 5000 });
+        gdb.prepare(`INSERT OR IGNORE INTO games (id, title, store, app_id, installed) VALUES (?, ?, ?, ?, ?)`)
+           .run(id, title, store, appId || null, installed ? 1 : 0);
+        gdb.close();
+        return true;
+    } catch { return false; }
+}
+
+// Open GRINDER focused on a specific game's setup (called by "Setup with GRINDER" button)
+ipcMain.handle('open-grinder-setup', (_, game) => {
+    const grinderPath = findGrinderPath();
+    if (!grinderPath) return { ok: false, error: 'GRINDER not found.' };
+
+    let grinderGameId = game.GrinderGameId || null;
+
+    if (!grinderGameId) {
+        // Determine what ID and store to use for GRINDER
+        const steamId = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '') : null;
+        if (steamId) {
+            grinderGameId = `steam_${steamId}`;
+            ensureInGrinderDb(grinderGameId, game.Game, 'steam', steamId, game.Installed);
+            // Link back so verifyAndLaunch routes to GRINDER's headless engine
+            if (db) db.prepare("UPDATE games SET GrinderGameId=? WHERE id=?").run(grinderGameId, game.id);
+        } else {
+            // Others/Physical/non-catalogued — use a deterministic CNGM-prefixed ID
+            const safe = (game.Game || 'game').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 32);
+            grinderGameId = `cngm_${safe}_${Date.now().toString(36)}`;
+            const launchCmd = game.LaunchCommand || '';
+            const storeGuess = /heroic.*gog/i.test(launchCmd) ? 'gog'
+                             : /heroic.*epic/i.test(launchCmd) ? 'epic'
+                             : 'custom';
+            ensureInGrinderDb(grinderGameId, game.Game, storeGuess, null, game.Installed);
+            // Write back the GrinderGameId to CNGM's DB so future calls reuse it
+            if (db) db.prepare("UPDATE games SET GrinderGameId=? WHERE id=?").run(grinderGameId, game.id);
+        }
+    }
+
+    spawn(grinderPath, ['setup', grinderGameId], { detached: true, stdio: 'ignore' }).unref();
+    return { ok: true };
+});
 const imagesDir = path.join(configDir, 'images');
 const trailersDir = path.join(configDir, 'videos');
 const dbPath = path.join(configDir, 'games.db');
@@ -401,12 +453,54 @@ ipcMain.handle('grinder-status', () => {
 
     try {
         const gdb = new Database(grinderDb, { readonly: true });
-        const rows = gdb.prepare("SELECT id FROM games WHERE installed=1").all();
+        const installed = gdb.prepare("SELECT id FROM games WHERE installed=1").all();
+        const allGames  = gdb.prepare("SELECT id, title, store, app_id, installed, platform FROM games").all();
         gdb.close();
-        return { found: true, path: grinderPath, installedGames: rows.map(r => r.id) };
+        return { found: true, path: grinderPath,
+                 installedGames: installed.map(r => r.id),
+                 allGames };
     } catch (e) {
-        return { found: true, path: grinderPath, installedGames: [], error: `Could not read GRINDER DB: ${e.message}` };
+        return { found: true, path: grinderPath, installedGames: [], allGames: [], error: `Could not read GRINDER DB: ${e.message}` };
     }
+});
+
+// Sync ALL GRINDER games into CNGM (installed and not installed).
+// Matches by app_id for GOG/Epic; inserts new entries for unmatched games.
+ipcMain.handle('sync-all-grinder-games', (_, allGrinderGames, grinderPath) => {
+    if (!allGrinderGames?.length) return { synced: 0 };
+    let synced = 0;
+
+    for (const gg of allGrinderGames) {
+        // Try to find a matching CNGM game by app_id embedded in the Heroic LaunchCommand
+        let existing = null;
+        if (gg.app_id) {
+            existing = db.prepare(
+                "SELECT id, GrinderGameId FROM games WHERE LaunchCommand LIKE ? AND (GrinderGameId IS NULL OR GrinderGameId=?)"
+            ).get(`%${gg.app_id}%`, gg.id);
+        }
+
+        if (existing) {
+            // Matched — update GrinderGameId and install status
+            db.prepare("UPDATE games SET GrinderGameId=?, Installed=? WHERE id=?")
+              .run(gg.id, gg.installed ? 1 : 0, existing.id);
+            synced++;
+        } else {
+            // No CNGM equivalent — insert as new entry if not already imported
+            const alreadyIn = db.prepare("SELECT id FROM games WHERE GrinderGameId=?").get(gg.id);
+            if (!alreadyIn) {
+                // Build a synthetic LaunchCommand so CNGM can launch via Heroic as fallback
+                let launchCmd = '';
+                if (gg.store === 'gog' && gg.app_id)   launchCmd = `heroic://launch/gog/${gg.app_id}`;
+                if (gg.store === 'epic' && gg.app_id)  launchCmd = `heroic://launch/epic/${gg.app_id}`;
+                const store = gg.store === 'gog' ? 'GOG' : gg.store === 'epic' ? 'EPIC' : 'GRINDER';
+                db.prepare(
+                    "INSERT INTO games (Game, LaunchCommand, Store, Installed, GrinderGameId) VALUES (?, ?, ?, ?, ?)"
+                ).run(gg.title || gg.id, launchCmd, store, gg.installed ? 1 : 0, gg.id);
+                synced++;
+            }
+        }
+    }
+    return { synced };
 });
 
 ipcMain.on('launch-crema', () => {
@@ -467,6 +561,7 @@ ipcMain.on('open-manual', () => {
 });
 
 ipcMain.on('window-minimize', () => { const win = BrowserWindow.getFocusedWindow(); if(win) win.minimize(); });
+ipcMain.on('toggle-devtools',  () => { const win = BrowserWindow.getFocusedWindow(); if(win) win.webContents.toggleDevTools(); });
 ipcMain.on('window-maximize', () => {
     const win = BrowserWindow.getFocusedWindow();
     if(win) { if(win.isMaximized()) win.unmaximize(); else win.maximize(); }
@@ -705,6 +800,20 @@ ipcMain.handle('delete-game', (event, id) => {
 
 ipcMain.on('launch-game', (event, cmd) => {
     if (!cmd) return;
+
+    // GOG/Epic via GRINDER (headless umu-run)
+    const heroicMatch = cmd.match(/heroic:\/\/launch\/(epic|gog|amazon)\/([^"\s]+)/i);
+    if (heroicMatch) {
+        const appId = heroicMatch[2];
+        const gMap  = getGrinderMap();
+        const gId   = gMap.get(appId);
+        const gPath = _grinderPath || findGrinderPath();
+        if (gId && gPath) {
+            spawn(gPath, ['launch', gId], { detached: true, stdio: 'ignore' }).unref();
+            return;
+        }
+    }
+
     const child = spawn(cmd, [], { shell: true, detached: true, stdio: 'ignore' });
     child.unref();
 });
@@ -882,27 +991,17 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
             const launchCommand = `steam steam://rungameid/${appid} -silent`;
             const isInstalled = isSteamGameInstalled(appid) ? 1 : 0;
 
-            const existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ? OR LOWER(Game) = LOWER(?)").get(launchCommand, name);
+            // Match only by exact LaunchCommand or SteamAppID — never by game name,
+            // to prevent merging separate store entries (e.g. GOG + Steam of the same title).
+            const existing = db.prepare(
+                "SELECT * FROM games WHERE LaunchCommand = ? OR (SteamAppID = ? AND SteamAppID IS NOT NULL AND SteamAppID != '' AND SteamAppID != 'None')"
+            ).get(launchCommand, appid);
 
             if (existing) {
-                let stores = existing.Store ? existing.Store.split(',').map(s => s.trim()) : [];
-                let needsUpdate = false;
-
-                if (!stores.some(s => s.toLowerCase() === 'steam')) {
-                    stores.push('Steam');
-                    needsUpdate = true;
-                }
-
-                if (!existing.LaunchCommand || existing.LaunchCommand !== launchCommand || !existing.SteamAppID || existing.SteamAppID !== appid) {
-                    needsUpdate = true;
-                }
-
-                if (needsUpdate) {
-                    db.prepare("UPDATE games SET LaunchCommand = ?, Store = ?, SteamAppID = ?, Installed = ? WHERE id = ?").run(launchCommand, stores.join(', '), appid, isInstalled, existing.id);
-                    updated++;
-                } else {
-                    db.prepare("UPDATE games SET Installed = ? WHERE id = ?").run(isInstalled, existing.id);
-                }
+                // Same Steam game already in library — update metadata and install status
+                db.prepare("UPDATE games SET Store = 'Steam', SteamAppID = ?, Installed = ? WHERE id = ?")
+                  .run(appid, isInstalled, existing.id);
+                updated++;
             } else {
                 db.prepare("INSERT INTO games (Store, Game, SteamAppID, LaunchCommand, FAV, WANT_TO_PLAY, Installed) VALUES (?, ?, ?, ?, 'NO', 'NO', ?)").run("Steam", name, appid, launchCommand, isInstalled);
                 added++;

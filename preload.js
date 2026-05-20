@@ -77,9 +77,11 @@ contextBridge.exposeInMainWorld('api', {
 
                                 // --- GRINDER ---
                                 openGrinder: (name) => ipcRenderer.invoke('open-grinder', name),
+                                openGrinderSetup: (game) => ipcRenderer.invoke('open-grinder-setup', game),
                                 setGrinderGame: (id, gid) => ipcRenderer.invoke('set-grinder-game', id, gid),
                                 grinderStatus: () => ipcRenderer.invoke('grinder-status'),
                                 syncGrinderInstalled: (ids) => ipcRenderer.invoke('sync-grinder-installed', ids),
+                                syncAllGrinderGames: (games, p) => ipcRenderer.invoke('sync-all-grinder-games', games, p),
 
                                 // --- MANUAL ---
                                 openManual: () => ipcRenderer.send('open-manual'),
@@ -87,5 +89,6 @@ contextBridge.exposeInMainWorld('api', {
                                 // --- WINDOW CONTROLS ---
                                 minimizeApp: () => ipcRenderer.send('window-minimize'),
                                 maximizeApp: () => ipcRenderer.send('window-maximize'),
-                                closeApp: () => ipcRenderer.send('window-close')
+                                closeApp: () => ipcRenderer.send('window-close'),
+                                toggleDevTools: () => ipcRenderer.send('toggle-devtools')
 });

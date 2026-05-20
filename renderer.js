@@ -94,14 +94,12 @@ async function verifyAndLaunch(gameId, launchCmd) {
         const s = await window.api.grinderStatus();
         if (s.found && s.path) {
             window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
-            window.api.updateLastPlayed(gameId).then(() => loadGames());
-            window.api.verifyInstallStatus(gameId).then(() => loadGames());
+            Promise.all([window.api.updateLastPlayed(gameId), window.api.verifyInstallStatus(gameId)]).then(() => loadGames());
             return;
         }
     }
     window.api.launchGame(launchCmd);
-    window.api.updateLastPlayed(gameId).then(() => loadGames());
-    window.api.verifyInstallStatus(gameId).then(() => loadGames());
+    Promise.all([window.api.updateLastPlayed(gameId), window.api.verifyInstallStatus(gameId)]).then(() => loadGames());
 }
 
 window.api.onInstallStatusUpdated(() => loadGames());
@@ -473,11 +471,20 @@ function switchView(viewId) {
     if (viewId === 'view-gallery' || viewId === 'view-list') lastGridView = viewId;
 }
 
-async function loadGames() {
-    const res = await window.api.getGames();
-    let games = res.games || [];
-    allGames = games.filter(g => g.Game && g.Game !== 'null');
-    applyFilters();
+// Debounced loadGames — collapses rapid successive calls (e.g. from two parallel .then() chains)
+// into a single DB fetch 80ms after the last call, invisible to the user.
+let _lgTimer = null;
+function loadGames() {
+    clearTimeout(_lgTimer);
+    return new Promise(resolve => {
+        _lgTimer = setTimeout(async () => {
+            const res = await window.api.getGames();
+            let games = res.games || [];
+            allGames = games.filter(g => g.Game && g.Game !== 'null');
+            applyFilters();
+            resolve();
+        }, 80);
+    });
 }
 
 document.getElementById('search-bar').addEventListener('input', applyFilters);
@@ -578,7 +585,7 @@ function renderTable(recent, regular) {
         <td>${game.GENRE || ''}</td>
         <td>${game.RELEASED || ''}</td>
         `;
-        tr.addEventListener('dblclick', () => openGamepage(game));
+        tr.dataset.id = game.id;
         tbody.appendChild(tr);
     };
 
@@ -594,23 +601,20 @@ function renderTable(recent, regular) {
     }
     regular.forEach(appendRow);
 
-    document.querySelectorAll('.btn-play').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            verifyAndLaunch(btn.getAttribute('data-id'), btn.getAttribute('data-cmd'));
-        });
-    });
-    document.querySelectorAll('.btn-install').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (btn.getAttribute('data-addcmd')) {
-                openAddCmdDialog(btn.getAttribute('data-id'), btn.getAttribute('data-name'));
-            } else {
-                window.api.openInstallUrl(btn.getAttribute('data-url'));
-            }
-        });
-    });
 }
+
+// ── Table event delegation (set up once) ──────────────────────────────────────
+const _tbody = document.getElementById('list-tbody');
+_tbody.addEventListener('click', (e) => {
+    const play = e.target.closest('.btn-play');
+    if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
+    const install = e.target.closest('.btn-install');
+    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+});
+_tbody.addEventListener('dblclick', (e) => {
+    const tr = e.target.closest('tr[data-id]');
+    if (tr) { const g = allGames.find(x => String(x.id) === tr.dataset.id); if (g) openGamepage(g); }
+});
 
 function getStoreLogo(store) {
     if (!store) return null;
@@ -634,7 +638,7 @@ function renderGallery(recent, regular) {
         const div = document.createElement('div');
         div.className = 'gallery-item';
         const imgSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
-        const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
+        const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover" loading="lazy">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
         const logo = getStoreLogo(game.Store);
         const badgeHtml = logo ? `<div class="gallery-store-badge" style="-webkit-mask-image: url('${logo}');"></div>` : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
@@ -655,7 +659,7 @@ function renderGallery(recent, regular) {
         <div class="gallery-title">${game.Game}</div>
         ${actionBtn}
         `;
-        div.addEventListener('dblclick', () => openGamepage(game));
+        div.dataset.id = game.id;
         grid.appendChild(div);
     };
 
@@ -689,23 +693,20 @@ function renderGallery(recent, regular) {
     }
     regular.forEach(appendCard);
 
-    document.querySelectorAll('.btn-play-gallery').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            verifyAndLaunch(btn.getAttribute('data-id'), btn.getAttribute('data-cmd'));
-        });
-    });
-    document.querySelectorAll('.btn-install-gallery').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (btn.getAttribute('data-addcmd')) {
-                openAddCmdDialog(btn.getAttribute('data-id'), btn.getAttribute('data-name'));
-            } else {
-                window.api.openInstallUrl(btn.getAttribute('data-url'));
-            }
-        });
-    });
 }
+
+// ── Gallery event delegation (set up once) ────────────────────────────────────
+const _grid = document.getElementById('gallery-grid');
+_grid.addEventListener('click', (e) => {
+    const play = e.target.closest('.btn-play-gallery');
+    if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
+    const install = e.target.closest('.btn-install-gallery');
+    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+});
+_grid.addEventListener('dblclick', (e) => {
+    const item = e.target.closest('.gallery-item[data-id]');
+    if (item) { const g = allGames.find(x => String(x.id) === item.dataset.id); if (g) openGamepage(g); }
+});
 
 // --- THE IMMERSIVE GAMEPAGE LOGIC ---
 function openGamepage(game) {
@@ -1662,13 +1663,20 @@ checkGrinderConnect();
 
 document.getElementById('btn-check-grinder')?.addEventListener('click', checkGrinderConnect);
 
-// Pull GRINDER's installed game list and auto-set GrinderGameId in CNGM.
-// Called after any library sync and on startup.
+// Sync ALL GRINDER games into CNGM (installed + not installed).
+// Called on startup and after any library sync.
 async function syncGrinderInstalled() {
     const s = await window.api.grinderStatus();
-    if (!s.found || !s.installedGames?.length) return;
-    const { synced } = await window.api.syncGrinderInstalled(s.installedGames);
-    if (synced > 0) await loadGames();
+    if (!s.found) return;
+    // Full sync: match & import all GRINDER games (not just installed ones)
+    if (s.allGames?.length) {
+        const { synced } = await window.api.syncAllGrinderGames(s.allGames, s.path);
+        if (synced > 0) await loadGames();
+    } else if (s.installedGames?.length) {
+        // Fallback: old-style installed-only sync (if allGames not available yet)
+        const { synced } = await window.api.syncGrinderInstalled(s.installedGames);
+        if (synced > 0) await loadGames();
+    }
 }
 
 async function checkGrinderConnect() {
@@ -1686,7 +1694,9 @@ async function checkGrinderConnect() {
         statusEl.style.color = '#f57c00';
         if (openBtn) openBtn.style.display = '';
     } else {
-        statusEl.textContent = `✓ Connected — ${s.installedGames.length} game${s.installedGames.length !== 1 ? 's' : ''} installed in GRINDER`;
+        const total = s.allGames?.length ?? s.installedGames.length;
+        const inst  = s.installedGames.length;
+        statusEl.textContent = `✓ Connected — ${total} game${total !== 1 ? 's' : ''} in GRINDER (${inst} installed)`;
         statusEl.style.color = '#66bb6a';
         if (openBtn) openBtn.style.display = '';
     }
@@ -1858,7 +1868,17 @@ document.getElementById('btn-import-csv').addEventListener('click', async () => 
 
 // --- THEME ENGINE ---
 
+let _lastMosaicKey = '';
 function updateHeroMosaic(filtered, filterName) {
+    // Always update count label (cheap)
+    const countEl = document.getElementById('gallery-category-count');
+    if (countEl) countEl.innerText = `${filtered.length} ${filtered.length === 1 ? t('game.singular') : t('game.plural')}`;
+
+    // Skip full mosaic rebuild if filter + game set is identical to last render
+    const mosaicKey = `${filterName}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
+    if (mosaicKey === _lastMosaicKey) return;
+    _lastMosaicKey = mosaicKey;
+
     clearInterval(heroKbInterval);
     const iconContainer = document.getElementById('hero-icon');
     const kbImg = document.getElementById('hero-kb-img');
@@ -1874,8 +1894,6 @@ function updateHeroMosaic(filtered, filterName) {
     };
     const currentCat = filterMap[filterName] || { text: filterName.toUpperCase(), icon: filterName };
     document.getElementById('gallery-category-text').innerText = currentCat.text;
-    const countEl = document.getElementById('gallery-category-count');
-    if (countEl) countEl.innerText = `${filtered.length} ${filtered.length === 1 ? t('game.singular') : t('game.plural')}`;
     const iconPath = getSafePath(`assets/logos/${currentCat.icon}.png`);
     document.getElementById('gallery-category-icon').style.webkitMaskImage = `url('${iconPath}')`;
 
@@ -2046,3 +2064,93 @@ window.api.getSetting('cngm_theme').then(saved => {
     // Auto-sync GRINDER installed status on every startup
     syncGrinderInstalled();
 });
+
+// ── GPU Diagnostic Tool ───────────────────────────────────────────────────────
+// F12 → DevTools   |   Ctrl+Shift+G → in-app GPU layer report
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12') { window.api.toggleDevTools(); return; }
+    if (e.ctrlKey && e.shiftKey && e.key === 'G') showGpuDiagnostic();
+});
+
+function showGpuDiagnostic() {
+    const all = [...document.querySelectorAll('*')];
+
+    // Properties that force Chromium to create a compositing layer
+    const GPU_TRIGGERS = {
+        'backdrop-filter':  el => { const v = getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter; return v && v !== 'none'; },
+        'filter':           el => { const v = getComputedStyle(el).filter; return v && v !== 'none'; },
+        'transform (!=identity)': el => { const v = getComputedStyle(el).transform; return v && v !== 'none' && v !== 'matrix(1, 0, 0, 1, 0, 0)'; },
+        'transition:transform': el => { const cs = getComputedStyle(el); const d = cs.transitionDuration; if (!d || d === '0s') return false; const p = cs.transitionProperty; return p === 'all' || p.includes('transform'); },
+        'will-change':      el => { const v = getComputedStyle(el).willChange; return v && v !== 'auto'; },
+        'opacity<1 + composite': el => { const cs = getComputedStyle(el); return parseFloat(cs.opacity) < 1 && (cs.transform !== 'none' || cs.filter !== 'none'); },
+        'position:fixed':   el => getComputedStyle(el).position === 'fixed',
+        'video element':    el => el.tagName === 'VIDEO',
+        'canvas element':   el => el.tagName === 'CANVAS',
+    };
+
+    const report = {};
+    const examples = {};
+    for (const [label, test] of Object.entries(GPU_TRIGGERS)) {
+        const matches = all.filter(el => { try { return test(el); } catch { return false; } });
+        report[label] = matches.length;
+        examples[label] = matches.slice(0, 3).map(el => {
+            const id = el.id ? `#${el.id}` : '';
+            const cls = el.className && typeof el.className === 'string' ? `.${el.className.trim().split(/\s+/)[0]}` : '';
+            return `<${el.tagName.toLowerCase()}${id}${cls}>`;
+        });
+    }
+
+    // Active intervals/timeouts (only ones we track)
+    const trackedIntervals = { heroKbInterval, ssBannerKbInterval, detailScreenshotInterval };
+    const activeIntervals = Object.entries(trackedIntervals).filter(([,v]) => v != null).map(([k]) => k);
+
+    // Frame rate over 1 second
+    let frames = 0;
+    const fpsStart = performance.now();
+    const countFrame = () => { frames++; if (performance.now() - fpsStart < 1000) requestAnimationFrame(countFrame); else showReport(frames); };
+    requestAnimationFrame(countFrame);
+
+    function showReport(fps) {
+        const totalGpuLayers = Object.values(report).reduce((a, b) => a + b, 0);
+        let html = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:99999;overflow:auto;padding:30px;box-sizing:border-box;font-family:monospace;color:#e0e0e0;">
+        <div style="max-width:700px;margin:0 auto;">
+        <h2 style="color:#ff9800;margin:0 0 6px;">GPU DIAGNOSTIC — CNGM</h2>
+        <p style="color:#888;font-size:12px;margin:0 0 20px;">Press <b style="color:#fff">Escape</b> to close  •  Open <b style="color:#fff">DevTools → Layers panel</b> for full layer tree</p>
+        <div style="background:#1a1a1a;padding:14px;border-radius:8px;margin-bottom:16px;border:1px solid #333;">
+            <div style="color:#66bb6a;font-size:18px;font-weight:bold;">Frame rate: ${fps} FPS</div>
+            <div style="color:#ff9800;font-size:14px;margin-top:4px;">Estimated GPU compositing layers: ~${totalGpuLayers}</div>
+            <div style="color:#888;font-size:12px;margin-top:4px;">Active intervals: ${activeIntervals.length === 0 ? 'none' : activeIntervals.join(', ')}</div>
+        </div>
+        <h3 style="color:#90caf9;margin:0 0 10px;">GPU Layer Triggers</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="color:#888;border-bottom:1px solid #333;"><th style="text-align:left;padding:6px;">Property</th><th style="text-align:right;padding:6px;">Count</th><th style="text-align:left;padding:6px;color:#555;">Examples</th></tr>`;
+
+        for (const [label, count] of Object.entries(report)) {
+            const color = count === 0 ? '#555' : count > 20 ? '#f44336' : count > 5 ? '#ff9800' : '#66bb6a';
+            html += `<tr style="border-bottom:1px solid #222;">
+                <td style="padding:6px;color:${color};">${label}</td>
+                <td style="padding:6px;text-align:right;font-weight:bold;color:${color};">${count}</td>
+                <td style="padding:6px;color:#555;font-size:11px;">${(examples[label] || []).join(' ')}</td>
+            </tr>`;
+        }
+
+        html += `</table>
+        <p style="color:#555;font-size:11px;margin-top:16px;">
+            High counts in <span style="color:#f44336">red</span> = likely GPU hotspots.<br>
+            For the full picture: DevTools (F12) → More Tools → Layers.<br>
+            Each compositing layer occupies GPU VRAM and is composited every frame.
+        </p>
+        </div></div>`;
+
+        const overlay = document.createElement('div');
+        overlay.innerHTML = html;
+        document.body.appendChild(overlay);
+        const close = () => { overlay.remove(); };
+        overlay.addEventListener('click', close);
+        overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+        overlay.tabIndex = 0;
+        overlay.focus();
+        document.addEventListener('keydown', function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } });
+    }
+}
