@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, net, session, shell } = require('electron');
+app.setName('cngm');
 const path = require('path');
 const os = require('os');
 const Database = require('better-sqlite3');
