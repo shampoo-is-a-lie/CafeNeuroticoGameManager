@@ -324,20 +324,25 @@ document.getElementById('btn-welcome-done').addEventListener('click', dismissWel
 document.getElementById('btn-welcome-manual').addEventListener('click', () => { dismissWelcome(); window.api.openManual(); });
 
 // ── Step 1: Heroic sync (inline, no close) ──────────────────────────────────
-document.getElementById('btn-welcome-heroic').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-welcome-heroic');
-    const status = document.getElementById('wlc-heroic-status');
-    btn.disabled = true;
-    btn.textContent = t('status.syncing');
-    status.style.color = 'var(--text_dim)';
-    status.textContent = 'Syncing Heroic library…';
-    const result = await window.api.syncHeroic();
-    if (result.success) loadGames();
-    btn.disabled = false;
-    btn.textContent = 'Sync Heroic Games';
-    status.style.color = result.success ? '#66bb6a' : '#ef5350';
-    status.textContent = result.success ? '✓ Heroic library synced!' : '✗ ' + result.message;
-});
+// Welcome screen — GRINDER status check
+(async () => {
+    const statusEl = document.getElementById('wlc-grinder-status');
+    const openBtn  = document.getElementById('btn-welcome-open-grinder');
+    if (!statusEl) return;
+    const s = await window.api.grinderStatus();
+    if (s.found) {
+        const total = s.allGames?.length ?? s.installedGames?.length ?? 0;
+        statusEl.style.color = '#66bb6a';
+        statusEl.textContent = `✓ GRINDER connected — ${total} game${total !== 1 ? 's' : ''} in library`;
+    } else {
+        statusEl.style.color = 'var(--text_dim)';
+        statusEl.textContent = 'GRINDER.AppImage not found — place it in the same folder as CNGM.';
+    }
+    if (openBtn) {
+        openBtn.style.display = s.found ? '' : 'none';
+        openBtn.addEventListener('click', () => window.api.openGrinder());
+    }
+})();
 
 // ── Step 1: Steam sync (inline, no close) ───────────────────────────────────
 document.getElementById('btn-welcome-sync-steam').addEventListener('click', async () => {
@@ -1512,14 +1517,6 @@ document.getElementById('btn-sync-steam').addEventListener('click', async () => 
     btn.innerText = t('status.fetch_steam'); btn.disabled = false;
 });
 
-document.getElementById('btn-sync-gog').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-sync-gog');
-    btn.innerText = t('status.wait_login'); btn.disabled = true;
-    const result = await window.api.syncGog();
-    await showAlert(result.message);
-    if (result.success) loadGames();
-    btn.innerText = t('status.fetch_gog'); btn.disabled = false;
-});
 
 document.getElementById('btn-update-library').addEventListener('click', async () => {
     const btn = document.getElementById('btn-update-library');

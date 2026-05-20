@@ -461,24 +461,21 @@
       <!-- Scrollable cards -->
       <div style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px;">
 
-        <!-- STEP 1: STORES -->
+        <!-- HOW IT WORKS -->
+        <div style="background: rgba(212,129,58,0.08); border: 1px solid rgba(212,129,58,0.3); border-left: 4px solid var(--accent); border-radius: 6px; padding: 14px 16px;">
+          <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-transform: uppercase;">How the ecosystem works</p>
+          <p style="margin: 0 0 6px; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #66c0f4;">Steam games</strong> &rarr; imported here via API, launched by the Steam Client.</p>
+          <p style="margin: 0; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #a78bfa;">GOG &amp; Epic games</strong> &rarr; installed, configured and launched by <strong style="color: var(--accent);">GRINDER</strong>.</p>
+        </div>
+
+        <!-- STEP 1: STEAM -->
         <div class="tool-card">
-          <div class="tool-card-title" style="color: #f57c00;">🎮 Step 1 &mdash; Connect Your Stores</div>
-
-          <!-- Heroic -->
-          <p style="margin: 0 0 8px; line-height: 1.6; color: var(--text_sec); text-align: center;"><strong>Heroic</strong> covers Epic, GOG and Amazon &mdash; launch commands come pre-filled automatically.</p>
-          <button id="btn-welcome-heroic" style="width: 100%; background: #f57c00; border: none; color: #fff;">Sync Heroic Games</button>
-          <div id="wlc-heroic-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
-
-          <!-- Steam divider -->
-          <div style="border-top: 1px solid var(--border_solid); margin: 12px 0 10px;"></div>
-
-          <!-- Steam -->
-          <p style="margin: 0 0 6px; line-height: 1.6; color: var(--text_sec); text-align: center;"><strong style="color: #66c0f4;">Steam</strong> uses the official API &mdash; the most reliable way to import your library.</p>
+          <div class="tool-card-title" style="color: #66c0f4;">Step 1 &mdash; Import Your Steam Library</div>
+          <p style="margin: 0 0 8px; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Steam games launch via the Steam Client. Use your API key to import your full library so CNGM can show artwork and metadata.</p>
           <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">
-            1. Get a free API Key at <strong style="color: var(--text_main);">steamcommunity.com/dev/apikey</strong><br>
-            2. Find your SteamID64 at your profile URL or steamid.io<br>
-            <span style="color: var(--accent); font-weight: bold;">&#x2605; Your profile&rsquo;s Game Details must be set to Public</span>
+            1. Free API Key: <strong style="color: var(--text_main);">steamcommunity.com/dev/apikey</strong><br>
+            2. SteamID64: your profile URL or steamid.io<br>
+            <span style="color: var(--accent); font-weight: bold;">&#x2605; Game Details must be set to Public</span>
           </p>
           <input type="password" id="wlc-steam-id" placeholder="STEAMID64" style="margin-bottom: 6px;">
           <input type="password" id="wlc-steam-api-key" placeholder="STEAM API KEY">
@@ -486,10 +483,19 @@
           <div id="wlc-steam-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
         </div>
 
-        <!-- STEP 2: BATCH FETCH -->
+        <!-- STEP 2: GRINDER -->
         <div class="tool-card">
-          <div class="tool-card-title">✨ Step 2 &mdash; Fetch Artwork &amp; Metadata</div>
-          <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); text-align: center;">Pulls covers, hero art, logos, screenshots, HLTB, ProtonDB and descriptions for all synced games in one pass. Run this after syncing your stores.</p>
+          <div class="tool-card-title" style="color: var(--accent);">Step 2 &mdash; GOG &amp; Epic &rarr; Install GRINDER</div>
+          <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); font-size: 11px;"><strong style="color: var(--accent);">GRINDER</strong> is your GOG and Epic installer and launcher. It handles downloading, Proton configuration, and launching &mdash; CNGM just needs to know where it is.</p>
+          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 10px; line-height: 1.6;">Place <code>GRINDER.AppImage</code> in the same folder as CNGM. That&rsquo;s it &mdash; they connect automatically.</p>
+          <div id="wlc-grinder-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-bottom: 4px;"></div>
+          <button id="btn-welcome-open-grinder" style="width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);">Open GRINDER</button>
+        </div>
+
+        <!-- STEP 3: BATCH FETCH -->
+        <div class="tool-card">
+          <div class="tool-card-title">Step 3 &mdash; Fetch Artwork &amp; Metadata</div>
+          <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Pulls covers, hero art, logos, HLTB, ProtonDB and descriptions for all your games in one pass. Run this after importing your Steam library.</p>
           <button id="btn-welcome-batch" class="primary" style="width: 100%;">Batch Fetch Missing Data</button>
           <div id="wlc-batch-progress-wrap" style="display:none; width:100%; background: var(--bg); border-radius: 4px; height: 6px; overflow:hidden; margin-top: 8px;">
             <div id="wlc-batch-progress-fill" style="height:100%; width:0%; background: var(--accent); transition: width 0.2s linear;"></div>
@@ -497,46 +503,43 @@
           <div id="wlc-batch-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 6px;"></div>
         </div>
 
-        <!-- STEP 3: API KEYS -->
+        <!-- STEP 4: API KEYS -->
         <div class="tool-card">
-          <div class="tool-card-title">🔑 Step 3 &mdash; API Keys <span style="font-weight: normal; color: var(--text_dim); font-size: 11px;">(Optional)</span></div>
+          <div class="tool-card-title">Step 4 &mdash; API Keys <span style="font-weight: normal; color: var(--text_dim); font-size: 11px;">(Optional)</span></div>
 
-          <!-- SteamGridDB -->
-          <p style="margin: 0 0 6px; line-height: 1.6; color: var(--text_sec); text-align: center;"><strong>SteamGridDB</strong> &mdash; unlocks custom fan-made logos and hero art.</p>
-          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Get a free key at <strong style="color: var(--text_main);">steamgriddb.com/profile/preferences/api</strong></p>
+          <p style="margin: 0 0 4px; color: var(--text_sec); font-size: 11px;"><strong>SteamGridDB</strong> &mdash; custom fan-made logos and hero art.</p>
+          <p style="font-size: 11px; color: var(--text_dim); margin: 0 0 6px; line-height: 1.5;">Free key at <strong style="color: var(--text_main);">steamgriddb.com/profile/preferences/api</strong></p>
           <input type="text" id="wlc-sgdb-key" placeholder="STEAMGRIDDB API KEY">
           <button id="btn-welcome-save-sgdb" style="width: 100%; margin-top: 6px; background: transparent; border: 1px solid var(--border_solid); color: var(--text_sec);">Save SteamGridDB Key</button>
           <div id="wlc-sgdb-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
 
-          <!-- IGDB divider -->
           <div style="border-top: 1px solid var(--border_solid); margin: 12px 0 10px;"></div>
 
-          <!-- IGDB -->
-          <p style="margin: 0 0 6px; line-height: 1.6; color: var(--text_sec); text-align: center;"><strong>IGDB</strong> &mdash; richer metadata, franchise info and scraping fallback for non-Steam games.</p>
-          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Get free credentials at <strong style="color: var(--text_main);">dev.twitch.tv</strong> &mdash; register a Twitch app, copy Client ID and Secret.</p>
+          <p style="margin: 0 0 4px; color: var(--text_sec); font-size: 11px;"><strong>IGDB</strong> &mdash; richer metadata and scraping fallback for non-Steam games.</p>
+          <p style="font-size: 11px; color: var(--text_dim); margin: 0 0 6px; line-height: 1.5;">Free credentials at <strong style="color: var(--text_main);">dev.twitch.tv</strong> &mdash; register a Twitch app.</p>
           <input type="text" id="wlc-igdb-client-id" placeholder="CLIENT ID" style="margin-bottom: 6px;">
           <input type="password" id="wlc-igdb-client-secret" placeholder="CLIENT SECRET">
           <button id="btn-welcome-save-igdb" class="primary" style="width: 100%; margin-top: 6px;">Save &amp; Test IGDB Connection</button>
           <div id="wlc-igdb-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
         </div>
 
-        <!-- STEP 4: CREMA -->
+        <!-- STEP 5: CREMA -->
         <div class="tool-card">
-          <div class="tool-card-title">🕹️ Step 4 &mdash; CREMA Companion</div>
-          <p style="margin: 0; line-height: 1.6; color: var(--text_sec); text-align: center;">Place <code>CREMA.AppImage</code> in the same folder as CNGM. A <em>Go Fullscreen With CREMA</em> button will appear at the bottom of the sidebar &mdash; your fullscreen, gamepad-driven companion sharing the same library.</p>
+          <div class="tool-card-title">Step 5 &mdash; CREMA Companion</div>
+          <p style="margin: 0; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Place <code>CREMA.AppImage</code> in the same folder as CNGM. A <em>Go Fullscreen With CREMA</em> button will appear at the bottom of the sidebar &mdash; your fullscreen, gamepad-driven companion sharing the same library.</p>
         </div>
 
-        <!-- STEP 5: SYSTEM MENU -->
+        <!-- STEP 6: SYSTEM MENU -->
         <div class="tool-card">
-          <div class="tool-card-title">🗂️ Step 5 &mdash; Add CNGM and CREMA shortcuts to your System Menu</div>
-          <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); text-align: center;">Register both apps in your desktop launcher (GNOME, KDE, XFCE&hellip;) with proper icons. No terminal required. Re-run if you ever move the folder.</p>
+          <div class="tool-card-title">Step 6 &mdash; System Menu Shortcuts</div>
+          <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Register CNGM, GRINDER and CREMA in your desktop launcher (GNOME, KDE&hellip;) with proper icons. Re-run if you ever move the folder.</p>
           <button id="btn-welcome-add-menu" style="width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);">Add to Application Menu</button>
           <div id="wlc-menu-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
         </div>
 
         <!-- DON'T WORRY -->
         <div style="background: rgba(102,187,106,0.06); border: 1px solid rgba(102,187,106,0.3); border-left: 4px solid #66bb6a; border-radius: 6px; padding: 14px 16px; text-align: center;">
-          <p style="margin: 0; color: var(--text_sec); line-height: 1.65;"><strong style="color: #66bb6a;">Don&rsquo;t worry!</strong> You don&rsquo;t need to do any of this right now. All options are always available in <strong>Connect</strong> and <strong>Tools</strong> whenever you&rsquo;re ready.</p>
+          <p style="margin: 0; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #66bb6a;">Don&rsquo;t worry!</strong> You don&rsquo;t need to do any of this right now. All options are always available in <strong>Connect</strong> and <strong>Tools</strong> whenever you&rsquo;re ready.</p>
         </div>
 
       </div>
@@ -548,13 +551,15 @@
           <span style="font-size: 11px; color: var(--text_dim); user-select: none;">Don&rsquo;t show this again on startup</span>
         </label>
         <div style="display: flex; gap: 10px;">
-          <button id="btn-welcome-manual" style="flex: 1;">📖 Open User Manual</button>
+          <button id="btn-welcome-manual" style="flex: 1;">Open User Manual</button>
           <button id="btn-welcome-done" class="primary" style="flex: 1; font-weight: 900; letter-spacing: 1px;">Let&rsquo;s Go &rarr;</button>
         </div>
       </div>
 
     </div>
   </div>
+  <!-- hidden placeholder preserves wlc-heroic-status for any lingering JS refs -->
+  <div id="wlc-heroic-status" style="display:none;"></div>
 
   <div id="modal-zip-progress" class="modal-overlay">
     <div class="modal-box" style="text-align: center;">
@@ -583,24 +588,32 @@
       <!-- Scrollable cards -->
       <div id="connect-cards-container" style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px;">
 
-        <div class="tool-card connect-section" data-search="heroic epic gog amazon sync import games library">
-          <div class="tool-card-title" style="color: #f57c00;">🎮 Heroic Games</div>
-          <button id="btn-sync-heroic" style="width: 100%; background-color: #f57c00; border: none; color: #fff; font-size: 11px; padding: 8px 0;" data-i18n="html.btn_sync_heroic">Sync Heroic Games</button>
-          <p style="font-size: 11px; color: var(--text_dim); margin: 4px 0 0; font-weight: bold;" data-i18n="html.heroic_sync_hint">Imports Epic, GOG and Amazon libraries from your local Heroic installation.</p>
+        <!-- GRINDER — primary for GOG & Epic -->
+        <div class="tool-card connect-section" data-search="grinder gog epic install launcher proton umu wine configure setup">
+          <div class="tool-card-title" style="color: var(--accent);">GRINDER &mdash; GOG &amp; Epic</div>
+          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Your installer and launcher for GOG and Epic games. Handles downloading, Proton configuration, and launching. Place <code>GRINDER.AppImage</code> in the same folder as CNGM.</p>
+          <div id="grinder-connect-status" style="font-size:11px; color:var(--text_dim); min-height:16px; text-align:center;"></div>
+          <div class="row" style="margin-top:8px; gap:6px;">
+            <button id="btn-open-grinder-tool" style="display:none; flex:1; font-size:11px;">Open GRINDER</button>
+            <button id="btn-check-grinder" style="flex:1; font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Check Connection</button>
+          </div>
         </div>
 
+        <!-- Steam -->
         <div class="tool-card connect-section" data-search="steam api key steamid64 library fetch import credentials">
-          <div class="tool-card-title" style="color: #66c0f4;" data-i18n="html.connect_steam_section">Steam API Import</div>
+          <div class="tool-card-title" style="color: #66c0f4;" data-i18n="html.connect_steam_section">Steam Library Import</div>
+          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Steam games launch via the Steam Client. Import your library here for artwork and metadata.</p>
           <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">
             API key: <strong style="color: var(--text_main);">steamcommunity.com/dev/apikey</strong><br>
             SteamID64: profile URL or steamid.io<br>
-            <span style="color: var(--accent); font-weight: bold;">★ Game Details must be set to Public</span>
+            <span style="color: var(--accent); font-weight: bold;">&#x2605; Game Details must be set to Public</span>
           </p>
           <input type="password" id="steam-id" placeholder="STEAMID64">
           <input type="password" id="steam-api-key" placeholder="STEAM API KEY">
           <button id="btn-sync-steam" class="primary" style="padding: 8px;" data-i18n="html.btn_fetch_steam">Fetch Steam Library</button>
         </div>
 
+        <!-- IGDB -->
         <div class="tool-card connect-section" data-search="igdb twitch metadata scraping client id secret api">
           <div class="tool-card-title" data-i18n="html.connect_igdb_section">IGDB Integration</div>
           <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px;" data-i18n="html.connect_igdb_hint">Get free API credentials at dev.twitch.tv — register an app, copy your Client ID and Secret.</p>
@@ -610,14 +623,11 @@
           <div id="igdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div>
         </div>
 
-        <div class="tool-card connect-section" data-search="gog login oauth library fetch manual launch command">
-          <div class="tool-card-title" style="color: #8a2be2;" data-i18n="html.connect_gog_section">GOG Connection</div>
-          <button id="btn-sync-gog" style="width: 100%; background-color: #8a2be2; border: none; color: #fff; font-size: 11px; padding: 8px 0;" data-i18n="html.btn_fetch_gog">Fetch GOG Library</button>
-          <p style="font-size: 11px; color: var(--text_dim); margin: 4px 0 0; line-height: 1.6;">
-            <strong>* ONLY USE IF YOU DON'T WANT HEROIC CONNECTION.</strong>
-            THIS WILL OPEN A SECURE LOGIN WINDOW. CLOSE IT WHEN YOU ARE LOGGED IN.
-            <strong>YOU WILL HAVE TO FILL IN ALL LAUNCH COMMANDS MANUALLY.</strong>
-          </p>
+        <!-- Heroic — secondary/legacy -->
+        <div class="tool-card connect-section" data-search="heroic epic gog amazon sync import games library legacy">
+          <div class="tool-card-title" style="color: var(--text_dim); font-size: 10px;">Heroic Games Launcher <span style="font-weight: normal;">&mdash; Optional</span></div>
+          <p style="font-size: 11px; color: var(--text_dim); margin: 0 0 8px; line-height: 1.6;">If you already use Heroic, CNGM can read your existing Epic, GOG and Amazon library from it. Not needed if you use GRINDER.</p>
+          <button id="btn-sync-heroic" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; padding: 8px 0;" data-i18n="html.btn_sync_heroic">Sync Heroic Library</button>
         </div>
 
         <p id="connect-no-results" style="display: none; text-align: center; color: var(--text_dim); padding: 20px 0; font-size: 12px; letter-spacing: 1px;" data-i18n="html.tools_no_results">No settings found.</p>
@@ -648,6 +658,7 @@
       <div id="tools-cards-container" style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px;">
 
         <div class="tool-card tools-section" data-search="appearance theme color scheme ui scale zoom size">
+
           <div class="tool-card-title" data-i18n="html.card_appearance">🎨 Appearance</div>
           <button id="btn-theme-switch" style="width: 100%; background-color: transparent; color: var(--accent); border-color: var(--accent); font-size: 11px;" data-i18n="html.btn_theme_selection">Theme Selection</button>
           <div class="segmented-control" id="ui-scale-segmented-control" style="margin-top: 4px;">
@@ -697,16 +708,6 @@
             <button id="btn-import-csv" style="flex: 1; font-size: 11px;" data-i18n="status.import_csv">📥 Import CSV</button>
             <button id="btn-export-csv" style="flex: 1; font-size: 11px;" data-i18n="html.btn_export_csv">📤 Export CSV</button>
             <button id="btn-template-csv" style="flex: 1; font-size: 11px;" data-i18n="html.btn_csv_template">CSV Template</button>
-          </div>
-        </div>
-
-        <div class="tool-card tools-section" data-search="grinder epic install launcher proton wine umu">
-          <div class="tool-card-title">🎮 GRINDER</div>
-          <p style="font-size:11px; color:var(--text_sec); margin:0 0 8px; line-height:1.5;">Place <code>GRINDER.AppImage</code> in the same folder as CNGM to enable launching Epic games via umu-run + GE-Proton.</p>
-          <div id="grinder-connect-status" style="font-size:11px; color:var(--text_dim); min-height:16px; text-align:center;"></div>
-          <div class="row" style="margin-top:8px; gap:6px;">
-            <button id="btn-open-grinder-tool" style="display:none; flex:1; font-size:11px;">Open GRINDER</button>
-            <button id="btn-check-grinder" style="flex:1; font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Check</button>
           </div>
         </div>
 
