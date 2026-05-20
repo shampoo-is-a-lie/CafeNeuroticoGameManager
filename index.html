@@ -465,7 +465,8 @@
         <div style="background: rgba(212,129,58,0.08); border: 1px solid rgba(212,129,58,0.3); border-left: 4px solid var(--accent); border-radius: 6px; padding: 14px 16px;">
           <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; color: var(--accent); text-transform: uppercase;">How the ecosystem works</p>
           <p style="margin: 0 0 6px; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #66c0f4;">Steam games</strong> &rarr; imported here via API, launched by the Steam Client.</p>
-          <p style="margin: 0; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #a78bfa;">GOG &amp; Epic games</strong> &rarr; installed, configured and launched by <strong style="color: var(--accent);">GRINDER</strong>.</p>
+          <p style="margin: 0 0 6px; color: var(--text_sec); line-height: 1.65; font-size: 11px;"><strong style="color: #a78bfa;">GOG &amp; Epic games</strong> &rarr; installed, configured and launched by <strong style="color: var(--accent);">GRINDER</strong>.</p>
+          <p style="margin: 0; color: var(--text_dim); line-height: 1.65; font-size: 11px; font-style: italic;">You can also add any other game or app manually &mdash; no problem!</p>
         </div>
 
         <!-- STEP 1: STEAM -->
@@ -578,7 +579,7 @@
 
       <!-- Sticky header + search -->
       <div style="padding: 20px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border_solid);">
-        <h3 style="margin: 0 0 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 15px;" data-i18n="html.connect_title">Store Sync</h3>
+        <h3 style="margin: 0 0 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px; font-size: 15px;" data-i18n="html.connect_title">Connect &amp; Sync</h3>
         <div style="position: relative;">
           <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text_dim); font-size: 13px; pointer-events: none;">🔍</span>
           <input id="connect-search" type="text" data-i18n-ph="html.tools_search_ph" placeholder="Search settings…" style="width: 100%; padding: 8px 10px 8px 32px; background: var(--bg); border: 1px solid var(--border_solid); border-radius: 8px; font-size: 12px; box-sizing: border-box; color: var(--text_main);">
@@ -621,6 +622,15 @@
           <input type="password" id="igdb-client-secret" placeholder="CLIENT SECRET">
           <button id="btn-save-igdb" class="primary" style="padding: 8px; margin-top: 2px;" data-i18n="html.btn_igdb_save">Save & Test Connection</button>
           <div id="igdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div>
+        </div>
+
+        <!-- SteamGridDB -->
+        <div class="tool-card connect-section" data-search="steamgriddb sgdb artwork cover hero logo icon api key art fetch">
+          <div class="tool-card-title" style="color: var(--accent);">SteamGridDB</div>
+          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Fetch covers, hero images, logos and icons for any game. Get a free API key at <strong style="color: var(--text_main);">steamgriddb.com/profile/preferences/api</strong></p>
+          <input type="password" id="connect-sgdb-key" placeholder="STEAMGRIDDB API KEY">
+          <button id="btn-connect-save-sgdb" class="primary" style="padding: 8px; margin-top: 4px;">Save Key</button>
+          <div id="connect-sgdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div>
         </div>
 
         <!-- Heroic — secondary/legacy -->

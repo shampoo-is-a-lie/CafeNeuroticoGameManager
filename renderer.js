@@ -1414,6 +1414,9 @@ document.getElementById('btn-open-connect').addEventListener('click', async () =
     const savedIgdbId = await window.api.getSetting('igdb_client_id'); const savedIgdbSecret = await window.api.getSetting('igdb_client_secret');
     if (savedIgdbId) document.getElementById('igdb-client-id').value = savedIgdbId;
     if (savedIgdbSecret) document.getElementById('igdb-client-secret').value = '••••••••';
+    const savedSgdbKey = await window.api.getSetting('steamgriddb_api');
+    if (savedSgdbKey) document.getElementById('connect-sgdb-key').value = '••••••••';
+    document.getElementById('connect-sgdb-status').innerText = '';
     modalConnect.classList.add('active');
     document.getElementById('igdb-status').innerText = '';
     document.getElementById('connect-search').value = '';
@@ -1454,6 +1457,16 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     const result = await window.api.igdbTest();
     statusEl.style.color = result.success ? '#4caf50' : '#f44336';
     statusEl.innerText = result.message;
+});
+
+document.getElementById('btn-connect-save-sgdb').addEventListener('click', async () => {
+    const key    = document.getElementById('connect-sgdb-key').value.trim();
+    const status = document.getElementById('connect-sgdb-status');
+    if (!key || key === '••••••••') { status.style.color = '#f57c00'; status.innerText = 'Paste your API key above.'; return; }
+    await window.api.setSetting('steamgriddb_api', key);
+    document.getElementById('sgdb-api-input').value = key;
+    document.getElementById('connect-sgdb-key').value = '••••••••';
+    status.style.color = '#66bb6a'; status.innerText = '✓ Key saved!';
 });
 
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
