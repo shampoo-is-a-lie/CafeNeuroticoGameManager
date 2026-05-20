@@ -89,6 +89,5 @@ contextBridge.exposeInMainWorld('api', {
                                 // --- WINDOW CONTROLS ---
                                 minimizeApp: () => ipcRenderer.send('window-minimize'),
                                 maximizeApp: () => ipcRenderer.send('window-maximize'),
-                                closeApp: () => ipcRenderer.send('window-close'),
-                                toggleDevTools: () => ipcRenderer.send('toggle-devtools')
+                                closeApp: () => ipcRenderer.send('window-close')
 });
