@@ -526,7 +526,11 @@ function applyFilters() {
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
-        else if (currentFilter === 'installed') matchesCategory = game.Installed == 1;
+        else if (currentFilter === 'installed') {
+            const cat = (game.Store || '').toLowerCase();
+            const isManual = cat.includes('others') || cat.includes('emulation') || cat.includes('physical') || cat.includes('apps');
+            matchesCategory = isManual ? !!game.LaunchCommand : game.Installed == 1;
+        }
 
         if (!matchesCategory) return false;
         if (!query) return true;
