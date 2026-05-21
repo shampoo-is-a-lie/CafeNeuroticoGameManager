@@ -115,6 +115,9 @@
     .btn-toggle { background: rgba(0,0,0,0.5); border: 1px solid var(--border_solid); color: var(--text_sec); padding: 12px 15px; backdrop-filter: blur(5px); border-radius: 8px; cursor: pointer; font-weight: 900; font-family: 'Raleway', sans-serif; font-size: 12px; transition: 0.2s; letter-spacing: 1px; }
     .btn-toggle:hover { border-color: var(--accent); color: var(--text_main); }
     .btn-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-hero { background: var(--bg_menu); border: 1px solid var(--border_solid); color: var(--text_sec); padding: 12px 20px; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; }
+    .btn-hero:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-hero.active { background: var(--text_main); color: var(--bg); border-color: var(--text_main); box-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
     .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; overflow: hidden; }
     .screenshots-banner:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: var(--accent); }
@@ -268,11 +271,11 @@
                     </div>
 
                     <div style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
-                        <button id="btn-gamepage-fav" class="btn-toggle">+ FAV</button>
-                        <button id="btn-gamepage-want" class="btn-toggle">WANT TO PLAY</button>
-                        <button id="btn-gamepage-grinder" style="background: rgba(255,255,255,0.08); border: 1px solid var(--accent); color: var(--accent); padding: 12px 20px; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s; letter-spacing: 1px; display: none;">☕ GRINDER</button>
-                        <button id="btn-gamepage-trailer" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); display: none; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;" data-i18n="html.btn_watch">🎬 WATCH TRAILER</button>
-                        <button id="btn-gamepage-edit" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 20px; backdrop-filter: blur(5px); border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; cursor: pointer; transition: 0.2s;" data-i18n="html.btn_edit">⚙️ EDIT DETAILS</button>
+                        <button id="btn-gamepage-fav" class="btn-hero">+ FAV</button>
+                        <button id="btn-gamepage-want" class="btn-hero">WANT TO PLAY</button>
+                        <button id="btn-gamepage-grinder" class="btn-hero" style="display:none;">GRINDER</button>
+                        <button id="btn-gamepage-trailer" class="btn-hero" style="display:none;" data-i18n="html.btn_watch">WATCH TRAILER</button>
+                        <button id="btn-gamepage-edit" class="btn-hero" data-i18n="html.btn_edit">EDIT DETAILS</button>
 <button id="btn-gamepage-play" class="primary" style="font-size: 20px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); letter-spacing: 2px; display: none;" data-i18n="html.btn_play">▶ PLAY</button>
                     </div>
                 </div>

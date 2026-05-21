@@ -81,11 +81,11 @@
     "failed": "❌ Falha no download."
   },
   "fav": {
-    "on": "★ FAV",
+    "on": "FAV",
     "off": "+ FAV"
   },
   "want": {
-    "on": "⚑ QUERO JOGAR",
+    "on": "QUERO JOGAR",
     "off": "+ QUERO JOGAR"
   },
   "recent": {
@@ -172,8 +172,8 @@
     "filter_amazon": "Amazon",
     "btn_back": "< VOLTAR À BIBLIOTECA",
     "btn_back_gamepage": "< VOLTAR AO JOGO",
-    "btn_edit": "⚙️ EDITAR DETALHES",
-    "btn_watch": "🎬 VER TRAILER",
+    "btn_edit": "EDITAR DETALHES",
+    "btn_watch": "VER TRAILER",
     "btn_play": "▶ JOGAR",
     "btn_watch_trailer": "▶ VER TRAILER",
     "btn_auto_fetch": "✨ BUSCA AUTO",

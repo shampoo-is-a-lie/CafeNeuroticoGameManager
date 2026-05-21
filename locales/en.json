@@ -81,11 +81,11 @@
     "failed": "❌ Download failed."
   },
   "fav": {
-    "on": "★ FAV",
+    "on": "FAV",
     "off": "+ FAV"
   },
   "want": {
-    "on": "⚑ WANT TO PLAY",
+    "on": "WANT TO PLAY",
     "off": "+ WANT TO PLAY"
   },
   "recent": {
@@ -172,8 +172,8 @@
     "filter_amazon": "Amazon",
     "btn_back": "< BACK TO LIBRARY",
     "btn_back_gamepage": "< BACK TO GAMEPAGE",
-    "btn_edit": "⚙️ EDIT DETAILS",
-    "btn_watch": "🎬 WATCH TRAILER",
+    "btn_edit": "EDIT DETAILS",
+    "btn_watch": "WATCH TRAILER",
     "btn_play": "▶ PLAY",
     "btn_watch_trailer": "▶ WATCH TRAILER",
     "btn_auto_fetch": "✨ AUTO-FETCH",
