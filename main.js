@@ -933,6 +933,49 @@ function stopHeroicWatch() {
     heroicWatchState = null;
 }
 
+// ── FLATPAK ────────────────────────────────────────────────────────────────
+
+ipcMain.handle('scan-flatpak', () => {
+    const GAME_CATS = new Set(['Game','ActionGame','ArcadeGame','BoardGame','CardGame',
+        'KidsGame','LogicGame','RolePlaying','Shooter','Simulation','SportsGame','StrategyGame']);
+    const dirs = [
+        '/var/lib/flatpak/exports/share/applications',
+        path.join(os.homedir(), '.local/share/flatpak/exports/share/applications')
+    ];
+    let imported = 0;
+    for (const dir of dirs) {
+        let files;
+        try { files = fs.readdirSync(dir).filter(f => f.endsWith('.desktop')); }
+        catch { continue; }
+        for (const file of files) {
+            let content;
+            try { content = fs.readFileSync(path.join(dir, file), 'utf8'); }
+            catch { continue; }
+            let name = '', cats = '';
+            for (const line of content.split('\n')) {
+                if (line.startsWith('Name=') && !name) name = line.slice(5).trim();
+                if (line.startsWith('Categories=') && !cats) cats = line.slice(11).trim();
+            }
+            if (!cats.split(';').map(c => c.trim()).some(c => GAME_CATS.has(c))) continue;
+            const appId = file.slice(0, -8);
+            if (!name) name = appId;
+            const launchCmd = `flatpak run ${appId}`;
+            const row = db.prepare('SELECT id, Store FROM games WHERE LaunchCommand = ?').get(launchCmd);
+            if (row) {
+                const stores = (row.Store || '').split(',').map(s => s.trim());
+                if (!stores.some(s => s.toLowerCase() === 'flatpak'))
+                    db.prepare('UPDATE games SET Store=?, Installed=1 WHERE id=?').run([...stores, 'Flatpak'].join(', '), row.id);
+                else
+                    db.prepare('UPDATE games SET Installed=1 WHERE id=?').run(row.id);
+            } else {
+                db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed,DateAdded) VALUES (?,?,?,1,?)').run(name, 'Flatpak', launchCmd, new Date().toISOString());
+            }
+            imported++;
+        }
+    }
+    return { success: true, count: imported };
+});
+
 ipcMain.handle('launch-and-watch-heroic', async (event) => {
     const win = BrowserWindow.getFocusedWindow();
     stopHeroicWatch();

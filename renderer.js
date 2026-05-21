@@ -529,6 +529,7 @@ function applyFilters() {
         else if (currentFilter === 'epic') matchesCategory = storeLower.includes('epic');
         else if (currentFilter === 'gog') matchesCategory = storeLower.includes('gog');
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
+        else if (currentFilter === 'flatpak') matchesCategory = storeLower.includes('flatpak');
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
@@ -641,6 +642,7 @@ function getStoreLogo(store) {
     if (s.includes('steam'))    return 'assets/logos/steam.png';
     if (s.includes('gog'))      return 'assets/logos/gog.png';
     if (s.includes('epic'))     return 'assets/logos/epic.png';
+    if (s.includes('flatpak'))  return 'assets/logos/flatpak.svg';
     if (s.includes('physical')) return 'assets/logos/physical.png';
     if (s.includes('emulat'))   return 'assets/logos/emulation.png';
     if (s.includes('app'))      return 'assets/logos/apps.png';
@@ -1505,6 +1507,26 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     statusEl.innerText = result.message;
 });
 
+document.getElementById('btn-scan-flatpak').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-scan-flatpak');
+    const statusEl = document.getElementById('flatpak-scan-status');
+    btn.disabled = true;
+    btn.innerText = 'Scanning…';
+    statusEl.innerText = '';
+    try {
+        const result = await window.api.scanFlatpak();
+        statusEl.style.color = result.count > 0 ? 'var(--accent)' : 'var(--text_dim)';
+        statusEl.innerText = `Found ${result.count} game${result.count !== 1 ? 's' : ''}.`;
+        if (result.count > 0) await loadGames();
+    } catch(e) {
+        statusEl.style.color = '#f57c00';
+        statusEl.innerText = 'Error: ' + (e?.message || e);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'Scan Flatpak Games';
+    }
+});
+
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-heroic');
     btn.innerText = t('status.syncing');
@@ -1934,7 +1956,8 @@ function updateHeroMosaic(filtered, filterName) {
         'all': { text: t('filter.all'), icon: 'all_games' }, 'playable': { text: t('filter.playable'), icon: 'playable' },
         'favs': { text: t('filter.favorites'), icon: 'favs' }, 'want': { text: t('filter.want'), icon: 'want_to_play' },
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
-        'gog': { text: 'GOG', icon: 'gog' }, 'physical': { text: t('filter.physical'), icon: 'physical' },
+        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' },
+        'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
         'apps': { text: t('filter.apps'), icon: 'apps' }
     };
