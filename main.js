@@ -4,7 +4,7 @@ const path = require('path');
 const os = require('os');
 const Database = require('better-sqlite3');
 const fs = require('fs');
-const { exec, execFile, spawn } = require('child_process');
+const { exec, execFile, execSync, spawn } = require('child_process');
 
 const https = require('https');
 
@@ -374,6 +374,24 @@ ipcMain.handle('check-all-install-status', async () => {
             if (saved) {
                 db.prepare(`UPDATE games SET CoverArt=?,HeroArt=?,Logo=?,Icon=?,Screenshot=?,Description=?,SteamDesc=?,Description_i18n=?,DEV=?,PUB=?,RELEASED=?,GENRE=?,METACRITIC=?,HLTB_Main=?,ProtonTier=?,SteamAppID=?,Coop=?,NumPlayers=?,SimilarGames=?,Franchise=?,IGDBTrailer=?,SteamTrailer=?,FAV=?,WANT_TO_PLAY=?,LastPlayed=? WHERE id=?`)
                   .run(saved.CoverArt,saved.HeroArt,saved.Logo,saved.Icon,saved.Screenshot,saved.Description,saved.SteamDesc,saved.Description_i18n,saved.DEV,saved.PUB,saved.RELEASED,saved.GENRE,saved.METACRITIC,saved.HLTB_Main,saved.ProtonTier,saved.SteamAppID,saved.Coop,saved.NumPlayers,saved.SimilarGames,saved.Franchise,saved.IGDBTrailer,saved.SteamTrailer,saved.FAV,saved.WANT_TO_PLAY,saved.LastPlayed,g.id);
+                updated++;
+            }
+        }
+    }
+
+    // ── FLATPAK: check if still installed ────────────────────────────────────
+    const flatpakGames = db.prepare("SELECT id, LaunchCommand FROM games WHERE LaunchCommand LIKE 'flatpak run %'").all();
+    if (flatpakGames.length > 0) {
+        let installedFlatpaks = null;
+        try {
+            const out = execSync('flatpak list --app --columns=application', { encoding: 'utf8', timeout: 10000 });
+            installedFlatpaks = new Set(out.trim().split('\n').map(s => s.trim()).filter(Boolean));
+        } catch(e) {}
+        if (installedFlatpaks) {
+            for (const g of flatpakGames) {
+                const appId = (g.LaunchCommand || '').replace(/^flatpak run /, '').trim();
+                const installed = installedFlatpaks.has(appId) ? 1 : 0;
+                db.prepare("UPDATE games SET Installed=? WHERE id=?").run(installed, g.id);
                 updated++;
             }
         }
@@ -918,6 +936,69 @@ async function doHeroicSync() {
 }
 
 ipcMain.handle('sync-heroic', async () => doHeroicSync());
+
+// ── FLATPAK ────────────────────────────────────────────────────────────────
+
+function fetchFlathubAppstream(appId) {
+    return new Promise((resolve) => {
+        const req = https.get({
+            hostname: 'flathub.org',
+            path: `/api/v2/appstream/${encodeURIComponent(appId)}`,
+            headers: { 'User-Agent': 'CNGM/1.0' },
+            timeout: 6000
+        }, (res) => {
+            if (res.statusCode === 404) { res.resume(); resolve(null); return; }
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve(null); } });
+        });
+        req.on('error', () => resolve(null));
+        req.on('timeout', () => { req.destroy(); resolve(null); });
+    });
+}
+
+const FLATPAK_GAME_CATS = new Set([
+    'Game','ActionGame','ArcadeGame','BoardGame','CardGame','KidsGame',
+    'LogicGame','RolePlaying','Shooter','Simulation','SportsGame','StrategyGame'
+]);
+
+async function scanFlatpakGames() {
+    if (!db) return { success: false, message: 'Database not ready.' };
+    let listOutput;
+    try {
+        listOutput = execSync('flatpak list --app --columns=application,name', { encoding: 'utf8', timeout: 10000 });
+    } catch(e) {
+        return { success: false, message: 'flatpak not found or no apps installed.' };
+    }
+    const apps = listOutput.trim().split('\n')
+        .map(line => { const parts = line.split('\t'); return { id: parts[0]?.trim(), name: parts[1]?.trim() }; })
+        .filter(a => a.id);
+    if (apps.length === 0) return { success: true, count: 0, message: 'No Flatpak apps found.' };
+
+    let imported = 0;
+    for (const app of apps) {
+        const data = await fetchFlathubAppstream(app.id);
+        const cats = data?.categories || [];
+        if (!cats.some(c => FLATPAK_GAME_CATS.has(c))) continue;
+        const title = data?.name || app.name;
+        const launchCmd = `flatpak run ${app.id}`;
+        const existing = db.prepare("SELECT id, Store FROM games WHERE LaunchCommand = ?").get(launchCmd);
+        if (existing) {
+            const stores = (existing.Store || '').split(',').map(s => s.trim());
+            if (!stores.some(s => s.toLowerCase() === 'flatpak')) {
+                db.prepare("UPDATE games SET Store=?, Installed=1 WHERE id=?").run([...stores, 'Flatpak'].join(', '), existing.id);
+            } else {
+                db.prepare("UPDATE games SET Installed=1 WHERE id=?").run(existing.id);
+            }
+        } else {
+            db.prepare("INSERT INTO games (Game, Store, LaunchCommand, Installed, DateAdded) VALUES (?, 'Flatpak', ?, 1, ?)").run(title, launchCmd, new Date().toISOString());
+        }
+        imported++;
+    }
+    return { success: true, count: imported, message: `Found ${imported} Flatpak game${imported !== 1 ? 's' : ''}.` };
+}
+
+ipcMain.handle('scan-flatpak', async () => scanFlatpakGames());
 
 // ── LAUNCH & AUTO-WATCH ────────────────────────────────────────────────────
 let heroicWatchState = null;
