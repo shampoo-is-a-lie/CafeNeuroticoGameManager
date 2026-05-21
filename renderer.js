@@ -282,6 +282,13 @@ document.getElementById('btn-close').addEventListener('click', () => window.api.
 
 document.getElementById('btn-view-list').addEventListener('click', () => switchView('view-list'));
 document.getElementById('btn-view-gallery').addEventListener('click', () => switchView('view-gallery'));
+document.getElementById('btn-refresh-library').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-refresh-library');
+    btn.style.animation = 'spin 0.6s linear';
+    setTimeout(() => { btn.style.animation = ''; }, 650);
+    await syncGrinderInstalled();
+    loadGames();
+});
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
     applyFilters();
