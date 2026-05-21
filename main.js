@@ -968,7 +968,7 @@ ipcMain.handle('scan-flatpak', () => {
                 else
                     db.prepare('UPDATE games SET Installed=1 WHERE id=?').run(row.id);
             } else {
-                db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed,DateAdded) VALUES (?,?,?,1,?)').run(name, 'Flatpak', launchCmd, new Date().toISOString());
+                db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)').run(name, 'Flatpak', launchCmd);
             }
             imported++;
         }
