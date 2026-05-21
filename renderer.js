@@ -847,7 +847,7 @@ function openGamepage(game) {
     const gpStore = (game.Store || '').toLowerCase();
     if (gpStore.includes('gog') || gpStore.includes('epic')) {
         grinderBtn.style.display = 'block';
-        grinderBtn.onclick = () => window.api.openGrinderSetup(game);
+        grinderBtn.onclick = () => window.api.openGrinder(game.Game);
     } else {
         grinderBtn.style.display = 'none';
         grinderBtn.onclick = null;
