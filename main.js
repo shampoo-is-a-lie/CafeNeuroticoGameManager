@@ -941,19 +941,18 @@ ipcMain.handle('sync-heroic', async () => doHeroicSync());
 
 function fetchFlathubAppstream(appId) {
     return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(null), 5000);
         const req = https.get({
             hostname: 'flathub.org',
             path: `/api/v2/appstream/${encodeURIComponent(appId)}`,
-            headers: { 'User-Agent': 'CNGM/1.0' },
-            timeout: 6000
+            headers: { 'User-Agent': 'CNGM/1.0' }
         }, (res) => {
-            if (res.statusCode === 404) { res.resume(); resolve(null); return; }
+            if (res.statusCode !== 200) { clearTimeout(timer); res.resume(); resolve(null); return; }
             let data = '';
             res.on('data', chunk => data += chunk);
-            res.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve(null); } });
+            res.on('end', () => { clearTimeout(timer); try { resolve(JSON.parse(data)); } catch(e) { resolve(null); } });
         });
-        req.on('error', () => resolve(null));
-        req.on('timeout', () => { req.destroy(); resolve(null); });
+        req.on('error', () => { clearTimeout(timer); resolve(null); });
     });
 }
 
@@ -980,13 +979,19 @@ async function scanFlatpakGames() {
         if (w) w.webContents.send('flatpak-scan-progress', data);
     };
 
-    let imported = 0;
-    for (let i = 0; i < apps.length; i++) {
-        const app = apps[i];
-        sendProgress({ current: i + 1, total: apps.length, id: app.id, found: imported });
+    // Run all API calls concurrently — total time = slowest single call, not sum of all
+    let completed = 0;
+    const apiResults = await Promise.all(apps.map(async (app) => {
         const data = await fetchFlathubAppstream(app.id);
+        completed++;
+        sendProgress({ current: completed, total: apps.length, id: app.id });
         const cats = data?.categories || [];
-        if (!cats.some(c => FLATPAK_GAME_CATS.has(c))) continue;
+        return cats.some(c => FLATPAK_GAME_CATS.has(c)) ? { app, data } : null;
+    }));
+
+    let imported = 0;
+    for (const r of apiResults.filter(Boolean)) {
+        const { app, data } = r;
         const title = data?.name || app.name;
         const launchCmd = `flatpak run ${app.id}`;
         const existing = db.prepare("SELECT id, Store FROM games WHERE LaunchCommand = ?").get(launchCmd);
