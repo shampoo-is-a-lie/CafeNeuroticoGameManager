@@ -13,7 +13,6 @@ contextBridge.exposeInMainWorld('api', {
                                 setLaunchCommand: (id, cmd) => ipcRenderer.invoke('set-launch-command', id, cmd),
                                 onInstallStatusUpdated: (cb) => ipcRenderer.on('install-status-updated', () => cb()),
                                 scanFlatpak: () => ipcRenderer.invoke('scan-flatpak'),
-                                onFlatpakScanProgress: (cb) => ipcRenderer.on('flatpak-scan-progress', (e, d) => cb(d)),
                                 syncHeroic: () => ipcRenderer.invoke('sync-heroic'),
                                 launchAndWatchHeroic: () => ipcRenderer.invoke('launch-and-watch-heroic'),
                                 cancelHeroicWatch: () => ipcRenderer.invoke('cancel-heroic-watch'),

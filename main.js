@@ -938,62 +938,64 @@ async function doHeroicSync() {
 ipcMain.handle('sync-heroic', async () => doHeroicSync());
 
 // ── FLATPAK ────────────────────────────────────────────────────────────────
-
-function fetchFlathubAppstream(appId) {
-    return new Promise((resolve) => {
-        const timer = setTimeout(() => resolve(null), 5000);
-        const req = https.get({
-            hostname: 'flathub.org',
-            path: `/api/v2/appstream/${encodeURIComponent(appId)}`,
-            headers: { 'User-Agent': 'CNGM/1.0' }
-        }, (res) => {
-            if (res.statusCode !== 200) { clearTimeout(timer); res.resume(); resolve(null); return; }
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => { clearTimeout(timer); try { resolve(JSON.parse(data)); } catch(e) { resolve(null); } });
-        });
-        req.on('error', () => { clearTimeout(timer); resolve(null); });
-    });
-}
+// Reads local .desktop files exported by Flatpak — no network, no API, instant.
+// Same mechanism used by Cartridges (https://codeberg.org/kramo/cartridges).
 
 const FLATPAK_GAME_CATS = new Set([
     'Game','ActionGame','ArcadeGame','BoardGame','CardGame','KidsGame',
     'LogicGame','RolePlaying','Shooter','Simulation','SportsGame','StrategyGame'
 ]);
 
-async function scanFlatpakGames() {
-    if (!db) return { success: false, message: 'Database not ready.' };
-    let listOutput;
-    try {
-        listOutput = execSync('flatpak list --app --columns=application,name', { encoding: 'utf8', timeout: 10000 });
-    } catch(e) {
-        return { success: false, message: 'flatpak not found or no apps installed.' };
+function parseDesktopFile(content) {
+    const result = {};
+    let inEntry = false;
+    for (const line of content.split('\n')) {
+        const t = line.trim();
+        if (t === '[Desktop Entry]') { inEntry = true; continue; }
+        if (t.startsWith('[')) { inEntry = false; continue; }
+        if (!inEntry || !t.includes('=')) continue;
+        const eq = t.indexOf('=');
+        const key = t.slice(0, eq).trim();
+        // Skip locale variants (Name[fr]=...) — base key wins
+        if (key.includes('[')) continue;
+        if (!(key in result)) result[key] = t.slice(eq + 1).trim();
     }
-    const apps = listOutput.trim().split('\n')
-        .map(line => { const parts = line.split('\t'); return { id: parts[0]?.trim(), name: parts[1]?.trim() }; })
-        .filter(a => a.id);
-    if (apps.length === 0) return { success: true, count: 0, message: 'No Flatpak apps found.' };
+    return result;
+}
 
-    const sendProgress = (data) => {
-        const w = BrowserWindow.getAllWindows()[0];
-        if (w) w.webContents.send('flatpak-scan-progress', data);
-    };
+function scanFlatpakGames() {
+    if (!db) return { success: false, message: 'Database not ready.' };
 
-    // Run all API calls concurrently — total time = slowest single call, not sum of all
-    let completed = 0;
-    const apiResults = await Promise.all(apps.map(async (app) => {
-        const data = await fetchFlathubAppstream(app.id);
-        completed++;
-        sendProgress({ current: completed, total: apps.length, id: app.id });
-        const cats = data?.categories || [];
-        return cats.some(c => FLATPAK_GAME_CATS.has(c)) ? { app, data } : null;
-    }));
+    const desktopDirs = [
+        '/var/lib/flatpak/exports/share/applications',
+        path.join(os.homedir(), '.local/share/flatpak/exports/share/applications')
+    ];
+
+    const games = [];
+    for (const dir of desktopDirs) {
+        if (!fs.existsSync(dir)) continue;
+        let files;
+        try { files = fs.readdirSync(dir).filter(f => f.endsWith('.desktop')); } catch(e) { continue; }
+        for (const file of files) {
+            try {
+                const content = fs.readFileSync(path.join(dir, file), 'utf8');
+                const d = parseDesktopFile(content);
+                if (d['Type'] !== 'Application') continue;
+                if (d['NoDisplay'] === 'true') continue;
+                const cats = (d['Categories'] || '').split(';').map(c => c.trim());
+                if (!cats.some(c => FLATPAK_GAME_CATS.has(c))) continue;
+                const appId = file.replace(/\.desktop$/, '');
+                const name  = d['Name'] || appId;
+                games.push({ appId, name });
+            } catch(e) {}
+        }
+    }
+
+    if (games.length === 0) return { success: true, count: 0, message: 'No Flatpak games found.' };
 
     let imported = 0;
-    for (const r of apiResults.filter(Boolean)) {
-        const { app, data } = r;
-        const title = data?.name || app.name;
-        const launchCmd = `flatpak run ${app.id}`;
+    for (const { appId, name } of games) {
+        const launchCmd = `flatpak run ${appId}`;
         const existing = db.prepare("SELECT id, Store FROM games WHERE LaunchCommand = ?").get(launchCmd);
         if (existing) {
             const stores = (existing.Store || '').split(',').map(s => s.trim());
@@ -1003,14 +1005,14 @@ async function scanFlatpakGames() {
                 db.prepare("UPDATE games SET Installed=1 WHERE id=?").run(existing.id);
             }
         } else {
-            db.prepare("INSERT INTO games (Game, Store, LaunchCommand, Installed, DateAdded) VALUES (?, 'Flatpak', ?, 1, ?)").run(title, launchCmd, new Date().toISOString());
+            db.prepare("INSERT INTO games (Game, Store, LaunchCommand, Installed, DateAdded) VALUES (?, 'Flatpak', ?, 1, ?)").run(name, launchCmd, new Date().toISOString());
         }
         imported++;
     }
     return { success: true, count: imported, message: `Found ${imported} Flatpak game${imported !== 1 ? 's' : ''}.` };
 }
 
-ipcMain.handle('scan-flatpak', async () => scanFlatpakGames());
+ipcMain.handle('scan-flatpak', () => scanFlatpakGames());
 
 // ── LAUNCH & AUTO-WATCH ────────────────────────────────────────────────────
 let heroicWatchState = null;
