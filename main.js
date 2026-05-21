@@ -261,7 +261,7 @@ function isSteamGameInstalled(appId) {
 
 function isHeroicGameInstalled(launchCommand) {
     if (!launchCommand) return null;
-    const match = launchCommand.match(/heroic:\/\/launch\/(epic|gog|amazon)\/([^"\s]+)/i);
+    const match = launchCommand.match(/heroic:\/\/launch\/(epic|gog)\/([^"\s]+)/i);
     if (!match) return null;
     const [, storeType, appId] = match;
     const home = os.homedir();
@@ -270,9 +270,8 @@ function isHeroicGameInstalled(launchCommand) {
         path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic')
     ];
     const relPaths = {
-        epic:   path.join('legendaryConfig', 'legendary', 'installed.json'),
-        gog:    path.join('gog_store', 'installed.json'),
-        amazon: path.join('nile_config', 'nile', 'installed.json')
+        epic: path.join('legendaryConfig', 'legendary', 'installed.json'),
+        gog:  path.join('gog_store', 'installed.json')
     };
     for (const base of heroicBase) {
         const p = path.join(base, relPaths[storeType] || '');
@@ -385,7 +384,7 @@ ipcMain.handle('check-all-install-status', async () => {
         UPDATE games SET Installed = CASE WHEN LaunchCommand IS NOT NULL AND LaunchCommand != '' THEN 1 ELSE 0 END
         WHERE (LOWER(Store) LIKE '%physical%' OR LOWER(Store) LIKE '%others%' OR LOWER(Store) LIKE '%emulation%' OR LOWER(Store) LIKE '%apps%')
           AND LOWER(Store) NOT LIKE '%steam%' AND LOWER(Store) NOT LIKE '%epic%'
-          AND LOWER(Store) NOT LIKE '%gog%' AND LOWER(Store) NOT LIKE '%heroic%' AND LOWER(Store) NOT LIKE '%amazon%'
+          AND LOWER(Store) NOT LIKE '%gog%' AND LOWER(Store) NOT LIKE '%heroic%'
     `).run();
     updated += manualResult.changes;
 
@@ -812,7 +811,7 @@ ipcMain.on('launch-game', (event, cmd) => {
     if (!cmd) return;
 
     // GOG/Epic via GRINDER (headless umu-run)
-    const heroicMatch = cmd.match(/heroic:\/\/launch\/(epic|gog|amazon)\/([^"\s]+)/i);
+    const heroicMatch = cmd.match(/heroic:\/\/launch\/(epic|gog)\/([^"\s]+)/i);
     if (heroicMatch) {
         const appId = heroicMatch[2];
         const gMap  = getGrinderMap();
@@ -867,9 +866,8 @@ async function doHeroicSync() {
         { type: 'FLATPAK', base: path.join(home, '.var', 'app', 'com.heroicgameslauncher.hgl', 'config', 'heroic'), cmdPrefix: 'flatpak run com.heroicgameslauncher.hgl' }
     ];
     const storeConfigs = [
-        { name: 'EPIC',   relInstalled: path.join('legendaryConfig', 'legendary', 'installed.json'), relLibraries: [ path.join('store_cache', 'legendary_library.json'), path.join('store_cache', 'epic_library.json'), path.join('store', 'epic', 'library.json') ], protocolId: 'epic' },
-        { name: 'GOG',    relInstalled: path.join('gog_store', 'installed.json'), relLibraries: [ path.join('store_cache', 'gog_library.json'), path.join('gog_store', 'library.json') ], protocolId: 'gog' },
-        { name: 'AMAZON', relInstalled: path.join('nile_config', 'nile', 'installed.json'), relLibraries: [ path.join('nile_config', 'nile', 'library.json'), path.join('store_cache', 'amazon_library.json') ], protocolId: 'amazon' }
+        { name: 'EPIC', relInstalled: path.join('legendaryConfig', 'legendary', 'installed.json'), relLibraries: [ path.join('store_cache', 'legendary_library.json'), path.join('store_cache', 'epic_library.json'), path.join('store', 'epic', 'library.json') ], protocolId: 'epic' },
+        { name: 'GOG',  relInstalled: path.join('gog_store', 'installed.json'), relLibraries: [ path.join('store_cache', 'gog_library.json'), path.join('gog_store', 'library.json') ], protocolId: 'gog' }
     ];
 
     for (const env of heroicPaths) {

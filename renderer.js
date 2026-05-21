@@ -3,7 +3,7 @@ let currentGameId = null;
 
 function isManualCategory(game) {
     const s = (game.Store || '').toLowerCase();
-    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic|amazon/.test(s);
+    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic/.test(s);
 }
 
 function openAddCmdDialog(gameId, gameName) {
@@ -529,7 +529,6 @@ function applyFilters() {
         else if (currentFilter === 'epic') matchesCategory = storeLower.includes('epic');
         else if (currentFilter === 'gog') matchesCategory = storeLower.includes('gog');
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
-        else if (currentFilter === 'amazon') matchesCategory = storeLower.includes('amazon');
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
@@ -642,7 +641,6 @@ function getStoreLogo(store) {
     if (s.includes('steam'))    return 'assets/logos/steam.png';
     if (s.includes('gog'))      return 'assets/logos/gog.png';
     if (s.includes('epic'))     return 'assets/logos/epic.png';
-    if (s.includes('amazon'))   return 'assets/logos/amazon.png';
     if (s.includes('physical')) return 'assets/logos/physical.png';
     if (s.includes('emulat'))   return 'assets/logos/emulation.png';
     if (s.includes('app'))      return 'assets/logos/apps.png';
@@ -1938,7 +1936,7 @@ function updateHeroMosaic(filtered, filterName) {
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
         'gog': { text: 'GOG', icon: 'gog' }, 'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
-        'amazon': { text: 'AMAZON GAMES', icon: 'amazon' }, 'apps': { text: t('filter.apps'), icon: 'apps' }
+        'apps': { text: t('filter.apps'), icon: 'apps' }
     };
     const currentCat = filterMap[filterName] || { text: filterName.toUpperCase(), icon: filterName };
     document.getElementById('gallery-category-text').innerText = currentCat.text;
