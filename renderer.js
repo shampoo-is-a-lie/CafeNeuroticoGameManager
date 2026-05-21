@@ -744,6 +744,7 @@ function openGamepage(game) {
     const coverEl = document.getElementById('gamepage-cover');
     const playBtn = document.getElementById('btn-gamepage-play');
     const trailerBtn = document.getElementById('btn-gamepage-trailer');
+    const grinderBtn = document.getElementById('btn-gamepage-grinder');
 
     const favBtn = document.getElementById('btn-gamepage-fav');
     const wantBtn = document.getElementById('btn-gamepage-want');
@@ -840,6 +841,16 @@ function openGamepage(game) {
     } else {
         playBtn.style.display = 'none';
         playBtn.onclick = null;
+    }
+
+    // GRINDER setup button — GOG and Epic games only
+    const gpStore = (game.Store || '').toLowerCase();
+    if (gpStore.includes('gog') || gpStore.includes('epic')) {
+        grinderBtn.style.display = 'block';
+        grinderBtn.onclick = () => window.api.openGrinderSetup(game);
+    } else {
+        grinderBtn.style.display = 'none';
+        grinderBtn.onclick = null;
     }
 
     // Local Trailer Only Logic
