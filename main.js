@@ -975,8 +975,15 @@ async function scanFlatpakGames() {
         .filter(a => a.id);
     if (apps.length === 0) return { success: true, count: 0, message: 'No Flatpak apps found.' };
 
+    const sendProgress = (data) => {
+        const w = BrowserWindow.getAllWindows()[0];
+        if (w) w.webContents.send('flatpak-scan-progress', data);
+    };
+
     let imported = 0;
-    for (const app of apps) {
+    for (let i = 0; i < apps.length; i++) {
+        const app = apps[i];
+        sendProgress({ current: i + 1, total: apps.length, id: app.id, found: imported });
         const data = await fetchFlathubAppstream(app.id);
         const cats = data?.categories || [];
         if (!cats.some(c => FLATPAK_GAME_CATS.has(c))) continue;

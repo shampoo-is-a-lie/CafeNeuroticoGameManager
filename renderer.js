@@ -1512,7 +1512,11 @@ document.getElementById('btn-scan-flatpak').addEventListener('click', async () =
     const statusEl = document.getElementById('flatpak-scan-status');
     btn.disabled = true;
     btn.innerText = 'Scanning…';
-    statusEl.innerText = '';
+    statusEl.style.color = 'var(--text_dim)';
+    statusEl.innerText = 'Starting…';
+    window.api.onFlatpakScanProgress(({ current, total, id, found }) => {
+        statusEl.innerText = `${current}/${total}  ${id}${found > 0 ? `  —  ${found} found` : ''}`;
+    });
     const result = await window.api.scanFlatpak();
     btn.disabled = false;
     btn.innerText = 'Scan Flatpak Games';
