@@ -503,10 +503,14 @@ document.getElementById('search-bar').addEventListener('input', applyFilters);
 
 const filterButtons = document.querySelectorAll('#sidebar-filters button');
 filterButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
         filterButtons.forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         currentFilter = e.target.getAttribute('data-filter');
+        if (currentFilter === 'flatpak') {
+            await window.api.scanFlatpak();
+            await loadGames();
+        }
         applyFilters();
         const active = document.querySelector('.view.active');
         if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) {
@@ -1507,25 +1511,6 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
     statusEl.innerText = result.message;
 });
 
-document.getElementById('btn-scan-flatpak').addEventListener('click', async () => {
-    const btn = document.getElementById('btn-scan-flatpak');
-    const statusEl = document.getElementById('flatpak-scan-status');
-    btn.disabled = true;
-    btn.innerText = 'Scanning…';
-    statusEl.innerText = '';
-    try {
-        const result = await window.api.scanFlatpak();
-        statusEl.style.color = result.count > 0 ? 'var(--accent)' : 'var(--text_dim)';
-        statusEl.innerText = `Found ${result.count} game${result.count !== 1 ? 's' : ''}.`;
-        if (result.count > 0) await loadGames();
-    } catch(e) {
-        statusEl.style.color = '#f57c00';
-        statusEl.innerText = 'Error: ' + (e?.message || e);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = 'Scan Flatpak Games';
-    }
-});
 
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-heroic');

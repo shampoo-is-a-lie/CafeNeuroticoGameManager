@@ -942,7 +942,9 @@ ipcMain.handle('scan-flatpak', () => {
         '/var/lib/flatpak/exports/share/applications',
         path.join(os.homedir(), '.local/share/flatpak/exports/share/applications')
     ];
-    let imported = 0;
+
+    // Collect all game app IDs currently on disk
+    const found = new Set();
     for (const dir of dirs) {
         let files;
         try { files = fs.readdirSync(dir).filter(f => f.endsWith('.desktop')); }
@@ -960,6 +962,7 @@ ipcMain.handle('scan-flatpak', () => {
             const appId = file.slice(0, -8);
             if (!name) name = appId;
             const launchCmd = `flatpak run ${appId}`;
+            found.add(launchCmd);
             const row = db.prepare('SELECT id, Store FROM games WHERE LaunchCommand = ?').get(launchCmd);
             if (row) {
                 const stores = (row.Store || '').split(',').map(s => s.trim());
@@ -970,10 +973,17 @@ ipcMain.handle('scan-flatpak', () => {
             } else {
                 db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)').run(name, 'Flatpak', launchCmd);
             }
-            imported++;
         }
     }
-    return { success: true, count: imported };
+
+    // Remove games that are no longer installed (desktop file gone)
+    const existing = db.prepare("SELECT id, LaunchCommand FROM games WHERE Store = 'Flatpak'").all();
+    for (const row of existing) {
+        if (!found.has(row.LaunchCommand))
+            db.prepare('DELETE FROM games WHERE id=?').run(row.id);
+    }
+
+    return { success: true, count: found.size };
 });
 
 ipcMain.handle('launch-and-watch-heroic', async (event) => {
