@@ -508,8 +508,10 @@ filterButtons.forEach(btn => {
         e.target.classList.add('active');
         currentFilter = e.target.getAttribute('data-filter');
         if (currentFilter === 'flatpak') {
-            await window.api.scanFlatpak();
+            const scanResult = await window.api.scanFlatpak();
             await loadGames();
+            if (scanResult.iconMap && Object.keys(scanResult.iconMap).length > 0)
+                generateFlatpakArt(scanResult.iconMap);
         }
         applyFilters();
         const active = document.querySelector('.view.active');
@@ -639,6 +641,96 @@ _tbody.addEventListener('dblclick', (e) => {
     const tr = e.target.closest('tr[data-id]');
     if (tr) { const g = allGames.find(x => String(x.id) === tr.dataset.id); if (g) openGamepage(g); }
 });
+
+// ── FLATPAK ART GENERATION ───────────────────────────────────────────────
+
+async function generateFlatpakArt(iconMap) {
+    for (const [gameId, iconName] of Object.entries(iconMap)) {
+        const iconPath = await window.api.findFlatpakIcon(iconName);
+        if (!iconPath) continue;
+
+        const b64 = await window.api.readFileBase64(iconPath);
+        if (!b64) continue;
+
+        const isSvg = iconPath.endsWith('.svg');
+        const dataUrl = `data:image/${isSvg ? 'svg+xml' : 'png'};base64,${b64}`;
+
+        const img = await new Promise(resolve => {
+            const el = new Image();
+            el.onload = () => resolve(el);
+            el.onerror = () => resolve(null);
+            el.src = dataUrl;
+        });
+        if (!img) continue;
+
+        const color = _flatpakExtractColor(img);
+        const coverB64 = _flatpakDrawCover(img, color);
+        const heroB64  = _flatpakDrawHero(color);
+
+        await window.api.saveFlatpakArt(Number(gameId), coverB64, heroB64, iconPath);
+
+        // Update in-memory game so the gallery refreshes without a full reload
+        const g = allGames.find(x => x.id == gameId);
+        if (g) { g.CoverArt = '__pending__'; } // triggers re-render on next loadGames
+    }
+    if (Object.keys(iconMap).length > 0) await loadGames();
+}
+
+function _flatpakExtractColor(img) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 48;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, 48, 48);
+    const d = ctx.getImageData(0, 0, 48, 48).data;
+    let r = 0, g = 0, b = 0, n = 0;
+    let maxSat = -1, sr = 80, sg = 100, sb = 180;
+    for (let i = 0; i < d.length; i += 4) {
+        if (d[i+3] < 100) continue;
+        const pr = d[i], pg = d[i+1], pb = d[i+2];
+        r += pr; g += pg; b += pb; n++;
+        const mx = Math.max(pr,pg,pb), mn = Math.min(pr,pg,pb);
+        const sat = mx < 20 ? 0 : (mx - mn) / mx;
+        if (sat > maxSat && mx > 40) { maxSat = sat; sr = pr; sg = pg; sb = pb; }
+    }
+    // Prefer the most saturated color; fall back to average if icon is mostly greyscale
+    if (n === 0) return [80, 100, 180];
+    return maxSat > 0.25 ? [sr, sg, sb] : [Math.round(r/n), Math.round(g/n), Math.round(b/n)];
+}
+
+function _flatpakGradient(ctx, w, h, r, g, b, dir = 'diagonal') {
+    const d1 = `rgb(${Math.round(r*.10)},${Math.round(g*.10)},${Math.round(b*.10)})`;
+    const d2 = `rgb(${Math.round(r*.22)},${Math.round(g*.22)},${Math.round(b*.22)})`;
+    const grad = dir === 'horizontal'
+        ? ctx.createLinearGradient(0,0,w,0)
+        : ctx.createLinearGradient(0,0,w,h);
+    grad.addColorStop(0, d1); grad.addColorStop(1, d2);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+    // Radial glow
+    const glow = ctx.createRadialGradient(w/2,h/2,0, w/2,h/2, Math.max(w,h)*.55);
+    glow.addColorStop(0, `rgba(${r},${g},${b},.32)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+}
+
+function _flatpakDrawCover(img, [r,g,b]) {
+    const c = document.createElement('canvas');
+    c.width = 600; c.height = 900;
+    const ctx = c.getContext('2d');
+    _flatpakGradient(ctx, 600, 900, r, g, b, 'diagonal');
+    const sz = 380;
+    ctx.drawImage(img, (600-sz)/2, (900-sz)/2, sz, sz);
+    return c.toDataURL('image/png').split(',')[1];
+}
+
+function _flatpakDrawHero([r,g,b]) {
+    const c = document.createElement('canvas');
+    c.width = 1200; c.height = 400;
+    const ctx = c.getContext('2d');
+    _flatpakGradient(ctx, 1200, 400, r, g, b, 'horizontal');
+    return c.toDataURL('image/png').split(',')[1];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function getStoreLogo(store) {
     if (!store) return null;

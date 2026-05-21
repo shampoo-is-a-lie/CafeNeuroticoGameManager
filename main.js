@@ -943,8 +943,9 @@ ipcMain.handle('scan-flatpak', () => {
         path.join(os.homedir(), '.local/share/flatpak/exports/share/applications')
     ];
 
-    // Collect all game app IDs currently on disk
     const found = new Set();
+    const iconMap = {}; // gameId → iconName (= appId for Flatpak)
+
     for (const dir of dirs) {
         let files;
         try { files = fs.readdirSync(dir).filter(f => f.endsWith('.desktop')); }
@@ -953,37 +954,82 @@ ipcMain.handle('scan-flatpak', () => {
             let content;
             try { content = fs.readFileSync(path.join(dir, file), 'utf8'); }
             catch { continue; }
-            let name = '', cats = '';
+            let name = '', cats = '', icon = '';
             for (const line of content.split('\n')) {
-                if (line.startsWith('Name=') && !name) name = line.slice(5).trim();
+                if (line.startsWith('Name=')       && !name) name = line.slice(5).trim();
                 if (line.startsWith('Categories=') && !cats) cats = line.slice(11).trim();
+                if (line.startsWith('Icon=')       && !icon) icon = line.slice(5).trim();
             }
             if (!cats.split(';').map(c => c.trim()).some(c => GAME_CATS.has(c))) continue;
             const appId = file.slice(0, -8);
             if (!name) name = appId;
+            if (!icon) icon = appId;
             const launchCmd = `flatpak run ${appId}`;
             found.add(launchCmd);
-            const row = db.prepare('SELECT id, Store FROM games WHERE LaunchCommand = ?').get(launchCmd);
+            const row = db.prepare('SELECT id, Store, CoverArt FROM games WHERE LaunchCommand = ?').get(launchCmd);
             if (row) {
                 const stores = (row.Store || '').split(',').map(s => s.trim());
                 if (!stores.some(s => s.toLowerCase() === 'flatpak'))
                     db.prepare('UPDATE games SET Store=?, Installed=1 WHERE id=?').run([...stores, 'Flatpak'].join(', '), row.id);
                 else
                     db.prepare('UPDATE games SET Installed=1 WHERE id=?').run(row.id);
+                if (!row.CoverArt) iconMap[row.id] = icon;
             } else {
-                db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)').run(name, 'Flatpak', launchCmd);
+                const info = db.prepare('INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)').run(name, 'Flatpak', launchCmd);
+                iconMap[info.lastInsertRowid] = icon;
             }
         }
     }
 
-    // Remove games that are no longer installed (desktop file gone)
     const existing = db.prepare("SELECT id, LaunchCommand FROM games WHERE Store = 'Flatpak'").all();
     for (const row of existing) {
         if (!found.has(row.LaunchCommand))
             db.prepare('DELETE FROM games WHERE id=?').run(row.id);
     }
 
-    return { success: true, count: found.size };
+    return { count: found.size, iconMap };
+});
+
+ipcMain.handle('find-flatpak-icon', (e, iconName) => {
+    const bases = [
+        path.join(os.homedir(), '.local/share/flatpak/exports/share/icons/hicolor'),
+        '/var/lib/flatpak/exports/share/icons/hicolor'
+    ];
+    const sizes = ['512x512', '256x256', '192x192', '128x128'];
+    for (const base of bases) {
+        for (const size of sizes) {
+            const p = path.join(base, size, 'apps', iconName + '.png');
+            if (fs.existsSync(p)) return p;
+        }
+        const svg = path.join(base, 'scalable', 'apps', iconName + '.svg');
+        if (fs.existsSync(svg)) return svg;
+    }
+    return null;
+});
+
+ipcMain.handle('read-file-base64', (e, filePath) => {
+    try { return fs.readFileSync(filePath).toString('base64'); } catch { return null; }
+});
+
+ipcMain.handle('save-flatpak-art', (e, gameId, coverB64, heroB64, iconSrcPath) => {
+    const imagesDir = path.join(baseDir, 'GameManagerConfig', 'images');
+    const ts = Date.now();
+    const coverFile = `${gameId}_fp_cover_${ts}.png`;
+    const heroFile  = `${gameId}_fp_hero_${ts}.png`;
+    fs.writeFileSync(path.join(imagesDir, coverFile), Buffer.from(coverB64, 'base64'));
+    fs.writeFileSync(path.join(imagesDir, heroFile),  Buffer.from(heroB64,  'base64'));
+    const coverPath = `GameManagerConfig/images/${coverFile}`;
+    const heroPath  = `GameManagerConfig/images/${heroFile}`;
+    let logoPath = '';
+    if (iconSrcPath && fs.existsSync(iconSrcPath)) {
+        const ext = path.extname(iconSrcPath);
+        const logoFile = `${gameId}_fp_logo_${ts}${ext}`;
+        fs.copyFileSync(iconSrcPath, path.join(imagesDir, logoFile));
+        logoPath = `GameManagerConfig/images/${logoFile}`;
+    }
+    db.prepare('UPDATE games SET CoverArt=?, HeroArt=?, Logo=?, Icon=? WHERE id=?')
+      .run(coverPath, heroPath, logoPath, logoPath, gameId);
+    return true;
 });
 
 ipcMain.handle('launch-and-watch-heroic', async (event) => {
