@@ -81,11 +81,11 @@
     "failed": "❌ Falha no download."
   },
   "fav": {
-    "on": "FAV",
+    "on": "★ FAV",
     "off": "+ FAV"
   },
   "want": {
-    "on": "QUERO JOGAR",
+    "on": "⚑ QUERO JOGAR",
     "off": "+ QUERO JOGAR"
   },
   "recent": {

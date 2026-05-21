@@ -81,11 +81,11 @@
     "failed": "❌ Download failed."
   },
   "fav": {
-    "on": "FAV",
+    "on": "★ FAV",
     "off": "+ FAV"
   },
   "want": {
-    "on": "WANT TO PLAY",
+    "on": "⚑ WANT TO PLAY",
     "off": "+ WANT TO PLAY"
   },
   "recent": {
