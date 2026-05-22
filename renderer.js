@@ -570,9 +570,16 @@ function applyFilters() {
 
     updateHeroMosaic(filtered, currentFilter);
 
-    // Show PICO-8 hero buttons only on PICO-8 filter
-    const p8Btns = document.getElementById('pico8-hero-btns');
-    if (p8Btns) p8Btns.style.display = currentFilter === 'pico8' ? 'flex' : 'none';
+    // Show category hero buttons
+    [
+        ['pico8-hero-btns',   currentFilter === 'pico8'],
+        ['steam-hero-btns',   currentFilter === 'steam'],
+        ['grinder-hero-btns', currentFilter === 'epic' || currentFilter === 'gog'],
+        ['itch-hero-btns',    currentFilter === 'itch']
+    ].forEach(([id, show]) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = show ? 'flex' : 'none';
+    });
 
     let recentGames = [];
     let regularGames = [...filtered];
@@ -1674,6 +1681,11 @@ window.api.onPico8CartDownloaded(({ name }) => {
 })();
 
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
+
+// ── STEAM / GRINDER / ITCH HERO BUTTONS ──────────────────────────────────
+document.getElementById('btn-steam-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('steam://'));
+document.getElementById('btn-grinder-open-hero')?.addEventListener('click', () => window.api.openGrinder());
+document.getElementById('btn-itch-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('itch://library'));
 
 document.getElementById('btn-p8-splore-hero')?.addEventListener('click', async () => {
     const ok = await window.api.launchPico8Splore();
