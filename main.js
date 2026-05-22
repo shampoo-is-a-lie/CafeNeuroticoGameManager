@@ -1156,7 +1156,14 @@ async function doItchSync() {
 
     let imported = 0;
     try {
-        const games  = itchDb.prepare("SELECT * FROM games").all();
+        // Only import games the user actually owns: installed (cave), purchased (download_key), or in library (profile_games)
+        const games  = itchDb.prepare(`
+            SELECT DISTINCT g.* FROM games g
+            LEFT JOIN caves c ON g.id = c.game_id
+            LEFT JOIN download_keys dk ON g.id = dk.game_id
+            LEFT JOIN profile_games pg ON g.id = pg.game_id
+            WHERE c.game_id IS NOT NULL OR dk.game_id IS NOT NULL OR pg.game_id IS NOT NULL
+        `).all();
         const caves  = itchDb.prepare("SELECT * FROM caves").all();
         const imDir  = path.join(baseDir, 'GameManagerConfig', 'images');
         const caveByGame = {};
