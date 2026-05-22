@@ -513,6 +513,11 @@ filterButtons.forEach(btn => {
             if (scanResult.iconMap && Object.keys(scanResult.iconMap).length > 0)
                 generateFlatpakArt(scanResult.iconMap);
         }
+        if (currentFilter === 'pico8') {
+            const scanResult = await window.api.scanPico8();
+            await loadGames();
+            if (scanResult.newCarts?.length) generatePico8Art(scanResult.newCarts);
+        }
         applyFilters();
         const active = document.querySelector('.view.active');
         if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) {
@@ -536,6 +541,7 @@ function applyFilters() {
         else if (currentFilter === 'gog') matchesCategory = storeLower.includes('gog');
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
         else if (currentFilter === 'flatpak') matchesCategory = storeLower.includes('flatpak');
+        else if (currentFilter === 'pico8') matchesCategory = storeLower.includes('pico-8');
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
@@ -730,6 +736,76 @@ function _flatpakDrawHero([r,g,b]) {
     return c.toDataURL('image/png').split(',')[1];
 }
 
+// ── PICO-8 ART GENERATION ─────────────────────────────────────────────────
+
+async function generatePico8Art(newCarts) {
+    for (const { id, cartPath } of newCarts) {
+        const b64 = await window.api.readFileBase64(cartPath);
+        if (!b64) continue;
+        const img = await new Promise(resolve => {
+            const el = new Image();
+            el.onload = () => resolve(el);
+            el.onerror = () => resolve(null);
+            el.src = `data:image/png;base64,${b64}`;
+        });
+        if (!img) continue;
+        const color = _flatpakExtractColor(img); // reuse Flatpak color extractor
+        const coverB64 = _p8DrawCover(img, color);
+        const heroB64  = _fpDrawHero(color);     // reuse Flatpak hero drawer
+        await window.api.savePico8CartArt(Number(id), coverB64, heroB64);
+    }
+    if (newCarts.length > 0) await loadGames();
+}
+
+function _p8DrawCover(img, [r, g, b]) {
+    const c = document.createElement('canvas'); c.width = 600; c.height = 900;
+    const ctx = c.getContext('2d');
+    _fpGradient(ctx, 600, 900, r, g, b, 'diagonal');
+    // Draw cart image centered, pixelated, slightly enlarged from 128x128
+    ctx.imageSmoothingEnabled = false;
+    const sz = 320;
+    ctx.drawImage(img, (600 - sz) / 2, (900 - sz) / 2, sz, sz);
+    return c.toDataURL('image/png').split(',')[1];
+}
+
+// ── PICO-8 BBS PANEL ──────────────────────────────────────────────────────
+
+let _p8Page = 1, _p8Order = 'featured', _p8Query = '';
+
+async function openPico8Bbs() {
+    _p8Page = 1; _p8Order = 'featured'; _p8Query = '';
+    document.querySelectorAll('.p8-tab').forEach(b => b.classList.toggle('active', b.dataset.order === 'featured'));
+    document.getElementById('p8-search-input').value = '';
+    document.getElementById('p8-bbs-grid').innerHTML = '';
+    document.getElementById('modal-pico8-bbs').classList.add('active');
+    await loadPico8BbsPage(true);
+}
+
+async function loadPico8BbsPage(reset = false) {
+    const statusEl = document.getElementById('p8-bbs-status');
+    statusEl.innerText = 'Loading…';
+    const result = await window.api.fetchPico8Bbs(_p8Order, _p8Query, _p8Page);
+    statusEl.innerText = result.success ? `${result.carts.length} carts` : 'Failed to load';
+    if (!result.success) return;
+    const grid = document.getElementById('p8-bbs-grid');
+    if (reset) grid.innerHTML = '';
+    for (const cart of result.carts) {
+        const card = document.createElement('div');
+        card.className = 'p8-cart-card';
+        card.innerHTML = `
+            <div class="p8-cart-thumb">
+                ${cart.thumbnail ? `<img src="${cart.thumbnail}" alt="">` : '<div style="color:var(--text_dim);font-size:10px;padding:8px;">No image</div>'}
+            </div>
+            <div class="p8-cart-info">
+                <div class="p8-cart-title">${cart.title}</div>
+                <div class="p8-cart-author">by ${cart.author || '?'}</div>
+                <button class="p8-dl-btn${cart.alreadyHave ? ' done' : ''}" data-pid="${cart.pid}" data-url="${cart.downloadUrl}" data-title="${cart.title.replace(/"/g,'')}" data-thumb="${cart.thumbnail || ''}">${cart.alreadyHave ? '✓ In Library' : '↓ Download'}</button>
+            </div>`;
+        grid.appendChild(card);
+    }
+    document.getElementById('btn-p8-load-more').style.display = result.carts.length < 16 ? 'none' : '';
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function getStoreLogo(store) {
@@ -739,6 +815,7 @@ function getStoreLogo(store) {
     if (s.includes('gog'))      return 'assets/logos/gog.png';
     if (s.includes('epic'))     return 'assets/logos/epic.png';
     if (s.includes('flatpak'))  return 'assets/logos/flatpak.svg';
+    if (s.includes('pico-8') || s.includes('pico8')) return 'assets/logos/pico8.svg';
     if (s.includes('physical')) return 'assets/logos/physical.png';
     if (s.includes('emulat'))   return 'assets/logos/emulation.png';
     if (s.includes('app'))      return 'assets/logos/apps.png';
@@ -947,6 +1024,16 @@ function openGamepage(game) {
     } else {
         grinderBtn.style.display = 'none';
         grinderBtn.onclick = null;
+    }
+
+    // SPLORE button — PICO-8 games only
+    const sploreBtn = document.getElementById('btn-gamepage-splore');
+    if (gpStore.includes('pico-8') || gpStore.includes('pico8')) {
+        sploreBtn.style.display = 'block';
+        sploreBtn.onclick = () => window.api.launchPico8Splore();
+    } else {
+        sploreBtn.style.display = 'none';
+        sploreBtn.onclick = null;
     }
 
     // Local Trailer Only Logic
@@ -1604,6 +1691,80 @@ document.getElementById('btn-save-igdb').addEventListener('click', async () => {
 });
 
 
+// ── PICO-8 CONNECT HANDLERS ───────────────────────────────────────────────
+
+async function refreshPico8Status() {
+    const status = await window.api.getPico8Status();
+    const el = document.getElementById('pico8-bin-status');
+    if (el) el.innerText = status.bin ? `✓ ${status.bin}` : 'Not detected — place pico8 binary in GameManagerConfig/pico8/';
+}
+
+document.getElementById('btn-pico8-browse')?.addEventListener('click', async () => {
+    const p = await window.api.browsePico8Binary();
+    if (p) refreshPico8Status();
+});
+
+document.getElementById('btn-pico8-splore')?.addEventListener('click', async () => {
+    const ok = await window.api.launchPico8Splore();
+    if (!ok) showAlert('PICO-8 binary not found. Place pico8 in GameManagerConfig/pico8/ or use Browse Binary.');
+});
+
+document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', openPico8Bbs);
+document.getElementById('btn-pico8-bbs-close')?.addEventListener('click', () => document.getElementById('modal-pico8-bbs').classList.remove('active'));
+
+document.querySelectorAll('.p8-tab').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        document.querySelectorAll('.p8-tab').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        _p8Order = btn.dataset.order; _p8Page = 1; _p8Query = '';
+        document.getElementById('p8-search-input').value = '';
+        await loadPico8BbsPage(true);
+    });
+});
+
+document.getElementById('btn-p8-search')?.addEventListener('click', async () => {
+    _p8Query = document.getElementById('p8-search-input').value.trim();
+    _p8Page = 1;
+    await loadPico8BbsPage(true);
+});
+
+document.getElementById('p8-search-input')?.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+        _p8Query = e.target.value.trim(); _p8Page = 1;
+        await loadPico8BbsPage(true);
+    }
+});
+
+document.getElementById('btn-p8-load-more')?.addEventListener('click', async () => {
+    _p8Page++;
+    await loadPico8BbsPage(false);
+});
+
+document.getElementById('p8-bbs-grid')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.p8-dl-btn');
+    if (!btn || btn.classList.contains('done')) return;
+    const { pid, url, title, thumb } = btn.dataset;
+    btn.innerText = '…'; btn.disabled = true;
+    const result = await window.api.downloadPico8Cart(Number(pid), url, title);
+    if (result.success) {
+        btn.innerText = '✓ In Library'; btn.classList.add('done'); btn.disabled = false;
+        if (thumb) window.api.savePico8BbsThumb(result.gameId, thumb);
+        loadGames();
+    } else {
+        btn.innerText = '↓ Download'; btn.disabled = false;
+        showAlert('Download failed: ' + (result.error || 'Unknown error'));
+    }
+});
+
+// Refresh PICO-8 status when Connect opens
+const _origOpenConnect = window.__openConnect;
+(function patchConnectOpen() {
+    const connectBtn = document.getElementById('btn-open-connect');
+    if (connectBtn) connectBtn.addEventListener('click', () => setTimeout(refreshPico8Status, 50));
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-heroic');
     btn.innerText = t('status.syncing');
@@ -2033,7 +2194,7 @@ function updateHeroMosaic(filtered, filterName) {
         'all': { text: t('filter.all'), icon: 'all_games' }, 'playable': { text: t('filter.playable'), icon: 'playable' },
         'favs': { text: t('filter.favorites'), icon: 'favs' }, 'want': { text: t('filter.want'), icon: 'want_to_play' },
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
-        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' },
+        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8.svg' },
         'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
         'apps': { text: t('filter.apps'), icon: 'apps' }

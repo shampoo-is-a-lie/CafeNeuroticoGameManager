@@ -825,8 +825,183 @@ ipcMain.on('launch-game', (event, cmd) => {
         }
     }
 
+    // PICO-8 cart launch (binary resolved from settings at runtime)
+    if (cmd.startsWith('pico8-cart:')) {
+        const cartPath = cmd.slice('pico8-cart:'.length);
+        const bin = _getPico8Bin();
+        if (bin) spawn(bin, ['-run', cartPath], { detached: true, stdio: 'ignore' }).unref();
+        return;
+    }
+
     const child = spawn(cmd, [], { shell: true, detached: true, stdio: 'ignore' });
     child.unref();
+});
+
+// ── PICO-8 ────────────────────────────────────────────────────────────────
+
+function _getPico8Bin() {
+    const row = db.prepare("SELECT value FROM settings WHERE key='pico8_path'").get();
+    if (row?.value && fs.existsSync(row.value)) return row.value;
+    const pico8Dir = path.join(baseDir, 'GameManagerConfig', 'pico8');
+    for (const n of ['pico8', 'pico8_dyn', 'pico8_64']) {
+        const p = path.join(pico8Dir, n);
+        if (fs.existsSync(p)) return p;
+    }
+    return null;
+}
+
+ipcMain.handle('get-pico8-status', () => ({
+    bin: _getPico8Bin(),
+    cartsDir: path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts')
+}));
+
+ipcMain.handle('browse-pico8-binary', async () => {
+    const result = await dialog.showOpenDialog({ properties: ['openFile'], title: 'Select PICO-8 Executable' });
+    if (result.canceled || !result.filePaths.length) return null;
+    const p = result.filePaths[0];
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('pico8_path', ?)").run(p);
+    return p;
+});
+
+ipcMain.handle('launch-pico8-splore', () => {
+    const bin = _getPico8Bin();
+    if (bin) spawn(bin, ['-splore'], { detached: true, stdio: 'ignore' }).unref();
+    return !!bin;
+});
+
+ipcMain.handle('scan-pico8', () => {
+    if (!db) return { count: 0, newCarts: [] };
+    const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
+    try { fs.mkdirSync(cartsDir, { recursive: true }); } catch {}
+    let files;
+    try { files = fs.readdirSync(cartsDir); } catch { return { count: 0, newCarts: [] }; }
+
+    const found = new Set();
+    const newCarts = [];
+
+    for (const file of files) {
+        const hasPng = file.endsWith('.p8.png');
+        const hasP8  = !hasPng && file.endsWith('.p8');
+        if (!hasPng && !hasP8) continue;
+        const cartPath = path.join(cartsDir, file);
+        const launchCmd = `pico8-cart:${cartPath}`;
+        found.add(launchCmd);
+        const name = hasPng ? file.slice(0, -8) : file.slice(0, -3);
+        const row = db.prepare("SELECT id, Store, CoverArt FROM games WHERE LaunchCommand = ?").get(launchCmd);
+        if (row) {
+            const stores = (row.Store || '').split(',').map(s => s.trim());
+            if (!stores.some(s => s.toLowerCase() === 'pico-8'))
+                db.prepare("UPDATE games SET Store=?, Installed=1 WHERE id=?").run([...stores, 'PICO-8'].join(', '), row.id);
+            else
+                db.prepare("UPDATE games SET Installed=1 WHERE id=?").run(row.id);
+            if (!row.CoverArt && hasPng) newCarts.push({ id: row.id, cartPath });
+        } else {
+            const info = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
+            if (hasPng) newCarts.push({ id: info.lastInsertRowid, cartPath });
+        }
+    }
+
+    const all = db.prepare("SELECT id, LaunchCommand FROM games WHERE LaunchCommand LIKE 'pico8-cart:%'").all();
+    for (const row of all) {
+        if (!found.has(row.LaunchCommand)) db.prepare("DELETE FROM games WHERE id=?").run(row.id);
+    }
+    return { count: found.size, newCarts };
+});
+
+ipcMain.handle('fetch-pico8-bbs', (e, orderby = 'featured', q = '', page = 1) => {
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve({ success: false, carts: [] }), 12000);
+        const qs = q ? `&q=${encodeURIComponent(q)}` : '';
+        const url = `https://www.lexaloffle.com/bbs/feed.php?cat=7&sub_cat=5&mode=carts&orderby=${orderby}&page=${page}${qs}`;
+        https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 CNGM/1.0' } }, (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => {
+                clearTimeout(timer);
+                try {
+                    const carts = [];
+                    const items = data.match(/<item>[\s\S]*?<\/item>/g) || [];
+                    for (const item of items) {
+                        const titleM = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
+                        if (!titleM) continue;
+                        const title = titleM[1].replace(/<[^>]*>/g, '').trim();
+                        const descM = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
+                        const html = descM ? descM[1] : item;
+                        const pidM = html.match(/[?&]pid=(\d+)/);
+                        if (!pidM) continue;
+                        const pid = parseInt(pidM[1]);
+                        const thumbM = html.match(/src="(\/bbs\/thumbs\/[^"]+)"/);
+                        const thumbnail = thumbM ? `https://www.lexaloffle.com${thumbM[1]}` : null;
+                        const authorM = html.match(/by <a[^>]*>([^<]+)<\/a>/);
+                        const author = authorM ? authorM[1].trim() : '';
+                        const downloadUrl = `https://www.lexaloffle.com/bbs/cposts/${Math.floor(pid / 10000)}/${pid}.p8.png`;
+                        const alreadyHave = !!db.prepare("SELECT id FROM games WHERE LaunchCommand LIKE ?").get(`%${pid}.p8.png%`);
+                        carts.push({ pid, title, thumbnail, author, downloadUrl, alreadyHave });
+                    }
+                    resolve({ success: true, carts });
+                } catch { resolve({ success: false, carts: [] }); }
+            });
+        }).on('error', () => { clearTimeout(timer); resolve({ success: false, carts: [] }); });
+    });
+});
+
+ipcMain.handle('download-pico8-cart', (e, pid, downloadUrl, title) => {
+    const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
+    try { fs.mkdirSync(cartsDir, { recursive: true }); } catch {}
+    const safe = title.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 40);
+    const filename = `${safe}_${pid}.p8.png`;
+    const destPath = path.join(cartsDir, filename);
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve({ success: false, error: 'Timeout' }), 30000);
+        const doGet = (url) => https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 CNGM/1.0' } }, (res) => {
+            if (res.statusCode === 301 || res.statusCode === 302) { res.resume(); doGet(res.headers.location); return; }
+            if (res.statusCode !== 200) { res.resume(); clearTimeout(timer); resolve({ success: false, error: `HTTP ${res.statusCode}` }); return; }
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => {
+                clearTimeout(timer);
+                try {
+                    fs.writeFileSync(destPath, Buffer.concat(chunks));
+                    // Insert into library immediately
+                    const launchCmd = `pico8-cart:${destPath}`;
+                    const existing = db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd);
+                    const gameId = existing ? existing.id : db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(title, 'PICO-8', launchCmd).lastInsertRowid;
+                    resolve({ success: true, cartPath: destPath, gameId });
+                } catch(err) { resolve({ success: false, error: err.message }); }
+            });
+        }).on('error', (err) => { clearTimeout(timer); resolve({ success: false, error: err.message }); });
+        doGet(downloadUrl);
+    });
+});
+
+ipcMain.handle('save-pico8-cart-art', (e, gameId, coverB64, heroB64) => {
+    const ts = Date.now();
+    const imDir = path.join(baseDir, 'GameManagerConfig', 'images');
+    const cFile = `${gameId}_p8_cover_${ts}.png`, hFile = `${gameId}_p8_hero_${ts}.png`;
+    fs.writeFileSync(path.join(imDir, cFile), Buffer.from(coverB64, 'base64'));
+    fs.writeFileSync(path.join(imDir, hFile), Buffer.from(heroB64, 'base64'));
+    db.prepare("UPDATE games SET CoverArt=?, HeroArt=? WHERE id=?").run(`GameManagerConfig/images/${cFile}`, `GameManagerConfig/images/${hFile}`, gameId);
+    return true;
+});
+
+ipcMain.handle('save-pico8-bbs-thumb', (e, gameId, thumbUrl) => {
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(false), 10000);
+        https.get(thumbUrl, { headers: { 'User-Agent': 'Mozilla/5.0 CNGM/1.0' } }, (res) => {
+            const chunks = [];
+            res.on('data', c => chunks.push(c));
+            res.on('end', () => {
+                clearTimeout(timer);
+                try {
+                    const file = `${gameId}_p8_thumb_${Date.now()}.png`;
+                    const imDir = path.join(baseDir, 'GameManagerConfig', 'images');
+                    fs.writeFileSync(path.join(imDir, file), Buffer.concat(chunks));
+                    db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${file}`, gameId);
+                    resolve(true);
+                } catch { resolve(false); }
+            });
+        }).on('error', () => { clearTimeout(timer); resolve(false); });
+    });
 });
 
 ipcMain.handle('update-last-played', (event, id) => {

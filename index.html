@@ -203,6 +203,7 @@
             <button data-filter="epic">Epic</button>
             <button data-filter="gog">GOG</button>
             <button data-filter="flatpak">Flatpak</button>
+            <button data-filter="pico8">PICO-8</button>
             <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
             <button data-filter="others" data-i18n="html.filter_others">Others</button>
             <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
@@ -274,6 +275,7 @@
                         <button id="btn-gamepage-fav" class="btn-hero">+ FAV</button>
                         <button id="btn-gamepage-want" class="btn-hero">WANT TO PLAY</button>
                         <button id="btn-gamepage-grinder" class="btn-hero" style="display:none;">GRINDER</button>
+                        <button id="btn-gamepage-splore" class="btn-hero" style="display:none;">SPLORE</button>
                         <button id="btn-gamepage-trailer" class="btn-hero" style="display:none;" data-i18n="html.btn_watch">WATCH TRAILER</button>
                         <button id="btn-gamepage-edit" class="btn-hero" data-i18n="html.btn_edit">EDIT DETAILS</button>
 <button id="btn-gamepage-play" class="primary" style="font-size: 20px; padding: 15px 40px; border-radius: 50px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); letter-spacing: 2px; display: none;" data-i18n="html.btn_play">▶ PLAY</button>
@@ -651,6 +653,18 @@
           <button id="btn-sync-heroic" style="width: 100%; background-color: transparent; border: 1px solid #f57c00; color: #f57c00; font-size: 11px; padding: 8px 0;" data-i18n="html.btn_sync_heroic">Sync Heroic Library</button>
         </div>
 
+        <!-- PICO-8 -->
+        <div class="tool-card connect-section" data-search="pico8 pico-8 cartridge cart binary splore bbs lexaloffle">
+          <div class="tool-card-title" style="color: #ff77a8;">PICO-8</div>
+          <p style="font-size: 11px; color: var(--text_sec); margin: 0 0 8px; line-height: 1.6;">Place the <code>pico8</code> binary in <code>GameManagerConfig/pico8/</code>, or browse to its location. Carts go in <code>GameManagerConfig/pico8/carts/</code>.</p>
+          <div id="pico8-bin-status" style="font-size: 11px; color: var(--text_dim); min-height: 16px; margin-bottom: 6px; font-family: monospace;">Not detected</div>
+          <div class="row" style="gap: 6px;">
+            <button id="btn-pico8-browse" style="flex:1; font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Browse Binary</button>
+            <button id="btn-pico8-splore" style="flex:1; font-size:11px; background:transparent; border:1px solid #ff77a8; color:#ff77a8;">Launch Splore</button>
+          </div>
+          <button id="btn-pico8-open-bbs" style="width:100%; margin-top:6px; background:transparent; border:1px solid #ff77a8; color:#ff77a8; font-size:11px;">Browse PICO-8 BBS</button>
+        </div>
+
         <p id="connect-no-results" style="display: none; text-align: center; color: var(--text_dim); padding: 20px 0; font-size: 12px; letter-spacing: 1px;" data-i18n="html.tools_no_results">No settings found.</p>
 
       </div>
@@ -925,6 +939,42 @@
       </div>
     </div>
   </div>
+
+  <!-- PICO-8 BBS Panel -->
+  <div id="modal-pico8-bbs" class="modal-overlay">
+    <div class="modal-box" style="width:920px; max-width:95vw; max-height:88vh; display:flex; flex-direction:column; padding:0; overflow:hidden;">
+      <!-- Header -->
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border_solid); flex-shrink:0; gap:10px;">
+        <span style="font-weight:900; font-size:16px; letter-spacing:2px; color:#ff77a8;">PICO-8 BBS</span>
+        <div style="display:flex; align-items:center; gap:8px; flex:1; justify-content:center;">
+          <button class="p8-tab" data-order="featured" style="font-size:11px; background:transparent; border:1px solid #ff77a8; color:#ff77a8; padding:4px 12px; border-radius:4px;">Featured</button>
+          <button class="p8-tab" data-order="new" style="font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); padding:4px 12px; border-radius:4px;">New</button>
+          <input id="p8-search-input" type="text" placeholder="Search carts…" style="width:160px; font-size:11px; padding:4px 8px;">
+          <button id="btn-p8-search" style="font-size:11px; padding:4px 10px;">Go</button>
+        </div>
+        <button id="btn-pico8-bbs-close" style="background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); font-size:11px; padding:4px 10px;">Close</button>
+      </div>
+      <!-- Grid -->
+      <div id="p8-bbs-grid" style="flex:1; overflow-y:auto; padding:14px; display:grid; grid-template-columns:repeat(4,1fr); gap:12px;"></div>
+      <!-- Footer -->
+      <div style="padding:10px 18px; border-top:1px solid var(--border_solid); display:flex; align-items:center; gap:10px; flex-shrink:0;">
+        <button id="btn-p8-load-more" style="font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Load More</button>
+        <span id="p8-bbs-status" style="font-size:11px; color:var(--text_dim);"></span>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .p8-cart-card { background: var(--bg_menu); border: 1px solid var(--border_solid); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+    .p8-cart-thumb { width:100%; aspect-ratio:1; background:#111; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .p8-cart-thumb img { width:100%; height:100%; object-fit:contain; image-rendering:pixelated; }
+    .p8-cart-info { padding:8px; display:flex; flex-direction:column; gap:4px; flex:1; }
+    .p8-cart-title { font-size:11px; font-weight:700; color:var(--text_main); line-height:1.3; }
+    .p8-cart-author { font-size:10px; color:var(--text_dim); }
+    .p8-dl-btn { margin-top:auto; font-size:10px; padding:4px; background:transparent; border:1px solid #ff77a8; color:#ff77a8; cursor:pointer; border-radius:3px; }
+    .p8-dl-btn.done { border-color:var(--text_dim); color:var(--text_dim); cursor:default; }
+    .p8-tab.active { background:#ff77a8 !important; color:#000 !important; }
+  </style>
 
 </body>
 </html>

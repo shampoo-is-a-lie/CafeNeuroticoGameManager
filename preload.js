@@ -13,6 +13,16 @@ contextBridge.exposeInMainWorld('api', {
                                 setLaunchCommand: (id, cmd) => ipcRenderer.invoke('set-launch-command', id, cmd),
                                 onInstallStatusUpdated: (cb) => ipcRenderer.on('install-status-updated', () => cb()),
                                 scanFlatpak: () => ipcRenderer.invoke('scan-flatpak'),
+
+                                // --- PICO-8 ---
+                                getPico8Status: () => ipcRenderer.invoke('get-pico8-status'),
+                                browsePico8Binary: () => ipcRenderer.invoke('browse-pico8-binary'),
+                                launchPico8Splore: () => ipcRenderer.invoke('launch-pico8-splore'),
+                                scanPico8: () => ipcRenderer.invoke('scan-pico8'),
+                                fetchPico8Bbs: (o, q, p) => ipcRenderer.invoke('fetch-pico8-bbs', o, q, p),
+                                downloadPico8Cart: (pid, url, title) => ipcRenderer.invoke('download-pico8-cart', pid, url, title),
+                                savePico8CartArt: (id, c, h) => ipcRenderer.invoke('save-pico8-cart-art', id, c, h),
+                                savePico8BbsThumb: (id, url) => ipcRenderer.invoke('save-pico8-bbs-thumb', id, url),
                                 findFlatpakIcon: (n) => ipcRenderer.invoke('find-flatpak-icon', n),
                                 readFileBase64: (p) => ipcRenderer.invoke('read-file-base64', p),
                                 saveFlatpakArt: (id, c, h, i) => ipcRenderer.invoke('save-flatpak-art', id, c, h, i),
