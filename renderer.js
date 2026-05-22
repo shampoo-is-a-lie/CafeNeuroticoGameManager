@@ -1688,19 +1688,17 @@ document.getElementById('btn-p8-folder-hero')?.addEventListener('click', () => w
 // ── PICO-8 CONFIG MODAL ───────────────────────────────────────────────────
 
 async function openPico8Config() {
-    // Populate binary status
     const status = await window.api.getPico8Status();
     const binEl = document.getElementById('pico8-cfg-bin-status');
-    if (binEl) binEl.innerText = status.bin ? `✓ ${status.bin}` : 'Not detected';
+    if (binEl) binEl.innerText = status.bin ? `✓ ${status.bin}` : 'Not detected — place pico8 binary in GameManagerConfig/pico8/';
 
-    // Populate toggle states
     const opts = await window.api.getPico8Opts();
     _p8SetToggle('p8-opt-windowed',  opts.windowed);
     _p8SetToggle('p8-opt-mute',      opts.mute);
     _p8SetToggle('p8-opt-pixel',     opts.pixelPerfect);
     _p8SetToggle('p8-opt-joystick',  opts.joystick);
 
-    document.getElementById('modal-pico8-config').classList.add('active');
+    document.getElementById('p8-config-panel').style.display = 'flex';
 }
 
 function _p8SetToggle(id, isOn) {
@@ -1711,8 +1709,10 @@ function _p8SetToggle(id, isOn) {
 }
 
 document.getElementById('btn-p8-config')?.addEventListener('click', openPico8Config);
+document.getElementById('p8-config-panel')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) _closePico8Config(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.getElementById('p8-config-panel')?.style.display === 'flex') _closePico8Config(); });
 
-const _closePico8Config = () => document.getElementById('modal-pico8-config').classList.remove('active');
+const _closePico8Config = () => { document.getElementById('p8-config-panel').style.display = 'none'; };
 document.getElementById('btn-pico8-config-close')?.addEventListener('click',  _closePico8Config);
 document.getElementById('btn-pico8-config-close2')?.addEventListener('click', _closePico8Config);
 document.getElementById('btn-pico8-cfg-browse')?.addEventListener('click', async () => {
