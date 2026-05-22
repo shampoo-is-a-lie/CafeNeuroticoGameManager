@@ -1709,8 +1709,21 @@ document.getElementById('btn-pico8-splore')?.addEventListener('click', async () 
     if (!ok) showAlert('PICO-8 binary not found. Place pico8 in GameManagerConfig/pico8/ or use Browse Binary.');
 });
 
-document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', openPico8Bbs);
-document.getElementById('btn-pico8-bbs-close')?.addEventListener('click', () => document.getElementById('modal-pico8-bbs').classList.remove('active'));
+document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', () => {
+    // Close Connect modal before opening BBS so they don't stack
+    document.getElementById('modal-connect')?.classList.remove('active');
+    openPico8Bbs();
+});
+
+const _closePico8Bbs = () => document.getElementById('modal-pico8-bbs').classList.remove('active');
+document.getElementById('btn-pico8-bbs-close')?.addEventListener('click', _closePico8Bbs);
+document.getElementById('modal-pico8-bbs')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) _closePico8Bbs(); // click outside box
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('modal-pico8-bbs')?.classList.contains('active'))
+        _closePico8Bbs();
+});
 
 document.querySelectorAll('.p8-tab').forEach(btn => {
     btn.addEventListener('click', async () => {
