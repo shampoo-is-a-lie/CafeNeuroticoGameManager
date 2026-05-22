@@ -40,6 +40,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "bbs-preload.js",
       "renderer.js",
       "index.html",
       "manual.html",

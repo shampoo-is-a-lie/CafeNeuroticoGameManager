@@ -926,6 +926,8 @@ ipcMain.handle('save-pico8-cart-art', (e, gameId, coverB64, heroB64) => {
 
 let _bbsWin = null;
 
+ipcMain.on('bbs-minimize', () => { if (_bbsWin && !_bbsWin.isDestroyed()) _bbsWin.minimize(); });
+
 ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
     const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
     try { fs.mkdirSync(cartsDir, { recursive: true }); } catch {}
@@ -934,41 +936,58 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
 
     _bbsWin = new BrowserWindow({
         width: 1280, height: 860,
-        title: 'PICO-8 BBS — Cartridges',
-        webPreferences: { partition: 'persist:pico8bbs', nodeIntegration: false, contextIsolation: true }
+        frame: false,
+        webPreferences: {
+            partition: 'persist:pico8bbs',
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'bbs-preload.js')
+        }
     });
 
     _bbsWin.loadURL('https://www.lexaloffle.com/bbs/?cat=7&carts_tab=1#mode=carts&sub=2');
 
     const isCart = (url = '') => /\.p8(\.png)?($|\?|#)/.test(url) || url.endsWith('.p8') || url.endsWith('.p8.png');
+    const a = accent.replace(/['"\\<>]/g, '');
 
-    const injectStyle = () => {
-        const a = accent.replace(/['"\\]/g, '');
+    const injectUI = () => {
         _bbsWin.webContents.executeJavaScript(`
-            if (!document.getElementById('cngm-p8-style')) {
-                const s = document.createElement('style');
-                s.id = 'cngm-p8-style';
-                s.textContent = \`
-                    ::-webkit-scrollbar{width:8px;height:8px}
-                    ::-webkit-scrollbar-track{background:#111}
-                    ::-webkit-scrollbar-thumb{background:${a}66;border-radius:4px}
-                    ::-webkit-scrollbar-thumb:hover{background:${a}}
-                    #cngm-bar{position:fixed;top:0;left:0;right:0;height:32px;background:#0d0d0d;border-bottom:1px solid ${a}44;z-index:99999;display:flex;align-items:center;padding:0 14px;gap:10px;font-family:monospace,monospace;font-size:11px;pointer-events:none}
-                    #cngm-bar b{color:${a};letter-spacing:2px;font-size:12px}
-                    #cngm-bar span{color:#555}
-                \`;
-                document.head.appendChild(s);
-                const bar = document.createElement('div');
-                bar.id = 'cngm-bar';
-                bar.innerHTML = '<b>CNGM</b><span>Right-click any cart image · CART button · or click a .p8.png link → saves to your library</span>';
-                document.body.insertBefore(bar, document.body.firstChild);
-                document.documentElement.style.paddingTop = '32px';
-            }
+        (function(){
+            if (document.getElementById('cngm-p8-style')) return;
+            const s = document.createElement('style');
+            s.id = 'cngm-p8-style';
+            s.textContent = \`
+                ::-webkit-scrollbar{width:8px;height:8px}
+                ::-webkit-scrollbar-track{background:#0d0d0d}
+                ::-webkit-scrollbar-thumb{background:${a}55;border-radius:4px}
+                ::-webkit-scrollbar-thumb:hover{background:${a}aa}
+                #cngm-titlebar{position:fixed;top:0;left:0;right:0;height:38px;background:#0d0d0d;border-bottom:1px solid ${a}33;z-index:99999;display:flex;align-items:center;-webkit-app-region:drag;user-select:none}
+                #cngm-titlebar .cngm-tb-brand{padding:0 14px;font-family:monospace;font-size:13px;font-weight:900;letter-spacing:3px;color:${a};flex-shrink:0}
+                #cngm-titlebar .cngm-tb-hint{font-family:monospace;font-size:10px;color:#444;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+                #cngm-titlebar .cngm-tb-btns{display:flex;-webkit-app-region:no-drag;flex-shrink:0}
+                #cngm-titlebar .cngm-tb-btns button{width:46px;height:38px;border:none;background:transparent;color:#666;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s,color 0.15s}
+                #cngm-titlebar .cngm-tb-btns button:hover{background:rgba(255,255,255,0.08);color:#ccc}
+                #cngm-titlebar .cngm-tb-btns .tb-close:hover{background:#c0392b;color:#fff}
+            \`;
+            document.head.appendChild(s);
+            const bar = document.createElement('div');
+            bar.id = 'cngm-titlebar';
+            bar.innerHTML = \`
+                <div class="cngm-tb-brand">CNGM — PICO-8 BBS</div>
+                <div class="cngm-tb-hint">Right-click a cart image · click CART · or click any .p8.png link to save to your library</div>
+                <div class="cngm-tb-btns">
+                    <button onclick="window._cngmBbs&&_cngmBbs.minimize()" title="Minimise">&#x2212;</button>
+                    <button class="tb-close" onclick="window._cngmBbs&&_cngmBbs.close()" title="Close">&#x2715;</button>
+                </div>
+            \`;
+            document.body.insertBefore(bar, document.body.firstChild);
+            document.documentElement.style.paddingTop = '38px';
+        })()
         `).catch(() => {});
     };
 
-    _bbsWin.webContents.on('did-finish-load', injectStyle);
-    _bbsWin.webContents.on('did-navigate', injectStyle);
+    _bbsWin.webContents.on('did-finish-load', injectUI);
+    _bbsWin.webContents.on('did-navigate', injectUI);
 
     _bbsWin.webContents.on('will-navigate', (event, url) => {
         if (isCart(url)) { event.preventDefault(); _bbsWin.webContents.downloadURL(url); }
@@ -996,31 +1015,56 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
         const filename = item.getFilename();
         if (!isCart(filename)) return;
         const destPath = path.join(cartsDir, filename);
+        const srcURL = item.getURL();
         item.setSavePath(destPath);
-        item.on('done', (e, state) => {
+
+        item.on('done', async (ev, state) => {
             if (state !== 'completed') return;
-            const name = humanizeCartName(filename);
+
+            // Insert with humanized name immediately
+            let name = humanizeCartName(filename);
             const launchCmd = `pico8-cart:${destPath}`;
+            let gameId;
             try {
-                if (!db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd))
-                    db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
+                const existing = db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd);
+                if (existing) { gameId = existing.id; }
+                else { gameId = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd).lastInsertRowid; }
             } catch {}
+
+            // Fetch real title from BBS page using the pid in the URL
+            const pidM = srcURL.match(/\/cposts\/\d+\/(\d+)\.p8\.png/);
+            if (pidM) {
+                try {
+                    const res = await session.defaultSession.fetch(
+                        `https://www.lexaloffle.com/bbs/?pid=${pidM[1]}`,
+                        { headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36' } }
+                    );
+                    const html = await res.text();
+                    const titleM = html.match(/<title[^>]*>([^<]+?)\s*[-–]\s*Lexaloffle BBS/i);
+                    if (titleM && titleM[1].trim()) {
+                        name = titleM[1].trim();
+                        if (gameId) db.prepare("UPDATE games SET Game=? WHERE id=?").run(name, gameId);
+                    }
+                } catch {}
+            }
+
             // Toast in BBS window
-            const a = accent.replace(/['"\\]/g, '');
             if (_bbsWin && !_bbsWin.isDestroyed()) {
+                const toastMsg = JSON.stringify(`✓ ${name} — saved to library`);
                 _bbsWin.webContents.executeJavaScript(`
                     (function(){
                         const t=document.createElement('div');
                         t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:999999;background:#0d0d0d;border:1px solid ${a};color:${a};padding:10px 20px;border-radius:6px;font-family:monospace;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.9);transition:opacity 0.4s';
-                        t.textContent='✓ ${name.replace(/'/g, "\\'")} saved to library';
+                        t.textContent=${toastMsg};
                         document.body.appendChild(t);
                         setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400)},2800);
                     })()
                 `).catch(() => {});
             }
-            // Notify main window
+
+            // Notify main window — include cartPath + gameId so renderer can generate art immediately
             const mainWin = BrowserWindow.getAllWindows().find(w => w !== _bbsWin && !w.isDestroyed());
-            if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name });
+            if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name, cartPath: destPath, gameId });
         });
     });
 

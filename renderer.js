@@ -739,22 +739,26 @@ function _flatpakDrawHero([r,g,b]) {
 // ── PICO-8 ART GENERATION ─────────────────────────────────────────────────
 
 async function generatePico8Art(newCarts) {
+    let generated = 0;
     for (const { id, cartPath } of newCarts) {
-        const b64 = await window.api.readFileBase64(cartPath);
-        if (!b64) continue;
-        const img = await new Promise(resolve => {
-            const el = new Image();
-            el.onload = () => resolve(el);
-            el.onerror = () => resolve(null);
-            el.src = `data:image/png;base64,${b64}`;
-        });
-        if (!img) continue;
-        const color = _flatpakExtractColor(img); // reuse Flatpak color extractor
-        const coverB64 = _p8DrawCover(img, color);
-        const heroB64  = _fpDrawHero(color);     // reuse Flatpak hero drawer
-        await window.api.savePico8CartArt(Number(id), coverB64, heroB64);
+        try {
+            const b64 = await window.api.readFileBase64(cartPath);
+            if (!b64) continue;
+            const img = await new Promise(resolve => {
+                const el = new Image();
+                el.onload = () => resolve(el);
+                el.onerror = () => resolve(null);
+                el.src = `data:image/png;base64,${b64}`;
+            });
+            if (!img) continue;
+            const color = _flatpakExtractColor(img);
+            const coverB64 = _p8DrawCover(img, color);
+            const heroB64  = _fpDrawHero(color);
+            await window.api.savePico8CartArt(Number(id), coverB64, heroB64);
+            generated++;
+        } catch {}
     }
-    if (newCarts.length > 0) await loadGames();
+    if (generated > 0) await loadGames();
 }
 
 function _p8DrawCover(img, [r, g, b]) {
@@ -1681,11 +1685,13 @@ document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', () => {
     window.api.launchPico8Bbs(accent);
 });
 
-window.api.onPico8CartDownloaded(({ name }) => {
+window.api.onPico8CartDownloaded(({ name, cartPath, gameId }) => {
     loadGames();
-    // Brief toast in CNGM window
+    // Generate cover art immediately for this cart
+    if (cartPath && gameId) generatePico8Art([{ id: gameId, cartPath }]);
+    // Toast in CNGM window
     const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--bg_menu);border:1px solid var(--accent);color:var(--accent);padding:10px 18px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.8);transition:opacity 0.4s;pointer-events:none;';
+    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg_menu);border:1px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.8);transition:opacity 0.4s;pointer-events:none;white-space:nowrap;';
     toast.textContent = `✓ ${name} — added to PICO-8 library`;
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
