@@ -116,7 +116,17 @@
     .btn-toggle:hover { border-color: var(--accent); color: var(--text_main); }
     .btn-toggle.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
     .btn-hero { background: var(--bg_menu); border: 1px solid var(--border_solid); color: var(--text_sec); padding: 12px 20px; border-radius: 8px; font-weight: 900; font-family: 'Raleway', sans-serif; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; }
-    .btn-hero:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .btn-hero:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 14px var(--accent); }
+    .btn-hero-sq { width: 38px; height: 38px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .btn-hero-sq img { width: 18px; height: 18px; filter: invert(1); opacity: 0.75; transition: opacity 0.2s; pointer-events: none; }
+    .btn-hero-sq:hover img { opacity: 1; }
+    .p8-opt-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border_solid); gap: 16px; }
+    .p8-opt-row:last-child { border-bottom: none; }
+    .p8-opt-info { display: flex; flex-direction: column; gap: 2px; }
+    .p8-opt-label { font-size: 12px; font-weight: 700; color: var(--text_main); letter-spacing: 0.5px; }
+    .p8-opt-hint { font-size: 10px; color: var(--text_dim); }
+    .p8-opt-btn { font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 4px; letter-spacing: 1px; cursor: pointer; border: 1px solid var(--border_solid); background: transparent; color: var(--text_dim); white-space: nowrap; transition: all 0.15s; }
+    .p8-opt-btn.on { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
     .btn-hero.active { background: var(--text_main); color: var(--bg); border-color: var(--text_main); box-shadow: 0 0 10px rgba(255,255,255,0.2); }
 
     .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; overflow: hidden; }
@@ -251,6 +261,16 @@
 
             <div id="hero-game-name" style="position: absolute; bottom: 20px; right: 25px; z-index: 10; font-size: 28px; font-weight: 900; color: #ffffff; text-shadow: 0 5px 15px rgba(0,0,0,0.9); text-align: right; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
             <div class="hero-icon" id="hero-icon" style="position:relative; z-index: 2; font-size: 48px; font-weight: 900; color: rgba(255,255,255,0.3); letter-spacing: 5px;" data-i18n="html.no_artwork">NO ARTWORK FOUND</div>
+
+            <!-- PICO-8 category hero buttons — shown only when PICO-8 filter is active -->
+            <div id="pico8-hero-btns" style="display:none; position:absolute; bottom:20px; left:20px; z-index:10; flex-direction:row; gap:8px; align-items:center;">
+              <button id="btn-p8-config" class="btn-hero btn-hero-sq" title="PICO-8 Configuration">
+                <img src="assets/icons/pico8-config.svg" alt="Config">
+              </button>
+              <button id="btn-p8-splore-hero" class="btn-hero">SPLORE</button>
+              <button id="btn-p8-bbs-hero" class="btn-hero">BROWSE BBS</button>
+              <button id="btn-p8-folder-hero" class="btn-hero">BROWSE GAMES FOLDER</button>
+            </div>
           </div>
           <div id="gallery-grid"></div>
         </div>
@@ -940,6 +960,67 @@
     </div>
   </div>
 
+
+  <!-- PICO-8 Config Modal -->
+  <div id="modal-pico8-config" class="modal-overlay">
+    <div class="modal-box" style="width:480px; padding:0; overflow:hidden; max-height:85vh; display:flex; flex-direction:column;">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border_solid); flex-shrink:0;">
+        <span style="font-weight:900; font-size:14px; letter-spacing:2px; color:#ff77a8;">PICO-8 CONFIGURATION</span>
+        <button id="btn-pico8-config-close" style="background:transparent; border:none; color:var(--text_dim); font-size:18px; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
+      </div>
+      <div style="flex:1; overflow-y:auto; padding:14px 20px; display:flex; flex-direction:column; gap:12px;">
+
+        <!-- Binary -->
+        <div class="tool-card" style="gap:8px;">
+          <div class="tool-card-title" style="color:#ff77a8;">PICO-8 Executable</div>
+          <p style="font-size:11px; color:var(--text_sec); margin:0 0 6px; line-height:1.5;">Place the <code>pico8</code> binary in <code>GameManagerConfig/pico8/</code>, or browse to its location.</p>
+          <div id="pico8-cfg-bin-status" style="font-size:11px; color:var(--text_dim); font-family:monospace; min-height:16px; margin-bottom:4px;">Not detected</div>
+          <button id="btn-pico8-cfg-browse" style="font-size:11px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Browse Binary</button>
+        </div>
+
+        <!-- Launch Options -->
+        <div class="tool-card" style="gap:0;">
+          <div class="tool-card-title" style="color:#ff77a8; margin-bottom:8px;">Launch Options</div>
+
+          <div class="p8-opt-row">
+            <div class="p8-opt-info">
+              <div class="p8-opt-label">Display Mode</div>
+              <div class="p8-opt-hint">Fullscreen (default) or run in a window</div>
+            </div>
+            <button class="p8-opt-btn" id="p8-opt-windowed" data-key="windowed" data-on="WINDOWED" data-off="FULLSCREEN">FULLSCREEN</button>
+          </div>
+
+          <div class="p8-opt-row">
+            <div class="p8-opt-info">
+              <div class="p8-opt-label">Audio</div>
+              <div class="p8-opt-hint">Sound on (default) or muted</div>
+            </div>
+            <button class="p8-opt-btn" id="p8-opt-mute" data-key="mute" data-on="MUTED" data-off="SOUND ON">SOUND ON</button>
+          </div>
+
+          <div class="p8-opt-row">
+            <div class="p8-opt-info">
+              <div class="p8-opt-label">Pixel Scaling</div>
+              <div class="p8-opt-hint">Smooth scaling (default) or pixel-perfect 1:1</div>
+            </div>
+            <button class="p8-opt-btn" id="p8-opt-pixel" data-key="pixelPerfect" data-on="PIXEL PERFECT" data-off="SMOOTH">SMOOTH</button>
+          </div>
+
+          <div class="p8-opt-row">
+            <div class="p8-opt-info">
+              <div class="p8-opt-label">Controller Support</div>
+              <div class="p8-opt-hint">GPIO gamepad (off) or SDL gamepad input</div>
+            </div>
+            <button class="p8-opt-btn" id="p8-opt-joystick" data-key="joystick" data-on="SDL GAMEPAD" data-off="GPIO">GPIO</button>
+          </div>
+
+        </div>
+      </div>
+      <div style="padding:12px 20px; border-top:1px solid var(--border_solid); flex-shrink:0;">
+        <button id="btn-pico8-config-close2" style="width:100%;">Close</button>
+      </div>
+    </div>
+  </div>
 
 </body>
 </html>

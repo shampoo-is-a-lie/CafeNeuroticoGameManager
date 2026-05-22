@@ -829,7 +829,15 @@ ipcMain.on('launch-game', (event, cmd) => {
     if (cmd.startsWith('pico8-cart:')) {
         const cartPath = cmd.slice('pico8-cart:'.length);
         const bin = _getPico8Bin();
-        if (bin) spawn(bin, ['-run', cartPath], { detached: true, stdio: 'ignore' }).unref();
+        if (bin) {
+            const args = ['-run', cartPath];
+            const get = (k) => db.prepare("SELECT value FROM settings WHERE key=?").get(k)?.value;
+            if (get('pico8_windowed')      === '1') args.push('-windowed', '1');
+            if (get('pico8_mute')          === '1') args.push('-volume', '0');
+            if (get('pico8_pixel_perfect') === '1') args.push('-pixel_perfect', '1');
+            if (get('pico8_joystick')      === '1') args.push('-joystick', '1');
+            spawn(bin, args, { detached: true, stdio: 'ignore' }).unref();
+        }
         return;
     }
 
@@ -874,6 +882,26 @@ ipcMain.handle('launch-pico8-splore', () => {
     const bin = _getPico8Bin();
     if (bin) spawn(bin, ['-splore'], { detached: true, stdio: 'ignore' }).unref();
     return !!bin;
+});
+
+ipcMain.handle('open-pico8-folder', () => {
+    const dir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
+    try { fs.mkdirSync(dir, { recursive: true }); } catch {}
+    shell.openPath(dir);
+    return true;
+});
+
+ipcMain.handle('get-pico8-opts', () => {
+    const get = (k) => db.prepare("SELECT value FROM settings WHERE key=?").get(k)?.value === '1';
+    return { windowed: get('pico8_windowed'), mute: get('pico8_mute'), pixelPerfect: get('pico8_pixel_perfect'), joystick: get('pico8_joystick') };
+});
+
+ipcMain.handle('set-pico8-opt', (e, key, val) => {
+    const map = { windowed: 'pico8_windowed', mute: 'pico8_mute', pixelPerfect: 'pico8_pixel_perfect', joystick: 'pico8_joystick' };
+    const dbKey = map[key];
+    if (!dbKey) return false;
+    db.prepare("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)").run(dbKey, val ? '1' : '0');
+    return true;
 });
 
 ipcMain.handle('scan-pico8', () => {

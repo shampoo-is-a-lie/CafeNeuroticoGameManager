@@ -569,6 +569,10 @@ function applyFilters() {
 
     updateHeroMosaic(filtered, currentFilter);
 
+    // Show PICO-8 hero buttons only on PICO-8 filter
+    const p8Btns = document.getElementById('pico8-hero-btns');
+    if (p8Btns) p8Btns.style.display = currentFilter === 'pico8' ? 'flex' : 'none';
+
     let recentGames = [];
     let regularGames = [...filtered];
 
@@ -1662,11 +1666,71 @@ window.api.onPico8CartDownloaded(({ name }) => {
 });
 
 // Refresh PICO-8 status when Connect opens
-const _origOpenConnect = window.__openConnect;
 (function patchConnectOpen() {
     const connectBtn = document.getElementById('btn-open-connect');
     if (connectBtn) connectBtn.addEventListener('click', () => setTimeout(refreshPico8Status, 50));
 })();
+
+// ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
+
+document.getElementById('btn-p8-splore-hero')?.addEventListener('click', async () => {
+    const ok = await window.api.launchPico8Splore();
+    if (!ok) showAlert('PICO-8 binary not found. Configure it in PICO-8 Configuration (gear button).');
+});
+
+document.getElementById('btn-p8-bbs-hero')?.addEventListener('click', () => {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff77a8';
+    window.api.launchPico8Bbs(accent);
+});
+
+document.getElementById('btn-p8-folder-hero')?.addEventListener('click', () => window.api.openPico8Folder());
+
+// ── PICO-8 CONFIG MODAL ───────────────────────────────────────────────────
+
+async function openPico8Config() {
+    // Populate binary status
+    const status = await window.api.getPico8Status();
+    const binEl = document.getElementById('pico8-cfg-bin-status');
+    if (binEl) binEl.innerText = status.bin ? `✓ ${status.bin}` : 'Not detected';
+
+    // Populate toggle states
+    const opts = await window.api.getPico8Opts();
+    _p8SetToggle('p8-opt-windowed',  opts.windowed);
+    _p8SetToggle('p8-opt-mute',      opts.mute);
+    _p8SetToggle('p8-opt-pixel',     opts.pixelPerfect);
+    _p8SetToggle('p8-opt-joystick',  opts.joystick);
+
+    document.getElementById('modal-pico8-config').classList.add('active');
+}
+
+function _p8SetToggle(id, isOn) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('on', isOn);
+    btn.textContent = isOn ? btn.dataset.on : btn.dataset.off;
+}
+
+document.getElementById('btn-p8-config')?.addEventListener('click', openPico8Config);
+
+const _closePico8Config = () => document.getElementById('modal-pico8-config').classList.remove('active');
+document.getElementById('btn-pico8-config-close')?.addEventListener('click',  _closePico8Config);
+document.getElementById('btn-pico8-config-close2')?.addEventListener('click', _closePico8Config);
+document.getElementById('btn-pico8-cfg-browse')?.addEventListener('click', async () => {
+    const p = await window.api.browsePico8Binary();
+    if (p) {
+        document.getElementById('pico8-cfg-bin-status').innerText = `✓ ${p}`;
+        refreshPico8Status(); // also update Connect card
+    }
+});
+
+// Toggle buttons — each click toggles and saves immediately
+document.querySelectorAll('.p8-opt-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const isOn = !btn.classList.contains('on');
+        _p8SetToggle(btn.id, isOn);
+        await window.api.setPico8Opt(btn.dataset.key, isOn);
+    });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 
