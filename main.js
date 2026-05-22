@@ -908,49 +908,37 @@ ipcMain.handle('scan-pico8', () => {
     return { count: found.size, newCarts };
 });
 
-ipcMain.handle('fetch-pico8-bbs', (e, orderby = 'featured', q = '', page = 1) => {
-    // Use Electron net (Chromium stack) — handles SSL, Cloudflare, redirects correctly
-    return new Promise((resolve) => {
-        const timer = setTimeout(() => resolve({ success: false, carts: [] }), 15000);
+ipcMain.handle('fetch-pico8-bbs', async (e, q = '') => {
+    try {
         const qs = q ? `&q=${encodeURIComponent(q)}` : '';
         const url = `https://www.lexaloffle.com/bbs/feed.php?cat=7&sub_cat=5${qs}`;
-        const req = net.request({ url, method: 'GET' });
-        req.setHeader('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36');
-        let data = '';
-        req.on('response', (res) => {
-            res.on('data', c => data += c);
-            res.on('end', () => {
-                clearTimeout(timer);
-                try {
-                    const parsePico8Rss = (xml) => {
-                        const carts = [];
-                        const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
-                        for (const item of items) {
-                            const titleM = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
-                            if (!titleM) continue;
-                            const title = titleM[1].replace(/<[^>]*>/g, '').trim();
-                            const descM = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
-                            const html = descM ? descM[1] : item;
-                            const pidM = html.match(/[?&]pid=(\d+)/);
-                            if (!pidM) continue;
-                            const pid = parseInt(pidM[1]);
-                            const thumbM = html.match(/src="(\/bbs\/thumbs\/[^"]+)"/);
-                            const thumbnail = thumbM ? `https://www.lexaloffle.com${thumbM[1]}` : null;
-                            const authorM = html.match(/by <a[^>]*>([^<]+)<\/a>/);
-                            const author = authorM ? authorM[1].trim() : '';
-                            const downloadUrl = `https://www.lexaloffle.com/bbs/cposts/${Math.floor(pid / 10000)}/${pid}.p8.png`;
-                            const alreadyHave = !!db.prepare("SELECT id FROM games WHERE LaunchCommand LIKE ?").get(`%${pid}.p8.png%`);
-                            carts.push({ pid, title, thumbnail, author, downloadUrl, alreadyHave });
-                        }
-                        return carts;
-                    };
-                    resolve({ success: true, carts: parsePico8Rss(data) });
-                } catch { resolve({ success: false, carts: [] }); }
-            });
+        const res = await session.defaultSession.fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
-        req.on('error', () => { clearTimeout(timer); resolve({ success: false, carts: [] }); });
-        req.end();
-    });
+        const xml = await res.text();
+        const carts = [];
+        const items = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+        for (const item of items) {
+            const titleM = item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/);
+            if (!titleM) continue;
+            const title = titleM[1].replace(/<[^>]*>/g, '').trim();
+            const descM = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
+            const html = descM ? descM[1] : item;
+            const pidM = html.match(/[?&]pid=(\d+)/);
+            if (!pidM) continue;
+            const pid = parseInt(pidM[1]);
+            const thumbM = html.match(/src="(\/bbs\/thumbs\/[^"]+)"/);
+            const thumbnail = thumbM ? `https://www.lexaloffle.com${thumbM[1]}` : null;
+            const authorM = html.match(/by <a[^>]*>([^<]+)<\/a>/);
+            const author = authorM ? authorM[1].trim() : '';
+            const downloadUrl = `https://www.lexaloffle.com/bbs/cposts/${Math.floor(pid / 10000)}/${pid}.p8.png`;
+            const alreadyHave = !!db.prepare("SELECT id FROM games WHERE LaunchCommand LIKE ?").get(`%${pid}.p8.png%`);
+            carts.push({ pid, title, thumbnail, author, downloadUrl, alreadyHave });
+        }
+        return { success: true, carts };
+    } catch(err) {
+        return { success: false, carts: [], error: err.message };
+    }
 });
 
 ipcMain.handle('download-pico8-cart', (e, pid, downloadUrl, title) => {

@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld('api', {
                                 browsePico8Binary: () => ipcRenderer.invoke('browse-pico8-binary'),
                                 launchPico8Splore: () => ipcRenderer.invoke('launch-pico8-splore'),
                                 scanPico8: () => ipcRenderer.invoke('scan-pico8'),
-                                fetchPico8Bbs: (o, q, p) => ipcRenderer.invoke('fetch-pico8-bbs', o, q, p),
+                                fetchPico8Bbs: (q) => ipcRenderer.invoke('fetch-pico8-bbs', q),
                                 downloadPico8Cart: (pid, url, title) => ipcRenderer.invoke('download-pico8-cart', pid, url, title),
                                 savePico8CartArt: (id, c, h) => ipcRenderer.invoke('save-pico8-cart-art', id, c, h),
                                 savePico8BbsThumb: (id, url) => ipcRenderer.invoke('save-pico8-bbs-thumb', id, url),
