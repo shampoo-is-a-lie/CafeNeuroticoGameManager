@@ -1683,7 +1683,7 @@ window.api.onPico8CartDownloaded(({ name }) => {
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
 
 // ── STEAM / GRINDER / ITCH HERO BUTTONS ──────────────────────────────────
-document.getElementById('btn-steam-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('steam://'));
+document.getElementById('btn-steam-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('steam://open/main'));
 document.getElementById('btn-grinder-open-hero')?.addEventListener('click', () => window.api.openGrinder());
 document.getElementById('btn-itch-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('itch://library'));
 
