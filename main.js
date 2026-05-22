@@ -877,14 +877,23 @@ ipcMain.handle('launch-pico8-splore', () => {
 });
 
 ipcMain.handle('scan-pico8', () => {
-    if (!db) return { count: 0, newCarts: [] };
+    if (!db) return { count: 0 };
     const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
+    const imagesDir = path.join(baseDir, 'GameManagerConfig', 'images');
     try { fs.mkdirSync(cartsDir, { recursive: true }); } catch {}
     let files;
-    try { files = fs.readdirSync(cartsDir); } catch { return { count: 0, newCarts: [] }; }
+    try { files = fs.readdirSync(cartsDir); } catch { return { count: 0 }; }
 
     const found = new Set();
-    const newCarts = [];
+
+    const setCartCover = (rowId, cartPath) => {
+        // The .p8.png IS the cover image — copy it directly, no canvas needed
+        try {
+            const coverFile = `${rowId}_p8_cover.png`;
+            fs.copyFileSync(cartPath, path.join(imagesDir, coverFile));
+            db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${coverFile}`, rowId);
+        } catch {}
+    };
 
     for (const file of files) {
         const hasPng = file.endsWith('.p8.png');
@@ -901,10 +910,10 @@ ipcMain.handle('scan-pico8', () => {
                 db.prepare("UPDATE games SET Store=?, Installed=1 WHERE id=?").run([...stores, 'PICO-8'].join(', '), row.id);
             else
                 db.prepare("UPDATE games SET Installed=1 WHERE id=?").run(row.id);
-            if (!row.CoverArt && hasPng) newCarts.push({ id: row.id, cartPath });
+            if (!row.CoverArt && hasPng) setCartCover(row.id, cartPath);
         } else {
             const info = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
-            if (hasPng) newCarts.push({ id: info.lastInsertRowid, cartPath });
+            if (hasPng) setCartCover(info.lastInsertRowid, cartPath);
         }
     }
 
@@ -912,21 +921,10 @@ ipcMain.handle('scan-pico8', () => {
     for (const row of all) {
         if (!found.has(row.LaunchCommand)) db.prepare("DELETE FROM games WHERE id=?").run(row.id);
     }
-    return { count: found.size, newCarts };
-});
-
-ipcMain.handle('save-pico8-cart-art', (e, gameId, coverB64, heroB64) => {
-    const ts = Date.now(), imDir = path.join(baseDir, 'GameManagerConfig', 'images');
-    const cFile = `${gameId}_p8_cover_${ts}.png`, hFile = `${gameId}_p8_hero_${ts}.png`;
-    fs.writeFileSync(path.join(imDir, cFile), Buffer.from(coverB64, 'base64'));
-    fs.writeFileSync(path.join(imDir, hFile), Buffer.from(heroB64, 'base64'));
-    db.prepare("UPDATE games SET CoverArt=?, HeroArt=? WHERE id=?").run(`GameManagerConfig/images/${cFile}`, `GameManagerConfig/images/${hFile}`, gameId);
-    return true;
+    return { count: found.size };
 });
 
 let _bbsWin = null;
-
-ipcMain.on('bbs-minimize', () => { if (_bbsWin && !_bbsWin.isDestroyed()) _bbsWin.minimize(); });
 
 ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
     const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
@@ -940,8 +938,7 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
         webPreferences: {
             partition: 'persist:pico8bbs',
             nodeIntegration: false,
-            contextIsolation: true,
-            preload: path.join(__dirname, 'bbs-preload.js')
+            contextIsolation: true
         }
     });
 
@@ -976,8 +973,7 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
                 <div class="cngm-tb-brand">CNGM — PICO-8 BBS</div>
                 <div class="cngm-tb-hint">Right-click a cart image · click CART · or click any .p8.png link to save to your library</div>
                 <div class="cngm-tb-btns">
-                    <button onclick="window._cngmBbs&&_cngmBbs.minimize()" title="Minimise">&#x2212;</button>
-                    <button class="tb-close" onclick="window._cngmBbs&&_cngmBbs.close()" title="Close">&#x2715;</button>
+                    <button class="tb-close" onclick="window.close()" title="Close">&#x2715;</button>
                 </div>
             \`;
             document.body.insertBefore(bar, document.body.firstChild);
@@ -1021,7 +1017,6 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
         item.on('done', async (ev, state) => {
             if (state !== 'completed') return;
 
-            // Insert with humanized name immediately
             let name = humanizeCartName(filename);
             const launchCmd = `pico8-cart:${destPath}`;
             let gameId;
@@ -1031,7 +1026,17 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
                 else { gameId = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd).lastInsertRowid; }
             } catch {}
 
-            // Fetch real title from BBS page using the pid in the URL
+            // Copy the .p8.png directly as cover art — it IS the image, no conversion needed
+            if (gameId && filename.endsWith('.p8.png')) {
+                try {
+                    const imDir = path.join(baseDir, 'GameManagerConfig', 'images');
+                    const coverFile = `${gameId}_p8_cover.png`;
+                    fs.copyFileSync(destPath, path.join(imDir, coverFile));
+                    db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${coverFile}`, gameId);
+                } catch {}
+            }
+
+            // Fetch real title from BBS page using pid in the download URL
             const pidM = srcURL.match(/\/cposts\/\d+\/(\d+)\.p8\.png/);
             if (pidM) {
                 try {
@@ -1062,9 +1067,9 @@ ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
                 `).catch(() => {});
             }
 
-            // Notify main window — include cartPath + gameId so renderer can generate art immediately
+            // Notify main window
             const mainWin = BrowserWindow.getAllWindows().find(w => w !== _bbsWin && !w.isDestroyed());
-            if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name, cartPath: destPath, gameId });
+            if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name });
         });
     });
 

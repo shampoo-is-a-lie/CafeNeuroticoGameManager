@@ -514,9 +514,8 @@ filterButtons.forEach(btn => {
                 generateFlatpakArt(scanResult.iconMap);
         }
         if (currentFilter === 'pico8') {
-            const scanResult = await window.api.scanPico8();
+            await window.api.scanPico8();
             await loadGames();
-            if (scanResult.newCarts?.length) generatePico8Art(scanResult.newCarts);
         }
         applyFilters();
         const active = document.querySelector('.view.active');
@@ -736,41 +735,8 @@ function _flatpakDrawHero([r,g,b]) {
     return c.toDataURL('image/png').split(',')[1];
 }
 
-// ── PICO-8 ART GENERATION ─────────────────────────────────────────────────
-
-async function generatePico8Art(newCarts) {
-    let generated = 0;
-    for (const { id, cartPath } of newCarts) {
-        try {
-            const b64 = await window.api.readFileBase64(cartPath);
-            if (!b64) continue;
-            const img = await new Promise(resolve => {
-                const el = new Image();
-                el.onload = () => resolve(el);
-                el.onerror = () => resolve(null);
-                el.src = `data:image/png;base64,${b64}`;
-            });
-            if (!img) continue;
-            const color = _flatpakExtractColor(img);
-            const coverB64 = _p8DrawCover(img, color);
-            const heroB64  = _fpDrawHero(color);
-            await window.api.savePico8CartArt(Number(id), coverB64, heroB64);
-            generated++;
-        } catch {}
-    }
-    if (generated > 0) await loadGames();
-}
-
-function _p8DrawCover(img, [r, g, b]) {
-    const c = document.createElement('canvas'); c.width = 600; c.height = 900;
-    const ctx = c.getContext('2d');
-    _fpGradient(ctx, 600, 900, r, g, b, 'diagonal');
-    // Draw cart image centered, pixelated, slightly enlarged from 128x128
-    ctx.imageSmoothingEnabled = false;
-    const sz = 320;
-    ctx.drawImage(img, (600 - sz) / 2, (900 - sz) / 2, sz, sz);
-    return c.toDataURL('image/png').split(',')[1];
-}
+// ── PICO-8 ART ────────────────────────────────────────────────────────────
+// Cover art is handled in main.js: the .p8.png IS the image, copied directly.
 
 // ── PICO-8 BBS ────────────────────────────────────────────────────────────
 // Opens the real Lexaloffle BBS in a BrowserWindow.
@@ -1685,10 +1651,8 @@ document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', () => {
     window.api.launchPico8Bbs(accent);
 });
 
-window.api.onPico8CartDownloaded(({ name, cartPath, gameId }) => {
+window.api.onPico8CartDownloaded(({ name }) => {
     loadGames();
-    // Generate cover art immediately for this cart
-    if (cartPath && gameId) generatePico8Art([{ id: gameId, cartPath }]);
     // Toast in CNGM window
     const toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--bg_menu);border:1px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.8);transition:opacity 0.4s;pointer-events:none;white-space:nowrap;';

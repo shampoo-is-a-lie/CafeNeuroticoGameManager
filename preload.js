@@ -20,7 +20,6 @@ contextBridge.exposeInMainWorld('api', {
                                 launchPico8Splore: () => ipcRenderer.invoke('launch-pico8-splore'),
                                 scanPico8: () => ipcRenderer.invoke('scan-pico8'),
                                 launchPico8Bbs: (accent) => ipcRenderer.invoke('launch-pico8-bbs', accent),
-                                savePico8CartArt: (id, c, h) => ipcRenderer.invoke('save-pico8-cart-art', id, c, h),
                                 onPico8CartDownloaded: (cb) => ipcRenderer.on('pico8-cart-downloaded', (e, d) => cb(d)),
                                 findFlatpakIcon: (n) => ipcRenderer.invoke('find-flatpak-icon', n),
                                 readFileBase64: (p) => ipcRenderer.invoke('read-file-base64', p),
