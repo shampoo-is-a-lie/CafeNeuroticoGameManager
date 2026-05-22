@@ -825,6 +825,12 @@ ipcMain.on('launch-game', (event, cmd) => {
         }
     }
 
+    // itch.io — delegate to itch app via its URL scheme
+    if (cmd.startsWith('itch://')) {
+        shell.openExternal(cmd);
+        return;
+    }
+
     // PICO-8 cart launch (binary resolved from settings at runtime)
     if (cmd.startsWith('pico8-cart:')) {
         const cartPath = cmd.slice('pico8-cart:'.length);
@@ -1131,6 +1137,86 @@ function parseHeroicInstalledIds(raw) {
     }
     return ids;
 }
+
+// ── ITCH.IO SYNC ──────────────────────────────────────────────────────────
+
+async function doItchSync() {
+    if (!db) return { success: false, message: 'Database not ready.' };
+    const home = os.homedir();
+    const butlerPaths = [
+        path.join(home, '.config', 'itch', 'db', 'butler.db'),
+        path.join(home, '.var', 'app', 'io.itch.itch', 'config', 'itch', 'db', 'butler.db')
+    ];
+    const butlerDbPath = butlerPaths.find(p => fs.existsSync(p));
+    if (!butlerDbPath) return { success: false, message: 'itch app not found. Install it and log in first.' };
+
+    let itchDb;
+    try { itchDb = new Database(butlerDbPath, { readonly: true }); }
+    catch(e) { return { success: false, message: 'Could not open itch database: ' + e.message }; }
+
+    let imported = 0;
+    try {
+        const games  = itchDb.prepare("SELECT * FROM games").all();
+        const caves  = itchDb.prepare("SELECT * FROM caves").all();
+        const imDir  = path.join(baseDir, 'GameManagerConfig', 'images');
+        const caveByGame = {};
+        for (const c of caves) caveByGame[c.game_id] = c;
+
+        for (const game of games) {
+            const cave = caveByGame[game.id];
+            let launchCmd = null, installed = 0;
+
+            if (cave) {
+                installed = 1;
+                try {
+                    const v = JSON.parse(cave.verdict || '{}');
+                    const linuxExe = (v.candidates || []).find(c => c.flavor === 'linux');
+                    launchCmd = (v.basePath && linuxExe)
+                        ? path.join(v.basePath, linuxExe.path)
+                        : `itch://launch/${cave.id}`;
+                } catch { launchCmd = `itch://launch/${cave.id}`; }
+            } else {
+                launchCmd = `itch://install/${game.id}`;
+            }
+
+            // Match existing record: prefer by itch://install/<id> key, then by title+store
+            let existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ?").get(`itch://install/${game.id}`);
+            if (!existing) existing = db.prepare("SELECT * FROM games WHERE LOWER(Store) LIKE '%itch%' AND LOWER(Game) = LOWER(?)").get(game.title);
+
+            let gameId;
+            if (existing) {
+                db.prepare("UPDATE games SET LaunchCommand=?, Installed=? WHERE id=?").run(launchCmd, installed, existing.id);
+                gameId = existing.id;
+            } else {
+                gameId = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,?)").run(game.title, 'itch.io', launchCmd, installed).lastInsertRowid;
+            }
+
+            // Download cover art if we have a URL and no existing cover
+            const hasCover = (existing?.CoverArt || '');
+            if (game.cover_url && !hasCover && gameId) {
+                (async () => {
+                    try {
+                        const res = await session.defaultSession.fetch(game.cover_url, { headers: { 'User-Agent': 'CNGM/1.0' } });
+                        const buf = Buffer.from(await res.arrayBuffer());
+                        const file = `${gameId}_itch_cover.png`;
+                        fs.writeFileSync(path.join(imDir, file), buf);
+                        db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${file}`, gameId);
+                    } catch {}
+                })();
+            }
+
+            imported++;
+        }
+    } catch(e) {
+        return { success: false, message: e.message };
+    } finally {
+        try { itchDb.close(); } catch {}
+    }
+
+    return { success: true, count: imported, message: `Synced ${imported} itch.io game${imported !== 1 ? 's' : ''}.` };
+}
+
+ipcMain.handle('sync-itch', async () => doItchSync());
 
 // --- SYNC ENGINES ---
 async function doHeroicSync() {

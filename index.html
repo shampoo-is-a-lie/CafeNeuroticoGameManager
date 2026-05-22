@@ -214,6 +214,7 @@
             <button data-filter="gog">GOG</button>
             <button data-filter="flatpak">Flatpak</button>
             <button data-filter="pico8">PICO-8</button>
+            <button data-filter="itch">itch.io</button>
             <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
             <button data-filter="others" data-i18n="html.filter_others">Others</button>
             <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
@@ -664,6 +665,14 @@
           <input type="password" id="igdb-client-secret" placeholder="CLIENT SECRET">
           <button id="btn-save-igdb" class="primary" style="padding: 8px; margin-top: 2px;" data-i18n="html.btn_igdb_save">Save & Test Connection</button>
           <div id="igdb-status" style="font-size: 11px; text-align: center; font-weight: bold; min-height: 14px; margin-top: 4px;"></div>
+        </div>
+
+        <!-- itch.io -->
+        <div class="tool-card connect-section" data-search="itch itch.io indie games sync library butler">
+          <div class="tool-card-title" style="color:#fa5c5c;">itch.io</div>
+          <p style="font-size:11px; color:var(--text_sec); margin:0 0 8px; line-height:1.6;">Reads your library from the itch desktop app. Installed Linux games launch directly from their folder; others open via the itch app.</p>
+          <div id="itch-sync-status" style="font-size:11px; color:var(--text_dim); min-height:16px; margin-bottom:4px;"></div>
+          <button id="btn-sync-itch" style="width:100%; font-size:11px; padding:8px 0; background:transparent; border:1px solid #fa5c5c; color:#fa5c5c;">Sync itch.io Library</button>
         </div>
 
         <!-- Heroic — secondary/legacy -->

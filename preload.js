@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('api', {
                                 findFlatpakIcon: (n) => ipcRenderer.invoke('find-flatpak-icon', n),
                                 readFileBase64: (p) => ipcRenderer.invoke('read-file-base64', p),
                                 saveFlatpakArt: (id, c, h, i) => ipcRenderer.invoke('save-flatpak-art', id, c, h, i),
+                                syncItch: () => ipcRenderer.invoke('sync-itch'),
                                 syncHeroic: () => ipcRenderer.invoke('sync-heroic'),
                                 launchAndWatchHeroic: () => ipcRenderer.invoke('launch-and-watch-heroic'),
                                 cancelHeroicWatch: () => ipcRenderer.invoke('cancel-heroic-watch'),

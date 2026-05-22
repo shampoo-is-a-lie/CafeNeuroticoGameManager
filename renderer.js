@@ -3,7 +3,7 @@ let currentGameId = null;
 
 function isManualCategory(game) {
     const s = (game.Store || '').toLowerCase();
-    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic/.test(s);
+    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic|itch/.test(s);
 }
 
 function openAddCmdDialog(gameId, gameName) {
@@ -541,6 +541,7 @@ function applyFilters() {
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
         else if (currentFilter === 'flatpak') matchesCategory = storeLower.includes('flatpak');
         else if (currentFilter === 'pico8') matchesCategory = storeLower.includes('pico-8');
+        else if (currentFilter === 'itch')  matchesCategory = storeLower.includes('itch');
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
@@ -756,6 +757,7 @@ function getStoreLogo(store) {
     if (s.includes('epic'))     return 'assets/logos/epic.png';
     if (s.includes('flatpak'))  return 'assets/logos/flatpak.svg';
     if (s.includes('pico-8') || s.includes('pico8')) return 'assets/logos/pico8.svg';
+    if (s.includes('itch'))  return 'assets/logos/itch.svg';
     if (s.includes('physical')) return 'assets/logos/physical.png';
     if (s.includes('emulat'))   return 'assets/logos/emulation.png';
     if (s.includes('app'))      return 'assets/logos/apps.png';
@@ -1734,6 +1736,17 @@ document.querySelectorAll('.p8-opt-btn').forEach(btn => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+document.getElementById('btn-sync-itch')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-sync-itch');
+    const statusEl = document.getElementById('itch-sync-status');
+    btn.disabled = true; btn.innerText = 'Syncing…'; statusEl.innerText = '';
+    const result = await window.api.syncItch();
+    btn.disabled = false; btn.innerText = 'Sync itch.io Library';
+    statusEl.style.color = result.success ? 'var(--accent)' : '#f57c00';
+    statusEl.innerText = result.message;
+    if (result.success) { await loadGames(); syncGrinderInstalled(); }
+});
+
 document.getElementById('btn-sync-heroic').addEventListener('click', async () => {
     const btn = document.getElementById('btn-sync-heroic');
     btn.innerText = t('status.syncing');
@@ -2163,7 +2176,7 @@ function updateHeroMosaic(filtered, filterName) {
         'all': { text: t('filter.all'), icon: 'all_games' }, 'playable': { text: t('filter.playable'), icon: 'playable' },
         'favs': { text: t('filter.favorites'), icon: 'favs' }, 'want': { text: t('filter.want'), icon: 'want_to_play' },
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
-        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8.svg' },
+        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8.svg' }, 'itch': { text: 'ITCH.IO', icon: 'itch.svg' },
         'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
         'apps': { text: t('filter.apps'), icon: 'apps' }
