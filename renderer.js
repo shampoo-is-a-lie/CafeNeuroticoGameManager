@@ -192,6 +192,9 @@ window.api.getSetting('language').then(activeLang => {
 window.api.getBaseDir().then(dir => {
     baseDir = dir;
 
+    // Load SEE filter visibility preferences at startup
+    applySeeFilterVisibility();
+
     // Load the UI Scale preference at startup
     window.api.getSetting('cngm_ui_scale').then(val => {
         if (val) {
@@ -1679,6 +1682,65 @@ window.api.onPico8CartDownloaded(({ name }) => {
     const connectBtn = document.getElementById('btn-open-connect');
     if (connectBtn) connectBtn.addEventListener('click', () => setTimeout(refreshPico8Status, 50));
 })();
+
+// ── SEE FILTER VISIBILITY CONFIG ─────────────────────────────────────────
+
+const SEE_FILTERS = [
+    { filter: 'all',        label: 'All Games'   },
+    { filter: 'installed',  label: 'Installed'   },
+    { filter: 'favs',       label: 'Favs'        },
+    { filter: 'want',       label: 'Want to Play' },
+    { filter: 'steam',      label: 'Steam'       },
+    { filter: 'epic',       label: 'Epic Games'  },
+    { filter: 'gog',        label: 'GOG'         },
+    { filter: 'flatpak',    label: 'Flatpak'     },
+    { filter: 'pico8',      label: 'PICO-8'      },
+    { filter: 'itch',       label: 'itch.io'     },
+    { filter: 'physical',   label: 'Physical'    },
+    { filter: 'others',     label: 'Others'      },
+    { filter: 'emulation',  label: 'Emulation'   },
+    { filter: 'apps',       label: 'Apps'        },
+];
+
+async function applySeeFilterVisibility() {
+    for (const { filter } of SEE_FILTERS) {
+        const val = await window.api.getSetting(`filter_vis_${filter}`);
+        const hidden = val === '0';
+        const btn = document.querySelector(`#sidebar-filters [data-filter="${filter}"]`);
+        if (btn) btn.style.display = hidden ? 'none' : '';
+    }
+}
+
+async function openSeeConfig() {
+    const grid = document.getElementById('see-config-grid');
+    grid.innerHTML = '';
+    for (const { filter, label } of SEE_FILTERS) {
+        const val = await window.api.getSetting(`filter_vis_${filter}`);
+        const isOn = val !== '0';
+        const btn = document.createElement('button');
+        btn.dataset.filter = filter;
+        btn.textContent = label;
+        btn.style.cssText = `font-size:11px; font-weight:700; padding:7px 10px; border-radius:5px; cursor:pointer; letter-spacing:0.5px; transition:all 0.15s; text-align:left; border:1px solid ${isOn ? 'var(--accent)' : 'var(--border_solid)'}; background:${isOn ? 'var(--accent)' : 'transparent'}; color:${isOn ? 'var(--bg)' : 'var(--text_dim)'};`;
+        btn.addEventListener('click', async () => {
+            const nowOn = btn.style.background !== 'transparent' && btn.style.background !== '';
+            const next = !nowOn;
+            btn.style.border = `1px solid ${next ? 'var(--accent)' : 'var(--border_solid)'}`;
+            btn.style.background = next ? 'var(--accent)' : 'transparent';
+            btn.style.color = next ? 'var(--bg)' : 'var(--text_dim)';
+            await window.api.setSetting(`filter_vis_${filter}`, next ? '1' : '0');
+            const sidebarBtn = document.querySelector(`#sidebar-filters [data-filter="${filter}"]`);
+            if (sidebarBtn) sidebarBtn.style.display = next ? '' : 'none';
+        });
+        grid.appendChild(btn);
+    }
+    document.getElementById('see-config-panel').style.display = 'flex';
+}
+
+const _closeSeeConfig = () => { document.getElementById('see-config-panel').style.display = 'none'; };
+document.getElementById('btn-see-config')?.addEventListener('click', openSeeConfig);
+document.getElementById('btn-see-config-close')?.addEventListener('click', _closeSeeConfig);
+document.getElementById('see-config-panel')?.addEventListener('click', e => { if (e.target === e.currentTarget) _closeSeeConfig(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('see-config-panel')?.style.display === 'flex') _closeSeeConfig(); });
 
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
 
