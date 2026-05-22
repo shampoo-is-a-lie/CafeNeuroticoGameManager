@@ -965,7 +965,8 @@ ipcMain.handle('launch-pico8-bbs', () => {
                 if (!db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd))
                     db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
             } catch {}
-            if (win && !win.isDestroyed()) win.webContents.send('pico8-cart-downloaded', { name });
+            const mainWin = BrowserWindow.getAllWindows().find(w => w !== _bbsWin && !w.isDestroyed());
+            if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name });
         });
     });
 
