@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net, session, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, net, session, shell, Menu } = require('electron');
 app.setName('cngm');
 const path = require('path');
 const os = require('os');
@@ -922,20 +922,48 @@ ipcMain.handle('launch-pico8-bbs', () => {
         webPreferences: { partition: 'persist:pico8bbs', nodeIntegration: false, contextIsolation: true }
     });
 
-    _bbsWin.loadURL('https://www.lexaloffle.com/bbs/?cat=7#mode=carts&orderby=featured&sub=5');
+    _bbsWin.loadURL('https://www.lexaloffle.com/bbs/?cat=7&carts_tab=1#mode=carts&sub=2');
 
+    const isCart = (url = '') => /\.p8(\.png)?($|\?|#)/.test(url) || url.endsWith('.p8') || url.endsWith('.p8.png');
+
+    // 1. Navigation to a .p8/.p8.png URL inside the window → download instead
+    _bbsWin.webContents.on('will-navigate', (event, url) => {
+        if (isCart(url)) { event.preventDefault(); _bbsWin.webContents.downloadURL(url); }
+    });
+
+    // 2. CART button / link that opens in a new tab → intercept and download
+    _bbsWin.webContents.setWindowOpenHandler(({ url }) => {
+        if (isCart(url)) { _bbsWin.webContents.downloadURL(url); return { action: 'deny' }; }
+        shell.openExternal(url); // non-cart links open in real browser
+        return { action: 'deny' };
+    });
+
+    // 3. Right-click context menu — "Save to PICO-8 Library" for cart images and links
+    _bbsWin.webContents.on('context-menu', (event, params) => {
+        const dlURL = [params.srcURL, params.linkURL].find(u => isCart(u));
+        const items = [];
+        if (dlURL) {
+            items.push({ label: '⬇  Save to PICO-8 Library', click: () => _bbsWin.webContents.downloadURL(dlURL) });
+            items.push({ type: 'separator' });
+        }
+        if (params.selectionText) items.push({ role: 'copy', label: 'Copy' });
+        if (params.linkURL && !isCart(params.linkURL)) items.push({ label: 'Open Link in Browser', click: () => shell.openExternal(params.linkURL) });
+        if (items.length) Menu.buildFromTemplate(items).popup({ window: _bbsWin });
+    });
+
+    // 4. will-download — redirect any .p8/.p8.png download to carts folder + import
     _bbsWin.webContents.session.on('will-download', (event, item) => {
         const filename = item.getFilename();
-        if (!filename.endsWith('.p8.png') && !filename.endsWith('.p8')) return;
+        if (!isCart(filename)) return;
         const destPath = path.join(cartsDir, filename);
         item.setSavePath(destPath);
         item.on('done', (e, state) => {
             if (state !== 'completed') return;
             const launchCmd = `pico8-cart:${destPath}`;
-            const name = filename.endsWith('.p8.png') ? filename.slice(0, -8) : filename.slice(0, -3);
+            const name = filename.replace(/\.p8\.png$/, '').replace(/\.p8$/, '');
             try {
-                const existing = db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd);
-                if (!existing) db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
+                if (!db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd))
+                    db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
             } catch {}
             if (win && !win.isDestroyed()) win.webContents.send('pico8-cart-downloaded', { name });
         });
