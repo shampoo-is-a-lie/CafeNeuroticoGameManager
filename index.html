@@ -202,11 +202,11 @@
           <legend data-i18n="html.legend_search">Search & Filter</legend>
           <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
         </fieldset>
-        <fieldset style="position:relative;">
-          <legend data-i18n="html.legend_see">See</legend>
-          <button id="btn-see-config" title="Configure visible filters" style="position:absolute; top:0; right:0; transform:translateY(-50%); width:22px; height:22px; padding:2px; background:var(--accent); border:none; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:1; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
-            <img src="assets/icons/see-config.svg" style="width:13px; height:13px; filter:brightness(0) invert(1); pointer-events:none;">
-          </button>
+        <fieldset>
+          <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+            <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
+            <button id="btn-see-config" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
+          </legend>
           <div class="filter-grid" id="sidebar-filters">
             <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
             <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
@@ -910,10 +910,10 @@
   <div id="see-config-panel" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.82); align-items:center; justify-content:center;">
     <div style="width:400px; max-height:80vh; background:var(--bg_menu); border:1px solid var(--border_solid); border-radius:10px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.9);">
       <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-bottom:1px solid var(--border_solid); flex-shrink:0;">
-        <span style="font-weight:900; font-size:13px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Configure Filters</span>
-        <button id="btn-see-config-close" style="background:transparent; border:none; color:var(--text_dim); font-size:18px; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
+        <span style="font-weight:900; font-size:16px; letter-spacing:2px; color:var(--accent); text-transform:uppercase;">Configure Filters</span>
+        <button id="btn-see-config-close" style="background:transparent; border:none; color:var(--text_dim); font-size:23px; cursor:pointer; padding:0 4px; line-height:1;">✕</button>
       </div>
-      <p style="font-size:11px; color:var(--text_dim); margin:10px 20px 4px; line-height:1.5;">Toggle which filter buttons appear in the SEE section.</p>
+      <p style="font-size:14px; color:var(--accent); font-weight:900; margin:10px 20px 4px; line-height:1.5;">Toggle which filter buttons appear in the SEE section.</p>
       <div id="see-config-grid" style="padding:10px 20px 16px; display:grid; grid-template-columns:1fr 1fr; gap:8px; overflow-y:auto;"></div>
     </div>
   </div>

@@ -1720,7 +1720,7 @@ async function openSeeConfig() {
         const btn = document.createElement('button');
         btn.dataset.filter = filter;
         btn.textContent = label;
-        btn.style.cssText = `font-size:11px; font-weight:700; padding:7px 10px; border-radius:5px; cursor:pointer; letter-spacing:0.5px; transition:all 0.15s; text-align:left; border:1px solid ${isOn ? 'var(--accent)' : 'var(--border_solid)'}; background:${isOn ? 'var(--accent)' : 'transparent'}; color:${isOn ? 'var(--bg)' : 'var(--text_dim)'};`;
+        btn.style.cssText = `font-size:14px; font-weight:700; padding:7px 10px; border-radius:5px; cursor:pointer; letter-spacing:0.5px; transition:all 0.15s; text-align:left; border:1px solid ${isOn ? 'var(--accent)' : 'var(--border_solid)'}; background:${isOn ? 'var(--accent)' : 'transparent'}; color:${isOn ? 'var(--bg)' : 'var(--text_dim)'};`;
         btn.addEventListener('click', async () => {
             const nowOn = btn.style.background !== 'transparent' && btn.style.background !== '';
             const next = !nowOn;
