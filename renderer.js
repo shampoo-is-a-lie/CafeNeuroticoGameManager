@@ -1677,11 +1677,18 @@ document.getElementById('btn-pico8-splore')?.addEventListener('click', async () 
 
 document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', () => {
     document.getElementById('modal-connect')?.classList.remove('active');
-    window.api.launchPico8Bbs();
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff77a8';
+    window.api.launchPico8Bbs(accent);
 });
 
 window.api.onPico8CartDownloaded(({ name }) => {
     loadGames();
+    // Brief toast in CNGM window
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--bg_menu);border:1px solid var(--accent);color:var(--accent);padding:10px 18px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.8);transition:opacity 0.4s;pointer-events:none;';
+    toast.textContent = `✓ ${name} — added to PICO-8 library`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
 });
 
 // Refresh PICO-8 status when Connect opens

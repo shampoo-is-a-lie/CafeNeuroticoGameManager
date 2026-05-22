@@ -839,6 +839,13 @@ ipcMain.on('launch-game', (event, cmd) => {
 
 // ── PICO-8 ────────────────────────────────────────────────────────────────
 
+function humanizeCartName(filename) {
+    let name = filename.replace(/\.p8\.png$/, '').replace(/\.p8$/, '');
+    name = name.replace(/_\d+$/, '');               // strip BBS pid suffix
+    name = name.replace(/[_-]+/g, ' ').trim();
+    return name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || filename;
+}
+
 function _getPico8Bin() {
     const row = db.prepare("SELECT value FROM settings WHERE key='pico8_path'").get();
     if (row?.value && fs.existsSync(row.value)) return row.value;
@@ -886,7 +893,7 @@ ipcMain.handle('scan-pico8', () => {
         const cartPath = path.join(cartsDir, file);
         const launchCmd = `pico8-cart:${cartPath}`;
         found.add(launchCmd);
-        const name = hasPng ? file.slice(0, -8) : file.slice(0, -3);
+        const name = humanizeCartName(file);
         const row = db.prepare("SELECT id, Store, CoverArt FROM games WHERE LaunchCommand = ?").get(launchCmd);
         if (row) {
             const stores = (row.Store || '').split(',').map(s => s.trim());
@@ -908,9 +915,18 @@ ipcMain.handle('scan-pico8', () => {
     return { count: found.size, newCarts };
 });
 
+ipcMain.handle('save-pico8-cart-art', (e, gameId, coverB64, heroB64) => {
+    const ts = Date.now(), imDir = path.join(baseDir, 'GameManagerConfig', 'images');
+    const cFile = `${gameId}_p8_cover_${ts}.png`, hFile = `${gameId}_p8_hero_${ts}.png`;
+    fs.writeFileSync(path.join(imDir, cFile), Buffer.from(coverB64, 'base64'));
+    fs.writeFileSync(path.join(imDir, hFile), Buffer.from(heroB64, 'base64'));
+    db.prepare("UPDATE games SET CoverArt=?, HeroArt=? WHERE id=?").run(`GameManagerConfig/images/${cFile}`, `GameManagerConfig/images/${hFile}`, gameId);
+    return true;
+});
+
 let _bbsWin = null;
 
-ipcMain.handle('launch-pico8-bbs', () => {
+ipcMain.handle('launch-pico8-bbs', (e, accent = '#ff77a8') => {
     const cartsDir = path.join(baseDir, 'GameManagerConfig', 'pico8', 'carts');
     try { fs.mkdirSync(cartsDir, { recursive: true }); } catch {}
 
@@ -926,19 +942,44 @@ ipcMain.handle('launch-pico8-bbs', () => {
 
     const isCart = (url = '') => /\.p8(\.png)?($|\?|#)/.test(url) || url.endsWith('.p8') || url.endsWith('.p8.png');
 
-    // 1. Navigation to a .p8/.p8.png URL inside the window → download instead
+    const injectStyle = () => {
+        const a = accent.replace(/['"\\]/g, '');
+        _bbsWin.webContents.executeJavaScript(`
+            if (!document.getElementById('cngm-p8-style')) {
+                const s = document.createElement('style');
+                s.id = 'cngm-p8-style';
+                s.textContent = \`
+                    ::-webkit-scrollbar{width:8px;height:8px}
+                    ::-webkit-scrollbar-track{background:#111}
+                    ::-webkit-scrollbar-thumb{background:${a}66;border-radius:4px}
+                    ::-webkit-scrollbar-thumb:hover{background:${a}}
+                    #cngm-bar{position:fixed;top:0;left:0;right:0;height:32px;background:#0d0d0d;border-bottom:1px solid ${a}44;z-index:99999;display:flex;align-items:center;padding:0 14px;gap:10px;font-family:monospace,monospace;font-size:11px;pointer-events:none}
+                    #cngm-bar b{color:${a};letter-spacing:2px;font-size:12px}
+                    #cngm-bar span{color:#555}
+                \`;
+                document.head.appendChild(s);
+                const bar = document.createElement('div');
+                bar.id = 'cngm-bar';
+                bar.innerHTML = '<b>CNGM</b><span>Right-click any cart image · CART button · or click a .p8.png link → saves to your library</span>';
+                document.body.insertBefore(bar, document.body.firstChild);
+                document.documentElement.style.paddingTop = '32px';
+            }
+        `).catch(() => {});
+    };
+
+    _bbsWin.webContents.on('did-finish-load', injectStyle);
+    _bbsWin.webContents.on('did-navigate', injectStyle);
+
     _bbsWin.webContents.on('will-navigate', (event, url) => {
         if (isCart(url)) { event.preventDefault(); _bbsWin.webContents.downloadURL(url); }
     });
 
-    // 2. CART button / link that opens in a new tab → intercept and download
     _bbsWin.webContents.setWindowOpenHandler(({ url }) => {
         if (isCart(url)) { _bbsWin.webContents.downloadURL(url); return { action: 'deny' }; }
-        shell.openExternal(url); // non-cart links open in real browser
+        shell.openExternal(url);
         return { action: 'deny' };
     });
 
-    // 3. Right-click context menu — "Save to PICO-8 Library" for cart images and links
     _bbsWin.webContents.on('context-menu', (event, params) => {
         const dlURL = [params.srcURL, params.linkURL].find(u => isCart(u));
         const items = [];
@@ -951,7 +992,6 @@ ipcMain.handle('launch-pico8-bbs', () => {
         if (items.length) Menu.buildFromTemplate(items).popup({ window: _bbsWin });
     });
 
-    // 4. will-download — redirect any .p8/.p8.png download to carts folder + import
     _bbsWin.webContents.session.on('will-download', (event, item) => {
         const filename = item.getFilename();
         if (!isCart(filename)) return;
@@ -959,12 +999,26 @@ ipcMain.handle('launch-pico8-bbs', () => {
         item.setSavePath(destPath);
         item.on('done', (e, state) => {
             if (state !== 'completed') return;
+            const name = humanizeCartName(filename);
             const launchCmd = `pico8-cart:${destPath}`;
-            const name = filename.replace(/\.p8\.png$/, '').replace(/\.p8$/, '');
             try {
                 if (!db.prepare("SELECT id FROM games WHERE LaunchCommand = ?").get(launchCmd))
                     db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,1)").run(name, 'PICO-8', launchCmd);
             } catch {}
+            // Toast in BBS window
+            const a = accent.replace(/['"\\]/g, '');
+            if (_bbsWin && !_bbsWin.isDestroyed()) {
+                _bbsWin.webContents.executeJavaScript(`
+                    (function(){
+                        const t=document.createElement('div');
+                        t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:999999;background:#0d0d0d;border:1px solid ${a};color:${a};padding:10px 20px;border-radius:6px;font-family:monospace;font-size:13px;font-weight:700;letter-spacing:1px;box-shadow:0 6px 24px rgba(0,0,0,0.9);transition:opacity 0.4s';
+                        t.textContent='✓ ${name.replace(/'/g, "\\'")} saved to library';
+                        document.body.appendChild(t);
+                        setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400)},2800);
+                    })()
+                `).catch(() => {});
+            }
+            // Notify main window
             const mainWin = BrowserWindow.getAllWindows().find(w => w !== _bbsWin && !w.isDestroyed());
             if (mainWin) mainWin.webContents.send('pico8-cart-downloaded', { name });
         });
