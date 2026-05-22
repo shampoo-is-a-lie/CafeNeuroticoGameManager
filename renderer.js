@@ -768,55 +768,9 @@ function _p8DrawCover(img, [r, g, b]) {
     return c.toDataURL('image/png').split(',')[1];
 }
 
-// ── PICO-8 BBS PANEL ──────────────────────────────────────────────────────
-
-let _p8Query = '';
-
-function _p8PanelEl() { return document.getElementById('p8-bbs-panel'); }
-
-async function openPico8Bbs() {
-    _p8Query = '';
-    document.getElementById('p8-search-input').value = '';
-    _p8PanelEl().style.display = 'flex';
-    await _p8Load();
-}
-
-function closePico8Bbs() { _p8PanelEl().style.display = 'none'; }
-
-async function _p8Load() {
-    const statusEl = document.getElementById('p8-bbs-status');
-    const grid = document.getElementById('p8-bbs-grid');
-    statusEl.innerText = 'Loading…';
-    grid.innerHTML = '';
-    const result = await window.api.fetchPico8Bbs(_p8Query);
-    if (!result.success) {
-        statusEl.innerText = `Error: ${result.error || 'Could not reach BBS'}`;
-        return;
-    }
-    statusEl.innerText = `${result.carts.length} carts`;
-    for (const cart of result.carts) {
-        const card = document.createElement('div');
-        card.className = 'p8-cart-card';
-        const thumb = cart.thumbnail
-            ? `<img src="${cart.thumbnail}" alt="" loading="lazy">`
-            : `<div style="color:var(--text_dim);font-size:10px;padding:8px;text-align:center;">No image</div>`;
-        const dlLabel = cart.alreadyHave ? '✓ In Library' : '↓ Download';
-        const dlClass = cart.alreadyHave ? 'p8-dl-btn done' : 'p8-dl-btn';
-        card.innerHTML = `
-            <div class="p8-cart-thumb">${thumb}</div>
-            <div class="p8-cart-info">
-                <div class="p8-cart-title">${cart.title}</div>
-                <div class="p8-cart-author">by ${cart.author || '?'}</div>
-                <button class="${dlClass}"
-                    data-pid="${cart.pid}"
-                    data-url="${cart.downloadUrl}"
-                    data-title="${cart.title.replace(/[<>"]/g, '')}"
-                    data-thumb="${cart.thumbnail || ''}"
-                    ${cart.alreadyHave ? 'disabled' : ''}>${dlLabel}</button>
-            </div>`;
-        grid.appendChild(card);
-    }
-}
+// ── PICO-8 BBS ────────────────────────────────────────────────────────────
+// Opens the real Lexaloffle BBS in a BrowserWindow.
+// Downloads of .p8/.p8.png files are intercepted and saved to the carts folder.
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1723,40 +1677,11 @@ document.getElementById('btn-pico8-splore')?.addEventListener('click', async () 
 
 document.getElementById('btn-pico8-open-bbs')?.addEventListener('click', () => {
     document.getElementById('modal-connect')?.classList.remove('active');
-    openPico8Bbs();
+    window.api.launchPico8Bbs();
 });
 
-document.getElementById('btn-pico8-bbs-close')?.addEventListener('click', closePico8Bbs);
-document.getElementById('btn-p8-reload')?.addEventListener('click', _p8Load);
-
-document.getElementById('btn-p8-search')?.addEventListener('click', async () => {
-    _p8Query = document.getElementById('p8-search-input').value.trim();
-    await _p8Load();
-});
-
-document.getElementById('p8-search-input')?.addEventListener('keydown', async (e) => {
-    if (e.key === 'Enter') { _p8Query = e.target.value.trim(); await _p8Load(); }
-    if (e.key === 'Escape') closePico8Bbs();
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && _p8PanelEl()?.style.display === 'flex') closePico8Bbs();
-});
-
-document.getElementById('p8-bbs-grid')?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('.p8-dl-btn');
-    if (!btn || btn.disabled) return;
-    const { pid, url, title, thumb } = btn.dataset;
-    btn.innerText = 'Downloading…'; btn.disabled = true;
-    const result = await window.api.downloadPico8Cart(Number(pid), url, title);
-    if (result.success) {
-        btn.innerText = '✓ In Library'; btn.classList.add('done');
-        if (thumb) window.api.savePico8BbsThumb(result.gameId, thumb);
-        loadGames();
-    } else {
-        btn.innerText = '↓ Download'; btn.disabled = false;
-        showAlert('Download failed: ' + (result.error || 'Unknown error'));
-    }
+window.api.onPico8CartDownloaded(({ name }) => {
+    loadGames();
 });
 
 // Refresh PICO-8 status when Connect opens
