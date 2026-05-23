@@ -1809,18 +1809,7 @@ document.getElementById('btn-hero-update-steam')?.addEventListener('click', asyn
     btn.style.animation = '';
     loadGames();
 });
-document.getElementById('btn-hero-update-gog')?.addEventListener('click', () => {
-    const btn = document.getElementById('btn-hero-update-gog');
-    btn.style.animation = 'spin 0.6s linear';
-    setTimeout(() => { btn.style.animation = ''; }, 650);
-    window.api.openGrinder('sync-gog');
-});
-document.getElementById('btn-hero-update-epic')?.addEventListener('click', () => {
-    const btn = document.getElementById('btn-hero-update-epic');
-    btn.style.animation = 'spin 0.6s linear';
-    setTimeout(() => { btn.style.animation = ''; }, 650);
-    window.api.openGrinder('sync-epic');
-});
+
 document.getElementById('btn-hero-update-others')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-hero-update-others');
     btn.style.animation = 'spin 0.6s linear infinite';
