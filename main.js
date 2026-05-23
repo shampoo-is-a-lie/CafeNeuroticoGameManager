@@ -403,8 +403,9 @@ ipcMain.handle('set-launch-command', (e, gameId, cmd) => {
 ipcMain.handle('open-grinder', (_, gameName) => {
     const p = findGrinderPath();
     if (!p) return { ok: false, error: 'GRINDER not found.' };
-    // Pass 'search <name>' args so GRINDER pre-fills the search box
-    const args = gameName ? ['search', gameName] : [];
+    const args = !gameName ? []
+              : gameName.startsWith('sync-') ? [gameName]
+              : ['search', gameName];
     const child = spawn(p, args, { detached: true, stdio: 'ignore' });
     child.unref();
     return { ok: true };

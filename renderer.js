@@ -581,7 +581,8 @@ function applyFilters() {
         ['gog-hero-btns',      currentFilter === 'gog'],
         ['epic-hero-btns',     currentFilter === 'epic'],
         ['flatpak-hero-btns',  currentFilter === 'flatpak'],
-        ['itch-hero-btns',     currentFilter === 'itch']
+        ['itch-hero-btns',     currentFilter === 'itch'],
+        ['others-hero-btns',   currentFilter === 'others']
     ].forEach(([id, show]) => {
         const el = document.getElementById(id);
         if (el) el.style.display = show ? 'flex' : 'none';
@@ -1792,10 +1793,41 @@ function getThemeColors() {
 document.getElementById('btn-steam-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('steam://open/main'));
 document.getElementById('btn-grinder-open-gog-hero')?.addEventListener('click', () => window.api.openGrinder());
 document.getElementById('btn-grinder-open-epic-hero')?.addEventListener('click', () => window.api.openGrinder());
+document.getElementById('btn-grinder-open-others-hero')?.addEventListener('click', () => window.api.openGrinder());
 document.getElementById('btn-itch-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('itch://library'));
 document.getElementById('btn-gog-store-hero')?.addEventListener('click', () => window.api.openStoreBrowser('gog', getThemeColors()));
 document.getElementById('btn-epic-store-hero')?.addEventListener('click', () => window.api.openStoreBrowser('epic', getThemeColors()));
 document.getElementById('btn-flathub-hero')?.addEventListener('click', () => window.api.openStoreBrowser('flathub', getThemeColors()));
+
+document.getElementById('btn-hero-update-steam')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-hero-update-steam');
+    const steamId  = await window.api.getSetting('steam_id');
+    const steamKey = await window.api.getSetting('steam_api_key');
+    if (!steamId || !steamKey) { await showAlert(t('alert.steam_id_required')); return; }
+    btn.style.animation = 'spin 0.6s linear infinite';
+    await window.api.syncSteam(steamId, steamKey);
+    btn.style.animation = '';
+    loadGames();
+});
+document.getElementById('btn-hero-update-gog')?.addEventListener('click', () => {
+    const btn = document.getElementById('btn-hero-update-gog');
+    btn.style.animation = 'spin 0.6s linear';
+    setTimeout(() => { btn.style.animation = ''; }, 650);
+    window.api.openGrinder('sync-gog');
+});
+document.getElementById('btn-hero-update-epic')?.addEventListener('click', () => {
+    const btn = document.getElementById('btn-hero-update-epic');
+    btn.style.animation = 'spin 0.6s linear';
+    setTimeout(() => { btn.style.animation = ''; }, 650);
+    window.api.openGrinder('sync-epic');
+});
+document.getElementById('btn-hero-update-others')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-hero-update-others');
+    btn.style.animation = 'spin 0.6s linear infinite';
+    await syncGrinderInstalled();
+    btn.style.animation = '';
+    loadGames();
+});
 
 document.getElementById('btn-p8-splore-hero')?.addEventListener('click', async () => {
     const ok = await window.api.launchPico8Splore();
