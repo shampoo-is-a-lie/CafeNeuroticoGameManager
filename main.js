@@ -466,7 +466,7 @@ ipcMain.handle('grinder-status', () => {
     try {
         const gdb = new Database(grinderDb, { readonly: true });
         const installed = gdb.prepare("SELECT id FROM games WHERE installed=1").all();
-        const allGames  = gdb.prepare("SELECT id, title, store, app_id, installed, platform FROM games").all();
+        const allGames  = gdb.prepare("SELECT id, title, store, app_id, installed, platform, is_dlc FROM games").all();
         gdb.close();
         return { found: true, path: grinderPath,
                  installedGames: installed.map(r => r.id),
@@ -482,7 +482,19 @@ ipcMain.handle('sync-all-grinder-games', (_, allGrinderGames, grinderPath) => {
     if (!allGrinderGames?.length) return { synced: 0 };
     let synced = 0;
 
+    // Build set of DLC grinder IDs so we can clean up any previously-synced entries
+    const dlcIds = new Set(allGrinderGames.filter(g => g.is_dlc).map(g => g.id));
+
+    // Remove any CNGM entries that were auto-synced from GRINDER but are DLC/non-game content
+    if (dlcIds.size) {
+        const placeholders = Array.from(dlcIds).map(() => '?').join(',');
+        db.prepare(`DELETE FROM games WHERE GrinderGameId IN (${placeholders})`).run(...dlcIds);
+    }
+
     for (const gg of allGrinderGames) {
+        // Never bring DLC/soundtrack/extras into CNGM's library
+        if (gg.is_dlc) continue;
+
         // Try to find a matching CNGM game by app_id embedded in the Heroic LaunchCommand
         let existing = null;
         if (gg.app_id) {
@@ -504,7 +516,8 @@ ipcMain.handle('sync-all-grinder-games', (_, allGrinderGames, grinderPath) => {
                 let launchCmd = '';
                 if (gg.store === 'gog' && gg.app_id)   launchCmd = `heroic://launch/gog/${gg.app_id}`;
                 if (gg.store === 'epic' && gg.app_id)  launchCmd = `heroic://launch/epic/${gg.app_id}`;
-                const store = gg.store === 'gog' ? 'GOG' : gg.store === 'epic' ? 'EPIC' : 'GRINDER';
+                const store = gg.store === 'gog' ? 'GOG' : gg.store === 'epic' ? 'EPIC' : 'Others';
+                if (!launchCmd) launchCmd = `grinder://${gg.id}`;
                 db.prepare(
                     "INSERT INTO games (Game, LaunchCommand, Store, Installed, GrinderGameId) VALUES (?, ?, ?, ?, ?)"
                 ).run(gg.title || gg.id, launchCmd, store, gg.installed ? 1 : 0, gg.id);
@@ -788,6 +801,13 @@ ipcMain.handle('add-game', (e, name) => {
         const info = db.prepare("INSERT INTO games (Game, Store, LaunchCommand, FAV, WANT_TO_PLAY) VALUES (?, '', '', 'NO', 'NO')").run(gameName);
         return { success: true, id: info.lastInsertRowid };
     } catch (err) { return { success: false }; }
+});
+
+ipcMain.handle('set-game-flag', (_, id, field, value) => {
+    const allowed = ['FAV', 'WANT_TO_PLAY'];
+    if (!allowed.includes(field)) return { ok: false };
+    db.prepare(`UPDATE games SET ${field}=? WHERE id=?`).run(value, id);
+    return { ok: true };
 });
 
 ipcMain.handle('update-game', (event, id, data) => {
@@ -1224,6 +1244,78 @@ async function doItchSync() {
 }
 
 ipcMain.handle('sync-itch', async () => doItchSync());
+
+// ── STORE BROWSER ─────────────────────────────────────────────────────────
+
+const STORE_CONFIGS = {
+    gog:     { url: 'https://www.gog.com/',         label: 'GOG STORE'  },
+    epic:    { url: 'https://store.epicgames.com/', label: 'EPIC STORE' },
+    flathub: { url: 'https://flathub.org/',         label: 'FLATHUB'    }
+};
+const _storeWins = {};
+
+ipcMain.handle('open-store-browser', (e, store, colors) => {
+    const cfg = STORE_CONFIGS[store];
+    if (!cfg) return;
+    if (_storeWins[store] && !_storeWins[store].isDestroyed()) { _storeWins[store].focus(); return; }
+
+    const { bg, bgMenu, accent, textDim, borderSolid } = colors;
+
+    const win = new BrowserWindow({
+        width: 1400, height: 900, frame: false,
+        webPreferences: { partition: `persist:store-${store}` }
+    });
+    _storeWins[store] = win;
+    win.on('closed', () => { delete _storeWins[store]; });
+
+    const injectTitlebar = () => {
+        const script = `(function(){
+            if(document.getElementById('cngm-sb'))return;
+            var bg=${JSON.stringify(bg)},bgMenu=${JSON.stringify(bgMenu)},accent=${JSON.stringify(accent)},textDim=${JSON.stringify(textDim)},borderSolid=${JSON.stringify(borderSolid)},label=${JSON.stringify(cfg.label)};
+            var st=document.createElement('style');
+            st.textContent='::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:'+bg+'}::-webkit-scrollbar-thumb{background:'+accent+';border-radius:4px}::-webkit-scrollbar-thumb:hover{opacity:.8}body{margin-top:38px!important}html{padding-top:0!important}';
+            document.head.appendChild(st);
+            var tb=document.createElement('div');
+            tb.id='cngm-sb';
+            tb.style.cssText='position:fixed;top:0;left:0;right:0;height:38px;background:'+bgMenu+';border-bottom:1px solid '+borderSolid+';display:flex;align-items:center;justify-content:space-between;z-index:2147483647;-webkit-app-region:drag;font-family:Raleway,sans-serif;box-sizing:border-box;';
+            var brand=document.createElement('div');
+            brand.style.cssText='padding:0 16px;font-size:10px;font-weight:900;color:'+textDim+';letter-spacing:3px;';
+            brand.textContent=label;
+            var bs='background:transparent;border:none;color:'+accent+';width:42px;height:38px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;-webkit-app-region:no-drag;transition:background 0.1s;';
+            function mkBtn(html,onclick){var b=document.createElement('button');b.style.cssText=bs;b.innerHTML=html;b.onclick=onclick;return b;}
+            var bk=mkBtn('&#8592;',function(){history.back();});
+            var fw=mkBtn('&#8594;',function(){history.forward();});
+            var cl=mkBtn('&#x2715;',function(){window.close();});
+            cl.onmouseover=function(){this.style.background='#d32f2f';this.style.color='white';};
+            cl.onmouseout=function(){this.style.background='transparent';this.style.color=accent;};
+            var ctrls=document.createElement('div');
+            ctrls.style.cssText='display:flex;height:100%;-webkit-app-region:no-drag;';
+            ctrls.appendChild(bk);ctrls.appendChild(fw);ctrls.appendChild(cl);
+            tb.appendChild(brand);tb.appendChild(ctrls);
+            if(document.body)document.body.prepend(tb);
+            function pushFixed(){
+                var sels=['header','nav','[role="banner"]','[class*="header"]','[class*="Header"]','[class*="navbar"]','[class*="topbar"]','[class*="top-bar"]','[class*="nav-bar"]','[class*="navigation"]'];
+                sels.forEach(function(sel){
+                    try{document.querySelectorAll(sel).forEach(function(el){
+                        if(el.id==='cngm-sb')return;
+                        var s=window.getComputedStyle(el);
+                        if(s.position==='fixed'){var t=parseFloat(s.top)||0;if(t<38)el.style.setProperty('top',(t+38)+'px','important');}
+                    });}catch(e){}
+                });
+            }
+            setTimeout(pushFixed,200);
+            setTimeout(pushFixed,800);
+        })();`;
+        win.webContents.executeJavaScript(script).catch(() => {});
+    };
+
+    win.webContents.on('did-finish-load', injectTitlebar);
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url);
+        return { action: 'deny' };
+    });
+    win.loadURL(cfg.url);
+});
 
 // --- SYNC ENGINES ---
 async function doHeroicSync() {

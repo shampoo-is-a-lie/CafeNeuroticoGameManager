@@ -2,6 +2,7 @@ let allGames = [];
 let currentGameId = null;
 
 function isManualCategory(game) {
+    if (game.GrinderGameId) return false;
     const s = (game.Store || '').toLowerCase();
     return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic|itch/.test(s);
 }
@@ -550,7 +551,7 @@ function applyFilters() {
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
         else if (currentFilter === 'installed') {
             const cat = (game.Store || '').toLowerCase();
-            const isManual = cat.includes('others') || cat.includes('emulation') || cat.includes('physical') || cat.includes('apps');
+            const isManual = !game.GrinderGameId && (cat.includes('others') || cat.includes('emulation') || cat.includes('physical') || cat.includes('apps'));
             matchesCategory = isManual ? !!game.LaunchCommand : game.Installed == 1;
         }
 
@@ -575,10 +576,12 @@ function applyFilters() {
 
     // Show category hero buttons
     [
-        ['pico8-hero-btns',   currentFilter === 'pico8'],
-        ['steam-hero-btns',   currentFilter === 'steam'],
-        ['grinder-hero-btns', currentFilter === 'epic' || currentFilter === 'gog'],
-        ['itch-hero-btns',    currentFilter === 'itch']
+        ['pico8-hero-btns',    currentFilter === 'pico8'],
+        ['steam-hero-btns',    currentFilter === 'steam'],
+        ['gog-hero-btns',      currentFilter === 'gog'],
+        ['epic-hero-btns',     currentFilter === 'epic'],
+        ['flatpak-hero-btns',  currentFilter === 'flatpak'],
+        ['itch-hero-btns',     currentFilter === 'itch']
     ].forEach(([id, show]) => {
         const el = document.getElementById(id);
         if (el) el.style.display = show ? 'flex' : 'none';
@@ -608,7 +611,7 @@ function renderTable(recent, regular) {
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
         const storeLc = (game.Store || '').toLowerCase();
-        const isGrinderStore = storeLc.includes('gog') || storeLc.includes('epic');
+        const isGrinderStore = storeLc.includes('gog') || storeLc.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
         let actionCell;
         if (game.LaunchCommand) {
@@ -788,13 +791,16 @@ function renderGallery(recent, regular) {
         const badgeHtml = logo ? `<div class="gallery-store-badge" style="-webkit-mask-image: url('${logo}');"></div>` : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
         const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
+        const isFav  = game.FAV === 'YES';
+        const isWant = game.WANT_TO_PLAY === 'YES';
+        const flagsHtml = `<div class="gallery-flag-btns${isFav || isWant ? ' has-active' : ''}"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">★</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">⚑</button></div>`;
         let actionBtn = '';
         if (game.LaunchCommand) {
             if (isInstalled) {
                 actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
             } else {
                 const stL = (game.Store || '').toLowerCase();
-                if (stL.includes('gog') || stL.includes('epic')) {
+                if (stL.includes('gog') || stL.includes('epic') || game.GrinderGameId) {
                     actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
                 } else {
                     const installCmd = getInstallCommand(game);
@@ -805,7 +811,7 @@ function renderGallery(recent, regular) {
             actionBtn = `<button class="btn-install-gallery" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
         }
         div.innerHTML = `
-        <div class="gallery-cover-wrap">${imgHtml}${dotHtml}${badgeHtml}</div>
+        <div class="gallery-cover-wrap">${imgHtml}${dotHtml}${badgeHtml}${flagsHtml}</div>
         <div class="gallery-title">${game.Game}</div>
         ${actionBtn}
         `;
@@ -851,7 +857,33 @@ _grid.addEventListener('click', (e) => {
     const play = e.target.closest('.btn-play-gallery');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install-gallery');
-    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); return; }
+
+    const favBtn = e.target.closest('.btn-gallery-fav');
+    if (favBtn) {
+        e.stopPropagation();
+        const id = favBtn.dataset.fav;
+        const game = allGames.find(g => String(g.id) === id);
+        if (!game) return;
+        game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
+        favBtn.classList.toggle('active', game.FAV === 'YES');
+        favBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.FAV === 'YES' || favBtn.nextElementSibling?.classList.contains('active'));
+        window.api.setGameFlag(id, 'FAV', game.FAV);
+        return;
+    }
+
+    const wantBtn = e.target.closest('.btn-gallery-want');
+    if (wantBtn) {
+        e.stopPropagation();
+        const id = wantBtn.dataset.want;
+        const game = allGames.find(g => String(g.id) === id);
+        if (!game) return;
+        game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+        wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
+        wantBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.WANT_TO_PLAY === 'YES' || wantBtn.previousElementSibling?.classList.contains('active'));
+        window.api.setGameFlag(id, 'WANT_TO_PLAY', game.WANT_TO_PLAY);
+        return;
+    }
 });
 _grid.addEventListener('dblclick', (e) => {
     const item = e.target.closest('.gallery-item[data-id]');
@@ -946,7 +978,7 @@ function openGamepage(game) {
             playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
         } else {
             const store = (game.Store || '').toLowerCase();
-            const isGrinderStore = store.includes('gog') || store.includes('epic');
+            const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
             playBtn.innerText = t('status.install');
             playBtn.className = 'btn-install-primary';
             playBtn.style.display = 'block';
@@ -1744,10 +1776,26 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.g
 
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
 
-// ── STEAM / GRINDER / ITCH HERO BUTTONS ──────────────────────────────────
+// ── STEAM / GRINDER / ITCH / STORE HERO BUTTONS ──────────────────────────
+
+function getThemeColors() {
+    const s = getComputedStyle(document.documentElement);
+    return {
+        bg:          s.getPropertyValue('--bg').trim(),
+        bgMenu:      s.getPropertyValue('--bg_menu').trim(),
+        accent:      s.getPropertyValue('--accent').trim(),
+        textDim:     s.getPropertyValue('--text_dim').trim(),
+        borderSolid: s.getPropertyValue('--border_solid').trim()
+    };
+}
+
 document.getElementById('btn-steam-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('steam://open/main'));
-document.getElementById('btn-grinder-open-hero')?.addEventListener('click', () => window.api.openGrinder());
+document.getElementById('btn-grinder-open-gog-hero')?.addEventListener('click', () => window.api.openGrinder());
+document.getElementById('btn-grinder-open-epic-hero')?.addEventListener('click', () => window.api.openGrinder());
 document.getElementById('btn-itch-open-hero')?.addEventListener('click', () => window.api.openInstallUrl('itch://library'));
+document.getElementById('btn-gog-store-hero')?.addEventListener('click', () => window.api.openStoreBrowser('gog', getThemeColors()));
+document.getElementById('btn-epic-store-hero')?.addEventListener('click', () => window.api.openStoreBrowser('epic', getThemeColors()));
+document.getElementById('btn-flathub-hero')?.addEventListener('click', () => window.api.openStoreBrowser('flathub', getThemeColors()));
 
 document.getElementById('btn-p8-splore-hero')?.addEventListener('click', async () => {
     const ok = await window.api.launchPico8Splore();
@@ -2074,22 +2122,32 @@ async function updateGrinderRow(game) {
     const openBtn   = document.getElementById('btn-open-grinder-detail');
     if (!row) return;
 
-    // Show for Heroic Epic AND GOG games when GRINDER is present
     const epicMatch = (game.LaunchCommand || '').match(/heroic:\/\/launch\/epic\/([^"\s]+)/i);
     const gogMatch  = (game.LaunchCommand || '').match(/heroic:\/\/launch\/gog\/([^"\s]+)/i);
     const storeMatch = epicMatch || gogMatch;
+    const isCustomGrinder = !storeMatch && !!game.GrinderGameId;
     const s = await window.api.grinderStatus();
-    if (!storeMatch || !s.found) { row.style.display = 'none'; return; }
 
-    const grinderGameId = epicMatch ? `epic_${epicMatch[1]}` : `gog_${gogMatch[1]}`;
+    // Show for GOG/Epic (Heroic) games AND custom Others games managed by GRINDER
+    if ((!storeMatch && !isCustomGrinder) || !s.found) { row.style.display = 'none'; return; }
+
     row.style.display = 'flex';
     openBtn.style.display = 'none';
     toggleBtn.style.display = 'none';
 
+    // Custom/Others games: always GRINDER-managed, no Heroic toggle
+    if (isCustomGrinder) {
+        statusEl.textContent = '✓ GRINDER — default launcher';
+        statusEl.style.color = '#66bb6a';
+        openBtn.style.display = '';
+        openBtn.onclick = () => window.api.openGrinder(game.Game);
+        return;
+    }
+
+    const grinderGameId = epicMatch ? `epic_${epicMatch[1]}` : `gog_${gogMatch[1]}`;
     const inGrinder = s.installedGames?.includes(grinderGameId);
 
     if (game.prefer_heroic) {
-        // User explicitly chose Heroic
         statusEl.textContent = 'Launching via Heroic (by preference)';
         statusEl.style.color = '#f57c00';
         toggleBtn.style.display = inGrinder ? '' : 'none';
@@ -2102,7 +2160,6 @@ async function updateGrinderRow(game) {
             await loadGames();
         };
     } else if (game.GrinderGameId || inGrinder) {
-        // GRINDER is active (auto or manual)
         statusEl.textContent = '✓ GRINDER — default launcher';
         statusEl.style.color = '#66bb6a';
         toggleBtn.textContent = 'Switch to Heroic';
@@ -2115,7 +2172,6 @@ async function updateGrinderRow(game) {
             await loadGames();
         };
     } else {
-        // Not installed in GRINDER
         statusEl.textContent = 'Not installed in GRINDER';
         statusEl.style.color = 'var(--text_dim)';
         openBtn.style.display = '';

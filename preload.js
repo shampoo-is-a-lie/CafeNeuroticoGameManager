@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('api', {
                                 getGames: () => ipcRenderer.invoke('get-games'),
                                 addGame: (name) => ipcRenderer.invoke('add-game', name),
                                 updateGame: (id, data) => ipcRenderer.invoke('update-game', id, data),
+                                setGameFlag: (id, field, value) => ipcRenderer.invoke('set-game-flag', id, field, value),
                                 deleteGame: (id) => ipcRenderer.invoke('delete-game', id),
                                 signalReady: () => ipcRenderer.send('renderer-ready'),
                                 verifyInstallStatus: (id) => ipcRenderer.invoke('verify-install-status', id),
@@ -90,6 +91,9 @@ contextBridge.exposeInMainWorld('api', {
 
                                 // --- I18N ---
                                 getStrings: (lang) => ipcRenderer.invoke('get-strings', lang),
+
+                                // --- STORE BROWSER ---
+                                openStoreBrowser: (store, colors) => ipcRenderer.invoke('open-store-browser', store, colors),
 
                                 // --- GRINDER ---
                                 openGrinder: (name) => ipcRenderer.invoke('open-grinder', name),
