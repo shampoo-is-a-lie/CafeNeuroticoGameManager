@@ -35,7 +35,8 @@
     .gallery-item:hover { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0,0,0,0.45); }
     .gallery-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; background: #111; display: block; }
     .gallery-cover-wrap { position: relative; width: 100%; }
-    .gallery-store-badge { position: absolute; bottom: 7px; right: 7px; width: 22px; height: 22px; background-color: rgba(255,255,255,0.75); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; pointer-events: none; }
+    .gallery-store-badges { position: absolute; bottom: 7px; right: 7px; display: flex; flex-direction: row; gap: 4px; pointer-events: none; }
+    .gallery-store-badge { width: 22px; height: 22px; background-color: rgba(255,255,255,0.75); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; }
     .install-dot { position: absolute; top: 8px; left: 8px; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.5); pointer-events: none; z-index: 2; }
     .install-dot.is-installed { background: #66bb6a; }
     .install-dot.not-installed { background: #ff9800; }
@@ -371,21 +372,8 @@
                 <div style="width: 250px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px;">
                     <img id="gamepage-cover" src="" style="width: 100%; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); border: 1px solid var(--border_solid); background: var(--bg_menu); aspect-ratio: 2/3; object-fit: cover;">
 
-                    <!-- Achievements strip (GOG only) -->
-                    <div id="gp-achievements-strip" style="display:none; background:var(--bg_panel); border-radius:8px; padding:14px; border:1px solid var(--border_solid); flex-direction:column; gap:10px; cursor:pointer;" title="View all achievements" onclick="openAchievementsModal()">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M5 7H3v4a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7h-2"/><path d="M5 3h14v8a7 7 0 0 1-7 7 7 7 0 0 1-7-7V3z"/></svg>
-                            <span class="stat-label" style="flex:1;">ACHIEVEMENTS</span>
-                            <span id="gp-ach-count" style="font-size:11px; font-weight:900; color:var(--accent);"></span>
-                        </div>
-                        <!-- Progress bar -->
-                        <div style="height:3px; border-radius:2px; background:var(--border_solid); overflow:hidden;">
-                            <div id="gp-ach-bar" style="height:100%; width:0%; border-radius:2px; background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), var(--accent)); transition:width 0.5s ease;"></div>
-                        </div>
-                        <!-- Recent unlocks preview -->
-                        <div id="gp-ach-preview" style="display:flex; flex-direction:column; gap:5px;"></div>
-                        <div style="font-size:10px; color:var(--text_dim); text-align:right; letter-spacing:0.5px;">TAP TO VIEW ALL →</div>
-                    </div>
+                    <!-- Achievements strips (one per store, built dynamically) -->
+                    <div id="gp-ach-container" style="display:flex; flex-direction:column; gap:10px;"></div>
 
                     <div style="background: var(--bg_panel); border-radius: 8px; padding: 15px; border: 1px solid var(--border_solid); display: flex; flex-direction: column; gap: 10px;">
                         <div class="gamepage-stat"><span class="stat-label" data-i18n="html.stat_released">RELEASED</span><span id="gp-released" class="stat-val"></span></div>

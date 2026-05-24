@@ -867,8 +867,8 @@ function renderGallery(recent, regular) {
         div.className = 'gallery-item';
         const imgSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
         const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover" loading="lazy">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
-        const logo = getStoreLogo(game.Store);
-        const badgeHtml = logo ? `<div class="gallery-store-badge" style="-webkit-mask-image: url('${logo}');"></div>` : '';
+        const _badges = (game.Store ? String(game.Store).split(',') : []).map(s => s.trim()).filter(Boolean).map(s => { const l = getStoreLogo(s); return l ? `<div class="gallery-store-badge" style="-webkit-mask-image:url('${l}');"></div>` : ''; }).join('');
+        const badgeHtml = _badges ? `<div class="gallery-store-badges">${_badges}</div>` : '';
         const isInstalled = game.Installed == null || game.Installed == 1;
         const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
         const isFav  = game.FAV === 'YES';
@@ -978,8 +978,9 @@ _grid.addEventListener('dblclick', (e) => {
 
 // ── GOG Achievements ──────────────────────────────────────────────────────────
 
-let _achAll = [];      // full list for current gamepage
+let _achAll = [];
 let _achFilter = 'all';
+let _achStores = {};   // storeLabel → achievements[]
 
 function _gogAppIdFromGame(game) {
     const m = (game.LaunchCommand || '').match(/heroic:\/\/launch\/gog\/(\d+)/i);
@@ -1000,36 +1001,57 @@ function _relativeDate(iso) {
 }
 
 async function loadGamepageAchievements(game) {
-    const strip = document.getElementById('gp-achievements-strip');
-    strip.style.display = 'none';
+    const container = document.getElementById('gp-ach-container');
+    container.innerHTML = '';
     _achAll = [];
+    _achStores = {};
 
-    const isGog = (game.Store || '').toLowerCase().includes('gog');
-    if (!isGog) return;
+    const gogId    = _gogAppIdFromGame(game);
+    const steamRaw = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '') : null;
 
-    const appId = _gogAppIdFromGame(game);
-    if (!appId) return;
+    const tasks = [];
+    if (gogId)    tasks.push({ label: 'GOG',   fetch: async () => { let r = await window.api.getGameAchievements(gogId); if (!r.ok || !r.achievements.length) r = await window.api.fetchAchievementsNow(gogId); return r; } });
+    if (steamRaw) tasks.push({ label: 'STEAM', fetch: async () => { const k = `steam_${steamRaw}`; let r = await window.api.getGameAchievements(k); if (!r.ok || !r.achievements.length) r = await window.api.fetchSteamAchievements(steamRaw); return r; } });
+    if (!tasks.length) return;
 
-    let res = await window.api.getGameAchievements(appId);
-    if (!res.ok || !res.achievements.length) {
-        res = await window.api.fetchAchievementsNow(appId);
+    const results = await Promise.all(tasks.map(t => t.fetch()));
+    const multi = results.filter((r, i) => r.ok && r.achievements.length).length > 1;
+
+    for (let i = 0; i < tasks.length; i++) {
+        const res = results[i];
+        if (!res.ok || !res.achievements.length) continue;
+        const label = tasks[i].label;
+        _achStores[label] = res.achievements;
+        if (!_achAll.length) _achAll = res.achievements;
+        _renderAchStrip(container, label, res.achievements, multi);
     }
-    if (!res.ok || !res.achievements.length) {
-        return;
-    }
+}
 
-    _achAll = res.achievements;
-    const total    = _achAll.length;
-    const unlocked = _achAll.filter(a => a.date_unlocked).length;
+function _renderAchStrip(container, label, achievements, showLabel) {
+    const total    = achievements.length;
+    const unlocked = achievements.filter(a => a.date_unlocked).length;
     const pct      = total ? Math.round(unlocked / total * 100) : 0;
 
-    document.getElementById('gp-ach-count').textContent = `${unlocked} / ${total}`;
-    document.getElementById('gp-ach-bar').style.width = `${pct}%`;
+    const strip = document.createElement('div');
+    strip.style.cssText = 'background:var(--bg_panel); border-radius:8px; padding:14px; border:1px solid var(--border_solid); display:flex; flex-direction:column; gap:10px; cursor:pointer;';
+    strip.title = 'View all achievements';
+    strip.onclick = () => { _achAll = _achStores[label]; openAchievementsModal(label, showLabel); };
 
-    // Preview: last 3 unlocked
-    const preview = document.getElementById('gp-ach-preview');
-    preview.innerHTML = '';
-    const recent = _achAll.filter(a => a.date_unlocked).slice(0, 3);
+    // Header
+    strip.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M5 7H3v4a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4V7h-2"/><path d="M5 3h14v8a7 7 0 0 1-7 7 7 7 0 0 1-7-7V3z"/></svg>
+            <span class="stat-label" style="flex:1;">ACHIEVEMENTS${showLabel ? ` <span style="font-size:9px; opacity:0.7; font-weight:400; letter-spacing:1px;">— ${label}</span>` : ''}</span>
+            <span style="font-size:11px; font-weight:900; color:var(--accent);">${unlocked} / ${total}</span>
+        </div>
+        <div style="height:3px; border-radius:2px; background:var(--border_solid); overflow:hidden;">
+            <div style="height:100%; width:${pct}%; border-radius:2px; background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, transparent), var(--accent)); transition:width 0.5s ease;"></div>
+        </div>`;
+
+    // Recent unlocks preview
+    const preview = document.createElement('div');
+    preview.style.cssText = 'display:flex; flex-direction:column; gap:5px;';
+    const recent = achievements.filter(a => a.date_unlocked).slice(0, 3);
     if (recent.length) {
         for (const a of recent) {
             const row = document.createElement('div');
@@ -1052,16 +1074,23 @@ async function loadGamepageAchievements(game) {
             preview.appendChild(row);
         }
     } else {
-        preview.innerHTML = '<span style="font-size:10px; color:var(--text_dim); font-style:italic;">No achievements unlocked yet</span>';
+        const noEl = document.createElement('span');
+        noEl.style.cssText = 'font-size:10px; color:var(--text_dim); font-style:italic;';
+        noEl.textContent = 'No achievements unlocked yet';
+        preview.appendChild(noEl);
     }
-    strip.style.display = 'flex';
+    strip.appendChild(preview);
+    strip.insertAdjacentHTML('beforeend', '<div style="font-size:10px; color:var(--text_dim); text-align:right; letter-spacing:0.5px;">TAP TO VIEW ALL →</div>');
+    container.appendChild(strip);
 }
 
 function openAchievementsModal() {
     if (!_achAll.length) return;
     const modal = document.getElementById('modal-achievements');
     const game  = allGames.find(g => g.id === currentGameId);
-    document.getElementById('ach-modal-game-title').textContent = game?.Game || '';
+    const _label = arguments[0], _multi = arguments[1];
+    document.getElementById('ach-modal-game-title').textContent =
+        (_multi && _label) ? `${game?.Game || ''} — ${_label}` : (game?.Game || '');
 
     const total    = _achAll.length;
     const unlocked = _achAll.filter(a => a.date_unlocked).length;

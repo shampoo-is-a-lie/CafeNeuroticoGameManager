@@ -89,6 +89,7 @@ contextBridge.exposeInMainWorld('api', {
                                 // --- ACHIEVEMENTS ---
                                 getGameAchievements: (appId) => ipcRenderer.invoke('get-game-achievements', appId),
                                 fetchAchievementsNow: (appId) => ipcRenderer.invoke('fetch-achievements-now', appId),
+                                fetchSteamAchievements: (appId) => ipcRenderer.invoke('fetch-steam-achievements', appId),
 
                                 // --- IGDB ---
                                 igdbTest: () => ipcRenderer.invoke('igdb-test'),

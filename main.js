@@ -800,6 +800,53 @@ ipcMain.handle('get-game-achievements', (_, appId) => {
     } catch (e) { return { ok: false, achievements: [] }; }
 });
 
+ipcMain.handle('fetch-steam-achievements', async (_, appId) => {
+    const get = k => db.prepare("SELECT value FROM settings WHERE key=?").get(k)?.value;
+    const apiKey  = get('steam_api_key');
+    const steamId = get('steam_id');
+    if (!apiKey || !steamId) return { ok: false, error: 'no_credentials' };
+
+    const dbKey = `steam_${appId}`;
+    try {
+        const [playerRes, schemaRes] = await Promise.all([
+            fetch(`https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?key=${apiKey}&steamid=${steamId}&appid=${appId}&l=english`),
+            fetch(`https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=${apiKey}&appid=${appId}`),
+        ]);
+        const playerData = await playerRes.json();
+        const schemaData = await schemaRes.json();
+
+        if (!playerData.playerstats?.success) return { ok: false, error: playerData.playerstats?.error || 'no_stats' };
+
+        const playerAchs = playerData.playerstats.achievements || [];
+        const schemaAchs = schemaData.game?.availableGameStats?.achievements || [];
+        const iconMap = {};
+        for (const s of schemaAchs) iconMap[s.name] = { icon: s.icon || null, icongray: s.icongray || null };
+
+        db.exec(`CREATE TABLE IF NOT EXISTS achievements (
+            app_id TEXT NOT NULL, key TEXT NOT NULL, name TEXT,
+            description TEXT, image_locked TEXT, image_unlocked TEXT,
+            date_unlocked TEXT, visible INTEGER DEFAULT 1,
+            PRIMARY KEY (app_id, key)
+        )`);
+        const upsert = db.prepare(`INSERT OR REPLACE INTO achievements
+            (app_id, key, name, description, image_locked, image_unlocked, date_unlocked, visible)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+        db.transaction(list => {
+            for (const a of list) {
+                const icons = iconMap[a.apiname] || {};
+                const dateUnlocked = (a.achieved && a.unlocktime) ? new Date(a.unlocktime * 1000).toISOString() : null;
+                upsert.run(dbKey, a.apiname, a.name || a.apiname, a.description || null,
+                    icons.icongray || null, icons.icon || null, dateUnlocked, 1);
+            }
+        })(playerAchs);
+
+        const rows = db.prepare(
+            "SELECT * FROM achievements WHERE app_id = ? ORDER BY date_unlocked DESC, name COLLATE NOCASE"
+        ).all(dbKey);
+        return { ok: true, achievements: rows };
+    } catch (e) { return { ok: false, error: e.message }; }
+});
+
 ipcMain.handle('igdb-test', async () => {
     const auth = await getIgdbToken();
     if (!auth) return { success: false, message: 'No credentials saved.' };
