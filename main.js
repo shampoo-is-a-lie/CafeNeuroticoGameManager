@@ -1086,9 +1086,9 @@ ipcMain.on('launch-game', (event, cmd) => {
         }
     }
 
-    // itch.io — delegate to itch app via its URL scheme
+    // itch.io — delegate to itch app via xdg-open (shell.openExternal rejects custom schemes)
     if (cmd.startsWith('itch://')) {
-        shell.openExternal(cmd);
+        spawn('xdg-open', [cmd], { detached: true, stdio: 'ignore' }).unref();
         return;
     }
 
