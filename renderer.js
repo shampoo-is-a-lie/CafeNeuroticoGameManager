@@ -848,9 +848,9 @@ function getStoreLogo(store) {
     if (s.includes('steam'))    return 'assets/logos/steam.png';
     if (s.includes('gog'))      return 'assets/logos/gog.png';
     if (s.includes('epic'))     return 'assets/logos/epic.png';
-    if (s.includes('flatpak'))  return 'assets/logos/flatpak.svg';
-    if (s.includes('pico-8') || s.includes('pico8')) return 'assets/logos/pico8.svg';
-    if (s.includes('itch'))  return 'assets/logos/itch.svg';
+    if (s.includes('flatpak'))  return 'assets/logos/faltpak.png';
+    if (s.includes('pico-8') || s.includes('pico8')) return 'assets/logos/pico8.png';
+    if (s.includes('itch'))  return 'assets/logos/itch.png';
     if (s.includes('physical')) return 'assets/logos/physical.png';
     if (s.includes('emulat'))   return 'assets/logos/emulation.png';
     if (s.includes('app'))      return 'assets/logos/apps.png';
@@ -2760,7 +2760,7 @@ function updateHeroMosaic(filtered, filterName) {
         'all': { text: t('filter.all'), icon: 'all_games' }, 'playable': { text: t('filter.playable'), icon: 'playable' },
         'favs': { text: t('filter.favorites'), icon: 'favs' }, 'want': { text: t('filter.want'), icon: 'want_to_play' },
         'steam': { text: 'STEAM', icon: 'steam' }, 'epic': { text: 'EPIC', icon: 'epic' },
-        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8.svg' }, 'itch': { text: 'ITCH.IO', icon: 'itch.svg' },
+        'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'faltpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8' }, 'itch': { text: 'ITCH.IO', icon: 'itch' },
         'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
         'apps': { text: t('filter.apps'), icon: 'apps' }
