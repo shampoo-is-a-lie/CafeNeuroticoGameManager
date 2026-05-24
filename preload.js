@@ -86,8 +86,15 @@ contextBridge.exposeInMainWorld('api', {
                                 checkCrema: () => ipcRenderer.invoke('check-crema'),
                                 launchCrema: () => ipcRenderer.send('launch-crema'),
 
+                                // --- ACHIEVEMENTS ---
+                                getGameAchievements: (appId) => ipcRenderer.invoke('get-game-achievements', appId),
+                                fetchAchievementsNow: (appId) => ipcRenderer.invoke('fetch-achievements-now', appId),
+
                                 // --- IGDB ---
                                 igdbTest: () => ipcRenderer.invoke('igdb-test'),
+                                igdbSearchList: (name) => ipcRenderer.invoke('igdb-search-list', name),
+                                igdbFetchScreenshots: (id) => ipcRenderer.invoke('igdb-fetch-screenshots', id),
+                                igdbSaveScreenshot: (gameId, url) => ipcRenderer.invoke('igdb-save-screenshot', gameId, url),
 
                                 // --- I18N ---
                                 getStrings: (lang) => ipcRenderer.invoke('get-strings', lang),

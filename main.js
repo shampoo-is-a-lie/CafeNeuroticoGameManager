@@ -202,6 +202,7 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN Installed INTEGER DEFAULT 1").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN GrinderGameId TEXT").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN prefer_heroic INTEGER DEFAULT 0").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN LaunchCommands TEXT DEFAULT NULL").run(); } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
     } catch (err) {
@@ -253,6 +254,18 @@ function getSteamLibraryPaths() {
     }
     return [...dirs];
 }
+function guessLauncherLabel(cmd) {
+    if (!cmd) return 'Custom';
+    if (/steam:\/\/rungameid/i.test(cmd))         return 'Steam';
+    if (/heroic:\/\/launch\/gog/i.test(cmd))      return 'GOG via GRINDER';
+    if (/heroic:\/\/launch\/epic/i.test(cmd))     return 'Epic via GRINDER';
+    if (cmd.startsWith('itch://'))                return 'itch.io';
+    if (cmd.startsWith('pico8-cart:'))            return 'PICO-8';
+    if (/^flatpak run/i.test(cmd))               return 'Flatpak';
+    if (cmd.startsWith('grinder://'))             return 'GRINDER';
+    return 'Custom';
+}
+
 function isSteamGameInstalled(appId) {
     if (!appId || appId === 'None' || appId === '') return false;
     const id = String(appId).replace(/\.0+$/, '');
@@ -513,15 +526,39 @@ ipcMain.handle('sync-all-grinder-games', (_, allGrinderGames, grinderPath) => {
             // No CNGM equivalent — insert as new entry if not already imported
             const alreadyIn = db.prepare("SELECT id FROM games WHERE GrinderGameId=?").get(gg.id);
             if (!alreadyIn) {
-                // Build a synthetic LaunchCommand so CNGM can launch via Heroic as fallback
                 let launchCmd = '';
                 if (gg.store === 'gog' && gg.app_id)   launchCmd = `heroic://launch/gog/${gg.app_id}`;
                 if (gg.store === 'epic' && gg.app_id)  launchCmd = `heroic://launch/epic/${gg.app_id}`;
                 const store = gg.store === 'gog' ? 'GOG' : gg.store === 'epic' ? 'EPIC' : 'Others';
                 if (!launchCmd) launchCmd = `grinder://${gg.id}`;
-                db.prepare(
-                    "INSERT INTO games (Game, LaunchCommand, Store, Installed, GrinderGameId) VALUES (?, ?, ?, ?, ?)"
-                ).run(gg.title || gg.id, launchCmd, store, gg.installed ? 1 : 0, gg.id);
+
+                // Before inserting, check if a Steam game with the same title already exists — merge instead
+                const steamMatch = (gg.store === 'gog' || gg.store === 'epic') && gg.title
+                    ? db.prepare(
+                        "SELECT * FROM games WHERE LOWER(TRIM(Game))=LOWER(TRIM(?)) AND Store LIKE '%Steam%' AND (GrinderGameId IS NULL OR GrinderGameId='')"
+                      ).get(gg.title)
+                    : null;
+
+                if (steamMatch) {
+                    let launchers = [];
+                    try { launchers = JSON.parse(steamMatch.LaunchCommands || '[]'); } catch(e) {}
+                    if (launchers.length === 0 && steamMatch.LaunchCommand) {
+                        launchers.push({ label: guessLauncherLabel(steamMatch.LaunchCommand), cmd: steamMatch.LaunchCommand });
+                    }
+                    if (!launchers.some(l => l.cmd === launchCmd)) {
+                        launchers.push({ label: store + ' via GRINDER', cmd: launchCmd });
+                    }
+                    const storeArr = (steamMatch.Store || '').split(',').map(s => s.trim()).filter(Boolean);
+                    if (!storeArr.some(s => s.toLowerCase() === store.toLowerCase())) storeArr.push(store);
+                    db.prepare("UPDATE games SET Store=?, GrinderGameId=?, Installed=?, LaunchCommands=? WHERE id=?")
+                      .run(storeArr.join(', '), gg.id,
+                           Math.max(gg.installed ? 1 : 0, steamMatch.Installed || 0),
+                           JSON.stringify(launchers), steamMatch.id);
+                } else {
+                    db.prepare(
+                        "INSERT INTO games (Game, LaunchCommand, Store, Installed, GrinderGameId) VALUES (?, ?, ?, ?, ?)"
+                    ).run(gg.title || gg.id, launchCmd, store, gg.installed ? 1 : 0, gg.id);
+                }
                 synced++;
             }
         }
@@ -643,7 +680,7 @@ async function igdbQuery(auth, body) {
 async function igdbSearch(gameName, steamAppId) {
     const auth = await getIgdbToken();
     if (!auth) return null;
-    const fields = 'fields name,summary,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,genres.name,themes.name,first_release_date,aggregated_rating,cover.url,screenshots.url,videos.video_id,similar_games.name,franchises.name,collection.name,external_games.category,external_games.uid;';
+    const fields = 'fields name,summary,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,genres.name,themes.name,themes.id,first_release_date,aggregated_rating,cover.url,screenshots.url,videos.video_id,similar_games.name,franchises.name,collection.name,external_games.category,external_games.uid;';
     try {
         // Try Steam App ID lookup first (precise), fall back to name search
         if (steamAppId) {
@@ -654,10 +691,114 @@ async function igdbSearch(gameName, steamAppId) {
     } catch(e) { return null; }
 }
 
+function titleSimilarity(a, b) {
+    const tokens = s => new Set(s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean));
+    const ta = tokens(a), tb = tokens(b);
+    if (!ta.size || !tb.size) return 0;
+    let inter = 0;
+    for (const t of ta) if (tb.has(t)) inter++;
+    return inter / (ta.size + tb.size - inter);
+}
+
 function igdbImg(url, size = 'cover_big') {
     if (!url) return null;
     return 'https:' + url.replace('t_thumb', `t_${size}`);
 }
+
+// ── GOG Achievements ──────────────────────────────────────────────────────────
+const GOG_CLIENT_ID     = '46899977096215655';
+const GOG_CLIENT_SECRET = '9d85c43b1482497dbbce61f6e4aa173a433796eeae2ca8c5f6129f2dc4de46d9';
+
+ipcMain.handle('fetch-achievements-now', async (_, appId) => {
+    const home = os.homedir();
+    const candidates = [
+        path.join(home, '.config', 'grinder', 'grinder.db'),
+        path.join(home, '.config', 'GRINDER', 'grinder.db'),
+        path.join(baseDir, 'GRINDERConfig', 'grinder.db'),
+    ];
+    const gdbPath = candidates.find(p => fs.existsSync(p));
+    if (!gdbPath) return { ok: false, error: 'grinder_not_found' };
+
+    let token, userId;
+    try {
+        const gdb = new Database(gdbPath, { timeout: 5000 });
+        const get = k => gdb.prepare("SELECT value FROM settings WHERE key=?").get(k)?.value;
+        let access  = get('gog_access_token');
+        const refresh = get('gog_refresh_token');
+        const expiry  = parseInt(get('gog_token_expiry') || '0');
+        userId = get('gog_user_id');
+
+        if (!refresh || !userId) { gdb.close(); return { ok: false, error: 'not_logged_in' }; }
+
+        if (!access || Date.now() >= expiry - 60000) {
+            const res = await fetch('https://auth.gog.com/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    client_id: GOG_CLIENT_ID, client_secret: GOG_CLIENT_SECRET,
+                    grant_type: 'refresh_token', refresh_token: refresh,
+                }).toString(),
+            });
+            const data = await res.json();
+            if (!data.access_token) { gdb.close(); return { ok: false, error: 'token_refresh_failed' }; }
+            access = data.access_token;
+            const set = (k, v) => gdb.prepare("INSERT OR REPLACE INTO settings VALUES (?,?)").run(k, v);
+            set('gog_access_token', access);
+            set('gog_token_expiry', String(Date.now() + data.expires_in * 1000));
+            if (data.refresh_token) set('gog_refresh_token', data.refresh_token);
+        }
+        token = access;
+        gdb.close();
+    } catch (e) { return { ok: false, error: e.message }; }
+
+    try {
+        const res = await fetch(
+            `https://gameplay.gog.com/clients/${appId}/users/${userId}/achievements`,
+            { headers: { 'Authorization': `Bearer ${token}`, 'User-Agent': 'CNGM/1.0' } }
+        );
+        if (!res.ok) return { ok: false, error: `GOG API ${res.status}` };
+        const data = await res.json();
+        const items = data.items || [];
+
+        db.exec(`CREATE TABLE IF NOT EXISTS achievements (
+            app_id TEXT NOT NULL, key TEXT NOT NULL, name TEXT,
+            description TEXT, image_locked TEXT, image_unlocked TEXT,
+            date_unlocked TEXT, visible INTEGER DEFAULT 1,
+            PRIMARY KEY (app_id, key)
+        )`);
+        const upsert = db.prepare(`INSERT OR REPLACE INTO achievements
+            (app_id, key, name, description, image_locked, image_unlocked, date_unlocked, visible)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+        db.transaction(list => {
+            for (const a of list) upsert.run(
+                appId, a.achievement_key, a.name, a.description,
+                a.image_url_locked, a.image_url_unlocked, a.date_unlocked || null,
+                a.visible === false ? 0 : 1
+            );
+        })(items);
+
+        const rows = db.prepare(
+            "SELECT * FROM achievements WHERE app_id = ? ORDER BY date_unlocked DESC, name COLLATE NOCASE"
+        ).all(appId);
+        return { ok: true, achievements: rows };
+    } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('get-game-achievements', (_, appId) => {
+    try {
+        // Ensure the table exists (created by GRINDER on first sync)
+        db.exec(`CREATE TABLE IF NOT EXISTS achievements (
+            app_id TEXT NOT NULL, key TEXT NOT NULL, name TEXT,
+            description TEXT, image_locked TEXT, image_unlocked TEXT,
+            date_unlocked TEXT, visible INTEGER DEFAULT 1,
+            PRIMARY KEY (app_id, key)
+        )`);
+        const rows = db.prepare(
+            "SELECT * FROM achievements WHERE app_id = ? ORDER BY date_unlocked DESC, name COLLATE NOCASE"
+        ).all(appId);
+        return { ok: true, achievements: rows };
+    } catch (e) { return { ok: false, achievements: [] }; }
+});
 
 ipcMain.handle('igdb-test', async () => {
     const auth = await getIgdbToken();
@@ -666,6 +807,54 @@ ipcMain.handle('igdb-test', async () => {
     const result = await igdbQuery(auth, 'search "Portal 2"; fields name; limit 1;');
     if (result?.name) return { success: true, message: `✅ Connected! Found: ${result.name}` };
     return { success: false, message: '❌ Token OK but IGDB query failed. Try again in a moment.' };
+});
+
+ipcMain.handle('igdb-search-list', async (e, gameName) => {
+    try {
+        const auth = await getIgdbToken();
+        if (!auth) return { error: 'no_key', results: [] };
+        const res = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers: { 'Client-ID': auth.clientId, 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'text/plain' },
+            body: `search "${gameName.replace(/"/g, '')}"; fields id,name,first_release_date; limit 8;`
+        });
+        const data = await res.json();
+        if (!Array.isArray(data)) return { error: null, results: [] };
+        return { error: null, results: data.filter(g => g.name).map(g => ({ id: g.id, name: g.name, year: g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : null })) };
+    } catch(e) { return { error: null, results: [] }; }
+});
+
+ipcMain.handle('igdb-fetch-screenshots', async (e, igdbId) => {
+    try {
+        const auth = await getIgdbToken();
+        if (!auth) return { error: 'no_key', screenshots: [] };
+        const res = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers: { 'Client-ID': auth.clientId, 'Authorization': `Bearer ${auth.token}`, 'Content-Type': 'text/plain' },
+            body: `fields screenshots.url; where id = ${igdbId}; limit 1;`
+        });
+        const data = await res.json();
+        if (!Array.isArray(data) || !data[0]?.screenshots) return { error: null, screenshots: [] };
+        return { error: null, screenshots: data[0].screenshots.map(s => ({
+            thumb: 'https:' + s.url.replace('t_thumb', 't_screenshot_med'),
+            full:  'https:' + s.url.replace('t_thumb', 't_screenshot_big')
+        })) };
+    } catch(e) { return { error: null, screenshots: [] }; }
+});
+
+ipcMain.handle('igdb-save-screenshot', async (e, gameId, screenshotUrl) => {
+    try {
+        const row = db.prepare("SELECT Game, Screenshot FROM games WHERE id=?").get(gameId);
+        if (!row) return null;
+        const safeName = row.Game.replace(/[\\/:*?"<>|#]/g, '').trim();
+        const existing = (row.Screenshot || '').split('|').filter(s => s.trim() && s.startsWith('GameManagerConfig'));
+        const fn = `${safeName} - Screen IGDB-${Date.now()}.jpg`;
+        if (!await downloadImage(screenshotUrl, path.join(imagesDir, fn))) return null;
+        const newPath = `GameManagerConfig/images/${fn}`;
+        const allScreens = [...existing, newPath].join('|');
+        db.prepare("UPDATE games SET Screenshot=? WHERE id=?").run(allScreens, gameId);
+        return allScreens;
+    } catch(e) { return null; }
 });
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -820,8 +1009,12 @@ ipcMain.handle('update-game', (event, id, data) => {
             try { const p = JSON.parse(existing?.Description_i18n || '{}'); p.en = data.Description; descI18n = JSON.stringify(p); }
             catch(e) { descI18n = JSON.stringify({ en: data.Description }); }
         }
-        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Franchise=?, Description=?, Description_i18n=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=?, CoverArt=?, Screenshot=?, IGDBTrailer=? WHERE id=?`);
-        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Franchise || "", data.Description, descI18n, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, data.CoverArt, data.Screenshot, data.IGDBTrailer || "", id);
+        // Preserve LaunchCommands when caller doesn't explicitly pass it (e.g. FAV/WANT toggles)
+        let launchCommands = data.LaunchCommands !== undefined
+            ? data.LaunchCommands
+            : db.prepare("SELECT LaunchCommands FROM games WHERE id=?").get(id)?.LaunchCommands ?? null;
+        const stmt = db.prepare(`UPDATE games SET Game=?, Store=?, GENRE=?, RELEASED=?, LaunchCommand=?, LaunchCommands=?, FAV=?, WANT_TO_PLAY=?, METACRITIC=?, HLTB_Main=?, DEV=?, PUB=?, Coop=?, NumPlayers=?, Tags=?, SimilarGames=?, Franchise=?, Description=?, Description_i18n=?, SteamAppID=?, ProtonTier=?, HeroArt=?, Logo=?, Icon=?, SteamDesc=?, SteamTrailer=?, CoverArt=?, Screenshot=?, IGDBTrailer=? WHERE id=?`);
+        stmt.run(data.Game, data.Store, data.GENRE, data.RELEASED, data.LaunchCommand, launchCommands, data.FAV, data.WANT_TO_PLAY, data.METACRITIC, data.HLTB_Main, data.DEV, data.PUB, data.Coop, data.NumPlayers, data.Tags, data.SimilarGames, data.Franchise || "", data.Description, descI18n, data.SteamAppID, data.ProtonTier, data.HeroArt, data.Logo, data.Icon, data.SteamDesc, data.SteamTrailer, data.CoverArt, data.Screenshot, data.IGDBTrailer || "", id);
         return true;
     } catch (err) { return false; }
 });
@@ -1207,13 +1400,16 @@ async function doItchSync() {
                 launchCmd = `itch://install/${game.id}`;
             }
 
-            // Match existing record: prefer by itch://install/<id> key, then by title+store
+            // Match existing record: by launch key, then title+store, then any itch:// launch cmd + title
             let existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ?").get(`itch://install/${game.id}`);
             if (!existing) existing = db.prepare("SELECT * FROM games WHERE LOWER(Store) LIKE '%itch%' AND LOWER(Game) = LOWER(?)").get(game.title);
+            if (!existing && cave) existing = db.prepare("SELECT * FROM games WHERE LaunchCommand = ? AND LOWER(Game) = LOWER(?)").get(`itch://launch/${cave.id}`, game.title);
+            if (!existing) existing = db.prepare("SELECT * FROM games WHERE LaunchCommand LIKE 'itch://%' AND LOWER(Game) = LOWER(?)").get(game.title);
 
             let gameId;
             if (existing) {
-                db.prepare("UPDATE games SET LaunchCommand=?, Installed=? WHERE id=?").run(launchCmd, installed, existing.id);
+                const storeFixed = (existing.Store || '').toLowerCase().includes('itch') ? existing.Store : 'itch.io';
+                db.prepare("UPDATE games SET LaunchCommand=?, Installed=?, Store=? WHERE id=?").run(launchCmd, installed, storeFixed, existing.id);
                 gameId = existing.id;
             } else {
                 gameId = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,?)").run(game.title, 'itch.io', launchCmd, installed).lastInsertRowid;
@@ -1569,13 +1765,79 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
             ).get(launchCommand, appid);
 
             if (existing) {
-                // Same Steam game already in library — update metadata and install status
-                db.prepare("UPDATE games SET Store = 'Steam', SteamAppID = ?, Installed = ? WHERE id = ?")
-                  .run(appid, isInstalled, existing.id);
+                const existingCmd = existing.LaunchCommand || '';
+                if (/steam:\/\/rungameid/i.test(existingCmd)) {
+                    // Pure Steam update — refresh SteamAppID and install status
+                    db.prepare("UPDATE games SET SteamAppID=?, Installed=? WHERE id=?")
+                      .run(appid, isInstalled, existing.id);
+                    // Also check for a sibling non-Steam entry with the same title (pre-existing duplicate)
+                    // — if found, merge the Steam launcher into it and delete this Steam-only orphan
+                    const sibling = db.prepare(
+                        "SELECT * FROM games WHERE LOWER(TRIM(Game))=LOWER(TRIM(?)) AND id != ? AND Store NOT LIKE '%Steam%'"
+                    ).get(name, existing.id);
+                    if (sibling) {
+                        let launchers = [];
+                        try { launchers = JSON.parse(sibling.LaunchCommands || '[]'); } catch(e) {}
+                        if (launchers.length === 0 && sibling.LaunchCommand) {
+                            launchers.push({ label: guessLauncherLabel(sibling.LaunchCommand), cmd: sibling.LaunchCommand });
+                        }
+                        if (!launchers.some(l => l.cmd === launchCommand)) {
+                            launchers.push({ label: 'Steam', cmd: launchCommand });
+                        }
+                        const storeArr = (sibling.Store || '').split(',').map(s => s.trim()).filter(Boolean);
+                        if (!storeArr.some(s => s.toLowerCase() === 'steam')) storeArr.push('Steam');
+                        db.prepare("UPDATE games SET Store=?, SteamAppID=?, Installed=?, LaunchCommands=? WHERE id=?")
+                          .run(storeArr.join(', '), appid,
+                               Math.max(isInstalled, sibling.Installed || 0),
+                               JSON.stringify(launchers), sibling.id);
+                        db.prepare("DELETE FROM games WHERE id=?").run(existing.id);
+                    }
+                } else {
+                    // Cross-store merge — append Steam launcher to LaunchCommands, keep existing as primary
+                    let launchers = [];
+                    try { launchers = JSON.parse(existing.LaunchCommands || '[]'); } catch(e) {}
+                    if (launchers.length === 0 && existingCmd) {
+                        launchers.push({ label: guessLauncherLabel(existingCmd), cmd: existingCmd });
+                    }
+                    if (!launchers.some(l => l.cmd === launchCommand)) {
+                        launchers.push({ label: 'Steam', cmd: launchCommand });
+                    }
+                    const storeArr = (existing.Store || '').split(',').map(s => s.trim()).filter(Boolean);
+                    if (!storeArr.some(s => s.toLowerCase() === 'steam')) storeArr.push('Steam');
+                    db.prepare("UPDATE games SET Store=?, SteamAppID=?, Installed=?, LaunchCommands=? WHERE id=?")
+                      .run(storeArr.join(', '), appid,
+                           Math.max(isInstalled, existing.Installed || 0),
+                           JSON.stringify(launchers), existing.id);
+                }
                 updated++;
             } else {
-                db.prepare("INSERT INTO games (Store, Game, SteamAppID, LaunchCommand, FAV, WANT_TO_PLAY, Installed) VALUES (?, ?, ?, ?, 'NO', 'NO', ?)").run("Steam", name, appid, launchCommand, isInstalled);
-                added++;
+                // Fallback: title match against a non-Steam entry with no SteamAppID yet
+                // (covers the case where GOG/Epic was imported via GRINDER before Steam sync)
+                const titleMatch = db.prepare(
+                    "SELECT * FROM games WHERE LOWER(TRIM(Game))=LOWER(TRIM(?)) AND Store NOT LIKE '%Steam%' AND (SteamAppID IS NULL OR SteamAppID='' OR SteamAppID='None')"
+                ).get(name);
+
+                if (titleMatch) {
+                    const existingCmd = titleMatch.LaunchCommand || '';
+                    let launchers = [];
+                    try { launchers = JSON.parse(titleMatch.LaunchCommands || '[]'); } catch(e) {}
+                    if (launchers.length === 0 && existingCmd) {
+                        launchers.push({ label: guessLauncherLabel(existingCmd), cmd: existingCmd });
+                    }
+                    if (!launchers.some(l => l.cmd === launchCommand)) {
+                        launchers.push({ label: 'Steam', cmd: launchCommand });
+                    }
+                    const storeArr = (titleMatch.Store || '').split(',').map(s => s.trim()).filter(Boolean);
+                    if (!storeArr.some(s => s.toLowerCase() === 'steam')) storeArr.push('Steam');
+                    db.prepare("UPDATE games SET Store=?, SteamAppID=?, Installed=?, LaunchCommands=? WHERE id=?")
+                      .run(storeArr.join(', '), appid,
+                           Math.max(isInstalled, titleMatch.Installed || 0),
+                           JSON.stringify(launchers), titleMatch.id);
+                    updated++;
+                } else {
+                    db.prepare("INSERT INTO games (Store, Game, SteamAppID, LaunchCommand, FAV, WANT_TO_PLAY, Installed) VALUES (?, ?, ?, ?, 'NO', 'NO', ?)").run("Steam", name, appid, launchCommand, isInstalled);
+                    added++;
+                }
             }
         }
         return { success: true, count: added, message: `Imported ${added} new games from Steam.\n(Updated ${updated} existing entries).` };
@@ -1890,7 +2152,10 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
             try {
                 const sr = await fetch(`https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&l=english&cc=US`);
                 const sd = await sr.json();
-                if (sd.items?.length > 0) appId = sd.items[0].id;
+                if (sd.items?.length > 0) {
+                    const match = sd.items.find(item => titleSimilarity(item.name || '', gameName) >= 0.4);
+                    if (match) appId = match.id;
+                }
             } catch(e) {}
         }
 
@@ -1997,6 +2262,10 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
         let similarGames = "", franchise = "", igdbTrailerId = "";
         const igdb = await igdbSearch(gameName, appId);
 
+        const isAdultContent = igdb?.themes?.some(t => t.id === 42);
+        const igdbTitleSim   = igdb ? titleSimilarity(igdb.name || '', gameName) : 1;
+        const skipIgdbArtwork = isAdultContent || igdbTitleSim < 0.4;
+
         if (igdb) {
             // Similar games & franchise (for all games)
             if (igdb.similar_games?.length) similarGames = igdb.similar_games.map(g => g.name).slice(0, 6).join(', ');
@@ -2023,15 +2292,15 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
                 }
             }
 
-            // Cover from IGDB (fallback)
-            if (!dbCoverPath && igdb.cover?.url) {
+            // Cover from IGDB (fallback) — skip if adult content or title mismatch
+            if (!dbCoverPath && igdb.cover?.url && !skipIgdbArtwork) {
                 const fn = `${safeName} - Cover.jpg`;
                 if (await downloadImage(igdbImg(igdb.cover.url, 'cover_big'), path.join(imagesDir, fn)))
                     dbCoverPath = `GameManagerConfig/images/${fn}`;
             }
 
-            // Screenshots from IGDB (fallback)
-            if (!dbScreenPath && igdb.screenshots?.length) {
+            // Screenshots from IGDB (fallback) — skip if adult content or title mismatch
+            if (!dbScreenPath && igdb.screenshots?.length && !skipIgdbArtwork) {
                 const saved = [];
                 for (let i = 0; i < Math.min(5, igdb.screenshots.length); i++) {
                     const fn = `${safeName} - Screen ${i+1}.jpg`;

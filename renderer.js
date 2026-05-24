@@ -87,26 +87,96 @@ document.getElementById('modal-now-playing')?.addEventListener('click', e => {
 document.getElementById('np-close-btn')?.addEventListener('click', closeNowPlaying);
 // ─────────────────────────────────────────────────────────────────────────────
 
+function _guessLabel(cmd) {
+    if (!cmd) return 'Custom';
+    if (/steam:\/\/rungameid/i.test(cmd))     return 'Steam';
+    if (/heroic:\/\/launch\/gog/i.test(cmd))  return 'GOG via GRINDER';
+    if (/heroic:\/\/launch\/epic/i.test(cmd)) return 'Epic via GRINDER';
+    if (cmd.startsWith('itch://'))            return 'itch.io';
+    if (cmd.startsWith('pico8-cart:'))        return 'PICO-8';
+    if (/^flatpak run/i.test(cmd))            return 'Flatpak';
+    if (cmd.startsWith('grinder://'))         return 'GRINDER';
+    return 'Custom';
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showLauncherPicker(game, launchers) {
+    const modal = document.getElementById('modal-launcher-pick');
+    const list  = document.getElementById('launcher-pick-list');
+    list.innerHTML = '';
+    launchers.forEach(l => {
+        const btn = document.createElement('button');
+        btn.className = 'primary';
+        btn.style.cssText = 'width:100%; text-align:left; padding:10px 14px; font-size:13px;';
+        btn.textContent = l.label || l.cmd;
+        btn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            _doLaunch(game, l.cmd);
+        });
+        list.appendChild(btn);
+    });
+    modal.classList.add('active');
+}
+document.getElementById('btn-launcher-pick-cancel').addEventListener('click', () => {
+    document.getElementById('modal-launcher-pick').classList.remove('active');
+});
+document.getElementById('modal-launcher-pick').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-launcher-pick'))
+        document.getElementById('modal-launcher-pick').classList.remove('active');
+});
+
+async function _doLaunch(game, cmd) {
+    // Route heroic:// commands through GRINDER if available and preferred
+    if (game?.GrinderGameId && !game?.prefer_heroic && /heroic:\/\/launch/i.test(cmd)) {
+        const s = await window.api.grinderStatus();
+        if (s.found && s.path) {
+            window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
+            Promise.all([window.api.updateLastPlayed(game.id), window.api.verifyInstallStatus(game.id)]).then(() => loadGames());
+            return;
+        }
+    }
+    window.api.launchGame(cmd);
+    Promise.all([window.api.updateLastPlayed(game.id), window.api.verifyInstallStatus(game.id)]).then(() => loadGames());
+}
+
 async function verifyAndLaunch(gameId, launchCmd) {
     const game = allGames.find(g => g.id == gameId);
     if (game) showNowPlaying(game);
 
-    if (game?.GrinderGameId && !game?.prefer_heroic) {
-        const s = await window.api.grinderStatus();
-        if (s.found && s.path) {
-            window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
-            Promise.all([window.api.updateLastPlayed(gameId), window.api.verifyInstallStatus(gameId)]).then(() => loadGames());
-            return;
-        }
+    // Multi-launcher: show picker when ≥2 commands are defined
+    let launchers = [];
+    try { launchers = JSON.parse(game?.LaunchCommands || '[]'); } catch(e) {}
+    if (launchers.length >= 2) {
+        showLauncherPicker(game, launchers);
+        return;
     }
-    window.api.launchGame(launchCmd);
-    Promise.all([window.api.updateLastPlayed(gameId), window.api.verifyInstallStatus(gameId)]).then(() => loadGames());
+    const cmd = launchers.length === 1 ? launchers[0].cmd : launchCmd;
+    await _doLaunch(game, cmd);
 }
 
 window.api.onInstallStatusUpdated(() => loadGames());
+
+// Auto-refresh gamepage play button when CNGM regains focus (e.g. after installing via GRINDER)
+let _focusRefreshTimer = null;
+window.addEventListener('focus', () => {
+    if (!document.getElementById('view-gamepage')?.classList.contains('active')) return;
+    clearTimeout(_focusRefreshTimer);
+    _focusRefreshTimer = setTimeout(async () => {
+        if (!currentGameId) return;
+        await window.api.verifyInstallStatus(currentGameId);
+        await syncGrinderInstalled();
+        await loadGames();
+        const updated = allGames.find(g => g.id === currentGameId);
+        if (updated) refreshGamepagePlayBtn(updated);
+    }, 400);
+});
 let currentLaunchCmd = '';
 let currentFilter = 'all';
 let lastGridView = 'view-gallery';
+let savedGridScrollTop = 0;
 let baseDir = '';
 
 let strings = {};
@@ -290,13 +360,20 @@ document.getElementById('btn-refresh-library').addEventListener('click', async (
     const btn = document.getElementById('btn-refresh-library');
     btn.style.animation = 'spin 0.6s linear';
     setTimeout(() => { btn.style.animation = ''; }, 650);
+    const onGamepage = document.getElementById('view-gamepage').classList.contains('active');
+    if (onGamepage && currentGameId) await window.api.verifyInstallStatus(currentGameId);
     await syncGrinderInstalled();
-    loadGames();
+    await loadGames();
+    if (onGamepage && currentGameId) {
+        const updated = allGames.find(g => g.id === currentGameId);
+        if (updated) refreshGamepagePlayBtn(updated);
+    }
 });
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
     applyFilters();
-    switchView('view-gallery');
+    switchView(lastGridView);
+    document.getElementById(lastGridView).scrollTop = savedGridScrollTop;
 });
 
 document.getElementById('btn-back-to-gamepage').addEventListener('click', () => {
@@ -391,10 +468,12 @@ document.getElementById('btn-welcome-batch').addEventListener('click', async () 
     const progressFill = document.getElementById('wlc-batch-progress-fill');
     const hasImg  = v => v && String(v).startsWith('GameManagerConfig');
     const hasTxt  = v => v && String(v).trim() !== '';
+    const isPico  = g => { const s = (g.store || '').toLowerCase(); return s.includes('pico-8') || s.includes('pico8'); };
     const toFetch = allGames.filter(g =>
+        !isPico(g) && (
         !hasImg(g.CoverArt) || !hasImg(g.HeroArt) || !hasImg(g.Logo) ||
         !hasImg(g.Icon) || !hasImg(g.Screenshot) ||
-        !hasTxt(g.Description) || !hasTxt(g.DEV) || !hasTxt(g.GENRE));
+        !hasTxt(g.Description) || !hasTxt(g.DEV) || !hasTxt(g.GENRE)));
     if (toFetch.length === 0) { statusEl.style.color = '#66bb6a'; statusEl.textContent = '✓ All games are already up to date!'; return; }
     btn.disabled = true;
     progressWrap.style.display = 'block';
@@ -545,7 +624,7 @@ function applyFilters() {
         else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
         else if (currentFilter === 'flatpak') matchesCategory = storeLower.includes('flatpak');
         else if (currentFilter === 'pico8') matchesCategory = storeLower.includes('pico-8');
-        else if (currentFilter === 'itch')  matchesCategory = storeLower.includes('itch');
+        else if (currentFilter === 'itch')  matchesCategory = storeLower.includes('itch') || (game.LaunchCommand || '').startsWith('itch://');
         else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
         else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
         else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
@@ -869,6 +948,9 @@ _grid.addEventListener('click', (e) => {
         game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
         favBtn.classList.toggle('active', game.FAV === 'YES');
         favBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.FAV === 'YES' || favBtn.nextElementSibling?.classList.contains('active'));
+        favBtn.style.animation = 'none'; void favBtn.offsetWidth;
+        favBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
+        setTimeout(() => { favBtn.style.animation = ''; }, 350);
         window.api.setGameFlag(id, 'FAV', game.FAV);
         return;
     }
@@ -882,6 +964,9 @@ _grid.addEventListener('click', (e) => {
         game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
         wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
         wantBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.WANT_TO_PLAY === 'YES' || wantBtn.previousElementSibling?.classList.contains('active'));
+        wantBtn.style.animation = 'none'; void wantBtn.offsetWidth;
+        wantBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
+        setTimeout(() => { wantBtn.style.animation = ''; }, 350);
         window.api.setGameFlag(id, 'WANT_TO_PLAY', game.WANT_TO_PLAY);
         return;
     }
@@ -891,8 +976,218 @@ _grid.addEventListener('dblclick', (e) => {
     if (item) { const g = allGames.find(x => String(x.id) === item.dataset.id); if (g) openGamepage(g); }
 });
 
+// ── GOG Achievements ──────────────────────────────────────────────────────────
+
+let _achAll = [];      // full list for current gamepage
+let _achFilter = 'all';
+
+function _gogAppIdFromGame(game) {
+    const m = (game.LaunchCommand || '').match(/heroic:\/\/launch\/gog\/(\d+)/i);
+    return m ? m[1] : null;
+}
+
+function _relativeDate(iso) {
+    if (!iso) return '';
+    try {
+        const d = new Date(iso);
+        const days = Math.floor((Date.now() - d) / 86400000);
+        if (days === 0) return 'today';
+        if (days === 1) return 'yesterday';
+        if (days < 7)  return `${days} days ago`;
+        if (days < 30) return `${Math.floor(days / 7)} week${days < 14 ? '' : 's'} ago`;
+        return d.toLocaleDateString();
+    } catch { return iso; }
+}
+
+async function loadGamepageAchievements(game) {
+    const strip = document.getElementById('gp-achievements-strip');
+    strip.style.display = 'none';
+    _achAll = [];
+
+    const isGog = (game.Store || '').toLowerCase().includes('gog');
+    if (!isGog) return;
+
+    const appId = _gogAppIdFromGame(game);
+    if (!appId) return;
+
+    let res = await window.api.getGameAchievements(appId);
+    if (!res.ok || !res.achievements.length) {
+        res = await window.api.fetchAchievementsNow(appId);
+    }
+    if (!res.ok || !res.achievements.length) {
+        return;
+    }
+
+    _achAll = res.achievements;
+    const total    = _achAll.length;
+    const unlocked = _achAll.filter(a => a.date_unlocked).length;
+    const pct      = total ? Math.round(unlocked / total * 100) : 0;
+
+    document.getElementById('gp-ach-count').textContent = `${unlocked} / ${total}`;
+    document.getElementById('gp-ach-bar').style.width = `${pct}%`;
+
+    // Preview: last 3 unlocked
+    const preview = document.getElementById('gp-ach-preview');
+    preview.innerHTML = '';
+    const recent = _achAll.filter(a => a.date_unlocked).slice(0, 3);
+    if (recent.length) {
+        for (const a of recent) {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; gap:7px;';
+            if (a.image_unlocked) {
+                const img = document.createElement('img');
+                img.src = a.image_unlocked;
+                img.style.cssText = 'width:22px; height:22px; border-radius:3px; object-fit:cover; flex-shrink:0;';
+                img.onerror = () => img.style.display = 'none';
+                row.appendChild(img);
+            }
+            const nameEl = document.createElement('span');
+            nameEl.style.cssText = 'font-size:10px; color:#82c882; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;';
+            nameEl.textContent = a.name || a.key;
+            row.appendChild(nameEl);
+            const dateEl = document.createElement('span');
+            dateEl.style.cssText = 'font-size:9px; color:rgba(130,200,130,0.55); flex-shrink:0;';
+            dateEl.textContent = _relativeDate(a.date_unlocked);
+            row.appendChild(dateEl);
+            preview.appendChild(row);
+        }
+    } else {
+        preview.innerHTML = '<span style="font-size:10px; color:var(--text_dim); font-style:italic;">No achievements unlocked yet</span>';
+    }
+    strip.style.display = 'flex';
+}
+
+function openAchievementsModal() {
+    if (!_achAll.length) return;
+    const modal = document.getElementById('modal-achievements');
+    const game  = allGames.find(g => g.id === currentGameId);
+    document.getElementById('ach-modal-game-title').textContent = game?.Game || '';
+
+    const total    = _achAll.length;
+    const unlocked = _achAll.filter(a => a.date_unlocked).length;
+    const pct      = total ? Math.round(unlocked / total * 100) : 0;
+    const dash     = Math.round(pct * 100) / 100;  // stroke-dasharray value
+    document.getElementById('ach-ring').setAttribute('stroke-dasharray', `${dash} 100`);
+    document.getElementById('ach-ring-pct').textContent  = `${pct}%`;
+    document.getElementById('ach-ring-count').textContent = `${unlocked}/${total}`;
+
+    _achFilter = 'all';
+    document.querySelectorAll('.ach-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    _renderAchGrid();
+    modal.classList.add('active');
+}
+window.openAchievementsModal = openAchievementsModal;
+
+function setAchFilter(f, btn) {
+    _achFilter = f;
+    document.querySelectorAll('.ach-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+    _renderAchGrid();
+}
+window.setAchFilter = setAchFilter;
+
+function _renderAchGrid() {
+    const grid  = document.getElementById('ach-modal-grid');
+    const empty = document.getElementById('ach-modal-empty');
+    grid.innerHTML = '';
+
+    const list = _achAll.filter(a =>
+        _achFilter === 'all'      ? true
+      : _achFilter === 'unlocked' ? !!a.date_unlocked
+      :                             !a.date_unlocked
+    );
+
+    if (!list.length) { grid.style.display = 'none'; empty.style.display = 'flex'; return; }
+    grid.style.display = 'grid'; empty.style.display = 'none';
+
+    for (const a of list) {
+        const isUnlocked = !!a.date_unlocked;
+        const card = document.createElement('div');
+        card.className = 'ach-card' + (isUnlocked ? ' unlocked' : '');
+
+        const iconUrl = isUnlocked ? a.image_unlocked : a.image_locked;
+        if (iconUrl) {
+            const img = document.createElement('img');
+            img.src = iconUrl;
+            if (!isUnlocked) img.style.cssText = 'filter:grayscale(1) opacity(0.4);';
+            img.onerror = () => { img.replaceWith(Object.assign(document.createElement('div'), { style: 'width:52px;height:52px;border-radius:6px;background:rgba(255,255,255,0.05);' })); };
+            card.appendChild(img);
+        } else {
+            const ph = document.createElement('div');
+            ph.style.cssText = `width:52px; height:52px; border-radius:6px; background:rgba(255,255,255,0.05); ${!isUnlocked ? 'opacity:0.4;' : ''}`;
+            card.appendChild(ph);
+        }
+
+        const name = document.createElement('div');
+        name.className = 'ach-name';
+        name.textContent = a.name || a.key;
+        card.appendChild(name);
+
+        if (a.description) {
+            const desc = document.createElement('div');
+            desc.className = 'ach-desc';
+            desc.textContent = a.description;
+            card.appendChild(desc);
+        }
+
+        if (isUnlocked) {
+            const date = document.createElement('div');
+            date.className = 'ach-date';
+            date.textContent = _relativeDate(a.date_unlocked);
+            card.appendChild(date);
+        } else {
+            const lock = document.createElement('div');
+            lock.className = 'ach-lock';
+            lock.textContent = '🔒';
+            card.appendChild(lock);
+        }
+        grid.appendChild(card);
+    }
+}
+
+// Close achievements modal on backdrop click
+document.getElementById('modal-achievements').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-achievements'))
+        document.getElementById('modal-achievements').classList.remove('active');
+});
+
 // --- THE IMMERSIVE GAMEPAGE LOGIC ---
+function refreshGamepagePlayBtn(game) {
+    const playBtn = document.getElementById('btn-gamepage-play');
+    currentLaunchCmd = game.LaunchCommand || '';
+    if (currentLaunchCmd) {
+        playBtn.style.display = 'block';
+        const isInstalled = game.Installed == null || game.Installed == 1;
+        if (isInstalled) {
+            playBtn.innerText = t('status.play');
+            playBtn.className = 'primary';
+            playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
+        } else {
+            const store = (game.Store || '').toLowerCase();
+            const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
+            playBtn.innerText = t('status.install');
+            playBtn.className = 'btn-install-primary';
+            playBtn.style.display = 'block';
+            if (isGrinderStore) {
+                playBtn.onclick = () => window.api.openGrinder(game.Game);
+            } else {
+                const installCmd = getInstallCommand(game);
+                playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
+                if (!installCmd) playBtn.style.display = 'none';
+            }
+        }
+    } else if (isManualCategory(game)) {
+        playBtn.style.display = 'block';
+        playBtn.innerText = t('status.install');
+        playBtn.className = 'btn-install-primary';
+        playBtn.onclick = () => openAddCmdDialog(currentGameId, game.Game);
+    } else {
+        playBtn.style.display = 'none';
+        playBtn.onclick = null;
+    }
+}
+
 function openGamepage(game) {
+    savedGridScrollTop = document.getElementById(lastGridView)?.scrollTop || 0;
     currentGameId = game.id;
     currentLaunchCmd = game.LaunchCommand || '';
 
@@ -970,36 +1265,7 @@ function openGamepage(game) {
     };
 
     // Play / Install / Add Command Button
-    if (currentLaunchCmd) {
-        playBtn.style.display = 'block';
-        const isInstalled = game.Installed == null || game.Installed == 1;
-        if (isInstalled) {
-            playBtn.innerText = t('status.play');
-            playBtn.className = 'primary';
-            playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
-        } else {
-            const store = (game.Store || '').toLowerCase();
-            const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
-            playBtn.innerText = t('status.install');
-            playBtn.className = 'btn-install-primary';
-            playBtn.style.display = 'block';
-            if (isGrinderStore) {
-                playBtn.onclick = () => window.api.openGrinder(game.Game);
-            } else {
-                const installCmd = getInstallCommand(game);
-                playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
-                if (!installCmd) playBtn.style.display = 'none';
-            }
-        }
-    } else if (isManualCategory(game)) {
-        playBtn.style.display = 'block';
-        playBtn.innerText = t('status.install');
-        playBtn.className = 'btn-install-primary';
-        playBtn.onclick = () => openAddCmdDialog(currentGameId, game.Game);
-    } else {
-        playBtn.style.display = 'none';
-        playBtn.onclick = null;
-    }
+    refreshGamepagePlayBtn(game);
 
     // GRINDER setup button — GOG and Epic games only
     const gpStore = (game.Store || '').toLowerCase();
@@ -1089,6 +1355,8 @@ function openGamepage(game) {
         });
     }
     document.getElementById('gp-franchise').innerText = game.Franchise || "--";
+
+    loadGamepageAchievements(game);
 
     // FIX: Screenshots Slideshow Logic with beautiful Ken Burns Effect
     const ssBanner = document.getElementById('gamepage-screenshots-banner');
@@ -1184,6 +1452,37 @@ function openGamepage(game) {
 }
 
 
+function _renderLauncherList(game) {
+    const list = document.getElementById('edit-launchers-list');
+    list.innerHTML = '';
+    let launchers = [];
+    try { launchers = JSON.parse(game.LaunchCommands || '[]'); } catch(e) {}
+    if (launchers.length === 0 && game.LaunchCommand) {
+        launchers = [{ label: _guessLabel(game.LaunchCommand), cmd: game.LaunchCommand }];
+    }
+    launchers.forEach((l, i) => {
+        list.appendChild(_makeLauncherRow(l.label || '', l.cmd || ''));
+    });
+}
+
+function _makeLauncherRow(label, cmd) {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:6px; align-items:center;';
+    row.innerHTML =
+        `<input type="text" class="lnch-label" placeholder="Label" value="${escHtml(label)}" style="width:140px; font-size:11px; padding:6px 8px; flex-shrink:0; background:var(--bg_input,rgba(255,255,255,0.07)); border:1px solid var(--border_solid); border-radius:4px; color:var(--text_main);">` +
+        `<input type="text" class="lnch-cmd" placeholder="Command or URL" value="${escHtml(cmd)}" style="flex:1; font-size:11px; padding:6px 8px; background:var(--bg_input,rgba(255,255,255,0.07)); border:1px solid var(--border_solid); border-radius:4px; color:var(--text_main);">` +
+        `<button class="lnch-remove" title="Remove" style="flex-shrink:0; padding:4px 9px; font-size:12px; background:transparent; border:1px solid var(--text_dim); color:var(--text_dim); border-radius:4px; cursor:pointer; line-height:1;">✕</button>`;
+    row.querySelector('.lnch-remove').addEventListener('click', () => row.remove());
+    return row;
+}
+
+document.getElementById('btn-add-launcher').addEventListener('click', () => {
+    const list = document.getElementById('edit-launchers-list');
+    const row = _makeLauncherRow('', '');
+    list.appendChild(row);
+    row.querySelector('.lnch-label').focus();
+});
+
 // --- DETAILED VIEW / EDIT LOGIC ---
 function openDetails(game) {
     currentGameId = game.id;
@@ -1192,7 +1491,7 @@ function openDetails(game) {
 
     document.getElementById('edit-name').value = game.Game || '';
     document.getElementById('edit-store').value = displayStore;
-    document.getElementById('edit-launch').value = game.LaunchCommand || '';
+    _renderLauncherList(game);
     document.getElementById('edit-genre').value = game.GENRE || '';
     document.getElementById('edit-released').value = game.RELEASED || '';
     document.getElementById('edit-appid').value = game.SteamAppID || '';
@@ -1399,15 +1698,158 @@ async function openSgdbModal(apiKey, assetType, manualQuery) {
     });
 }
 
+// --- IGDB SCREENSHOTS BROWSER ---
+document.getElementById('btn-igdb-screenshots').addEventListener('click', () => openIgdbScreenshotsModal(null));
+document.getElementById('btn-close-igdb-screenshots').addEventListener('click', () => document.getElementById('modal-igdb-screenshots').classList.remove('active'));
+
+document.getElementById('btn-igdb-ss-search').addEventListener('click', async () => {
+    const query = document.getElementById('igdb-ss-search-input').value.trim();
+    if (query) await igdbSsSearchAndPick(query);
+});
+document.getElementById('igdb-ss-search-input').addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') { const q = document.getElementById('igdb-ss-search-input').value.trim(); if (q) await igdbSsSearchAndPick(q); }
+});
+
+document.getElementById('btn-igdb-ss-save-keys').addEventListener('click', async () => {
+    const clientId     = document.getElementById('igdb-ss-client-id').value.trim();
+    const clientSecret = document.getElementById('igdb-ss-client-secret').value.trim();
+    const keyStatus    = document.getElementById('igdb-ss-key-status');
+    if (!clientId || !clientSecret) { keyStatus.textContent = 'Both fields are required.'; return; }
+    keyStatus.textContent = '';
+    await window.api.setSetting('igdb_client_id', clientId);
+    await window.api.setSetting('igdb_client_secret', clientSecret);
+    igdbSsShowNoKey(false);
+    await igdbSsSearchAndPick(document.getElementById('igdb-ss-search-input').value.trim());
+});
+
+function igdbSsShowNoKey(show) {
+    document.getElementById('igdb-ss-no-key-panel').style.display = show ? 'flex' : 'none';
+    document.getElementById('igdb-ss-search-row').style.display   = show ? 'none' : 'flex';
+}
+
+async function openIgdbScreenshotsModal(manualQuery) {
+    document.getElementById('modal-igdb-screenshots').classList.add('active');
+    document.getElementById('igdb-ss-game-list').innerHTML = '';
+    document.getElementById('igdb-ss-grid').innerHTML = '';
+    document.getElementById('igdb-ss-status').textContent = '';
+    document.getElementById('igdb-ss-key-status').textContent = '';
+    igdbSsShowNoKey(false);
+    const gameName = document.getElementById('edit-name').value;
+    document.getElementById('igdb-ss-search-input').value = manualQuery || gameName;
+    await igdbSsSearchAndPick(manualQuery || gameName);
+}
+
+async function igdbSsSearchAndPick(query) {
+    const stat     = document.getElementById('igdb-ss-status');
+    const gameList = document.getElementById('igdb-ss-game-list');
+    const grid     = document.getElementById('igdb-ss-grid');
+    gameList.innerHTML = '';
+    grid.innerHTML = '';
+    stat.style.color = 'var(--text_dim)';
+    stat.textContent = 'Searching IGDB…';
+
+    const { error, results } = await window.api.igdbSearchList(query);
+    if (error === 'no_key') {
+        igdbSsShowNoKey(true);
+        return;
+    }
+    if (!results || !results.length) { stat.textContent = 'No results found.'; return; }
+    if (results.length === 1) { await igdbSsLoadScreenshots(results[0]); return; }
+
+    stat.textContent = 'Select the correct game:';
+    results.forEach(game => {
+        const btn = document.createElement('button');
+        btn.textContent = game.year ? `${game.name} (${game.year})` : game.name;
+        btn.style.cssText = 'background:var(--bg_menu); color:var(--text_main); border:1px solid var(--border_solid); padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer; font-family:Raleway,sans-serif; font-weight:700;';
+        btn.addEventListener('mouseover', () => { btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; });
+        btn.addEventListener('mouseout',  () => { btn.style.borderColor = 'var(--border_solid)'; btn.style.color = 'var(--text_main)'; });
+        btn.addEventListener('click', () => igdbSsLoadScreenshots(game));
+        gameList.appendChild(btn);
+    });
+}
+
+async function igdbSsLoadScreenshots(game) {
+    const stat     = document.getElementById('igdb-ss-status');
+    const gameList = document.getElementById('igdb-ss-game-list');
+    const grid     = document.getElementById('igdb-ss-grid');
+    gameList.innerHTML = '';
+    grid.innerHTML = '';
+    stat.style.color = 'var(--text_dim)';
+    stat.textContent = `Loading: ${game.name}${game.year ? ` (${game.year})` : ''}…`;
+
+    const { error, screenshots } = await window.api.igdbFetchScreenshots(game.id);
+    if (error === 'no_key') {
+        igdbSsShowNoKey(true);
+        return;
+    }
+    if (!screenshots || !screenshots.length) {
+        stat.textContent = `No screenshots available for ${game.name}.`;
+        return;
+    }
+    stat.style.color = 'var(--text_dim)';
+    stat.textContent = `${screenshots.length} screenshot${screenshots.length > 1 ? 's' : ''} — click to add`;
+
+    const capturedGameId = currentGameId;
+    screenshots.forEach(ss => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative; border-radius:6px; overflow:hidden; cursor:pointer; border:2px solid transparent; transition:border 0.15s;';
+
+        const img = document.createElement('img');
+        img.src = ss.thumb;
+        img.style.cssText = 'width:100%; aspect-ratio:16/9; object-fit:cover; display:block;';
+        img.addEventListener('mouseover', () => { if (!wrap.dataset.saved) wrap.style.borderColor = 'var(--accent)'; });
+        img.addEventListener('mouseout',  () => { if (!wrap.dataset.saved) wrap.style.borderColor = 'transparent'; });
+
+        wrap.appendChild(img);
+        wrap.addEventListener('click', async () => {
+            if (wrap.dataset.saving || wrap.dataset.saved) return;
+            wrap.dataset.saving = '1';
+            wrap.style.opacity = '0.5';
+            const result = await window.api.igdbSaveScreenshot(capturedGameId, ss.full);
+            wrap.style.opacity = '1';
+            delete wrap.dataset.saving;
+            if (result) {
+                wrap.dataset.saved = '1';
+                wrap.style.borderColor = '#66bb6a';
+                const check = document.createElement('div');
+                check.textContent = '✓';
+                check.style.cssText = 'position:absolute; top:6px; right:8px; color:#66bb6a; font-size:20px; font-weight:900; text-shadow:0 1px 4px #000;';
+                wrap.appendChild(check);
+                const game = allGames.find(g => g.id === capturedGameId);
+                if (game) {
+                    game.Screenshot = result;
+                    const first = result.split('|')[0];
+                    document.getElementById('ui-screenshot').innerHTML = `<img src="${getSafePath(first)}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+                stat.style.color = '#66bb6a';
+                stat.textContent = 'Added! Click more screenshots to keep adding.';
+            }
+        });
+        grid.appendChild(wrap);
+    });
+}
+
 // --- SAVE & AUTO-FETCH LOGIC ---
 document.getElementById('btn-save-game').addEventListener('click', async () => {
     if (!currentGameId) return;
     const game = allGames.find(g => g.id === currentGameId);
 
+    // Serialize launcher list → LaunchCommand (primary/first) + LaunchCommands (full JSON if multiple)
+    const _launcherRows = document.querySelectorAll('#edit-launchers-list > div');
+    const _launchers = [];
+    _launcherRows.forEach(row => {
+        const lbl = row.querySelector('.lnch-label')?.value?.trim() || '';
+        const cmd = row.querySelector('.lnch-cmd')?.value?.trim()   || '';
+        if (cmd) _launchers.push({ label: lbl, cmd });
+    });
+    const _primaryCmd      = _launchers.length > 0 ? _launchers[0].cmd : '';
+    const _launchCommandsJson = _launchers.length > 1 ? JSON.stringify(_launchers) : null;
+
     const data = {
         Game: document.getElementById('edit-name').value,
                                                           Store: document.getElementById('edit-store').value,
-                                                          LaunchCommand: document.getElementById('edit-launch').value,
+                                                          LaunchCommand: _primaryCmd,
+                                                          LaunchCommands: _launchCommandsJson,
                                                           GENRE: document.getElementById('edit-genre').value,
                                                           RELEASED: document.getElementById('edit-released').value,
                                                           SteamAppID: document.getElementById('edit-appid').value,
@@ -1631,12 +2073,14 @@ document.getElementById('btn-open-connect').addEventListener('click', async () =
     setTimeout(() => document.getElementById('connect-search').focus(), 150);
 });
 
-document.getElementById('btn-close-modal').addEventListener('click', () => {
+function closeConnect() {
     modalConnect.classList.remove('active');
     document.getElementById('connect-search').value = '';
     document.querySelectorAll('.connect-section').forEach(c => c.style.display = '');
     document.getElementById('connect-no-results').style.display = 'none';
-});
+}
+document.getElementById('btn-close-modal').addEventListener('click', closeConnect);
+modalConnect.addEventListener('click', e => { if (e.target === modalConnect) closeConnect(); });
 
 document.getElementById('connect-search').addEventListener('input', (e) => {
     const q = e.target.value.trim().toLowerCase();
@@ -1899,44 +2343,6 @@ document.getElementById('btn-sync-heroic').addEventListener('click', async () =>
     btn.innerText = t('status.sync_heroic');
 });
 
-(function () {
-    const launchBtn = document.getElementById('btn-launch-watch-heroic');
-    const statusEl  = document.getElementById('heroic-watch-status-text');
-    let watching = false;
-
-    function setWatching(on) {
-        watching = on;
-        launchBtn.innerText = on ? t('status.heroic_watching') : t('html.btn_refresh_heroic');
-        launchBtn.style.opacity = on ? '0.7' : '1';
-    }
-
-    launchBtn.addEventListener('click', async () => {
-        if (watching) { window.api.cancelHeroicWatch(); setWatching(false); statusEl.innerText = ''; return; }
-        const result = await window.api.launchAndWatchHeroic();
-        if (!result.success) { statusEl.innerText = `⚠️ ${result.message}`; return; }
-        setWatching(true);
-        statusEl.style.color = 'var(--text_dim)';
-        statusEl.innerText = t('status.heroic_waiting');
-    });
-
-    window.api.onHeroicWatchStatus(data => {
-        if (data.phase === 'syncing') {
-            statusEl.style.color = 'var(--text_dim)';
-            statusEl.innerText = t('status.heroic_syncing');
-        } else if (data.phase === 'done') {
-            setWatching(false);
-            statusEl.style.color = data.success ? '#66bb6a' : '#ef5350';
-            statusEl.innerText = data.success ? `✅ ${data.message}` : `❌ ${data.message}`;
-            if (data.success) loadGames();
-            setTimeout(() => { statusEl.innerText = ''; }, 6000);
-        } else if (data.phase === 'timeout') {
-            setWatching(false);
-            statusEl.style.color = 'var(--text_dim)';
-            statusEl.innerText = t('status.heroic_timeout');
-            setTimeout(() => { statusEl.innerText = ''; }, 8000);
-        }
-    });
-})();
 
 document.getElementById('btn-sync-steam').addEventListener('click', async () => {
     const steamId = document.getElementById('steam-id').value.trim();
@@ -1961,21 +2367,9 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
 
     const line = (html) => { statusEl.innerHTML += (statusEl.innerHTML ? '<br>' : '') + html; };
 
-    const steamId = await window.api.getSetting('steam_id');
+    const steamId  = await window.api.getSetting('steam_id');
     const steamKey = await window.api.getSetting('steam_api_key');
-    const issues = [];
     let anySuccess = false;
-
-    // Heroic sync
-    line('🔄 Syncing Heroic...');
-    const heroicResult = await window.api.syncHeroic();
-    if (heroicResult.success) {
-        anySuccess = true;
-        statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Heroic...', `✅ Heroic: ${heroicResult.message}`);
-    } else {
-        statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing Heroic...', '⚠️ Heroic: not found');
-        issues.push('heroic');
-    }
 
     // Steam sync — only if credentials are already saved
     if (steamId && steamKey) {
@@ -1989,33 +2383,39 @@ document.getElementById('btn-update-library').addEventListener('click', async ()
         }
     } else {
         line('⚠️ Steam: not configured');
-        issues.push('steam');
+        document.getElementById('update-info-body').innerHTML = `<div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid #66c0f4;">
+            <strong style="color: #66c0f4;">Steam not configured</strong>
+            <p style="margin: 6px 0 0 0;">Go to <strong>Connect → Steam API Import</strong> and enter your SteamID64 and API Key.<br>
+            Get your free API key at:<br>
+            <span style="color: var(--text_main); font-size: 12px;">steamcommunity.com/dev/apikey</span></p>
+        </div>`;
+        document.getElementById('modal-update-info').classList.add('active');
+    }
+
+    // GRINDER sync — always attempt if GRINDER is present
+    line('🔄 Syncing GRINDER...');
+    const gs = await window.api.grinderStatus();
+    if (!gs.found) {
+        statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing GRINDER...', '⚪ GRINDER: not found');
+    } else {
+        try {
+            let gSynced = 0;
+            if (gs.allGames?.length) {
+                const r = await window.api.syncAllGrinderGames(gs.allGames, gs.path);
+                gSynced = r.synced ?? 0;
+            } else if (gs.installedGames?.length) {
+                const r = await window.api.syncGrinderInstalled(gs.installedGames);
+                gSynced = r.synced ?? 0;
+            }
+            anySuccess = true;
+            statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing GRINDER...', `✅ GRINDER: ${gSynced} game(s) updated`);
+        } catch(e) {
+            statusEl.innerHTML = statusEl.innerHTML.replace('🔄 Syncing GRINDER...', `⚠️ GRINDER: ${e.message}`);
+        }
     }
 
     btn.disabled = false;
     btn.innerText = t('html.btn_update_library');
-
-    // Show setup info modal if anything is missing
-    if (issues.length > 0) {
-        let body = '';
-        if (issues.includes('heroic')) {
-            body += `<div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid var(--accent);">
-                <strong style="color: var(--accent);">Heroic Games Launcher not found</strong>
-                <p style="margin: 6px 0 0 0;">Install Heroic, sync your Epic Games and GOG libraries inside Heroic first, then try again.<br>
-                <span style="color: var(--text_dim); font-size: 12px;">heroicgameslauncher.com</span></p>
-            </div>`;
-        }
-        if (issues.includes('steam')) {
-            body += `<div style="padding: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; border-left: 3px solid #66c0f4;">
-                <strong style="color: #66c0f4;">Steam not configured</strong>
-                <p style="margin: 6px 0 0 0;">Go to <strong>Connect → Steam API Import</strong> and enter your SteamID64 and API Key.<br>
-                Get your free API key at:<br>
-                <span style="color: var(--text_main); font-size: 12px;">steamcommunity.com/dev/apikey</span></p>
-            </div>`;
-        }
-        document.getElementById('update-info-body').innerHTML = body;
-        document.getElementById('modal-update-info').classList.add('active');
-    }
 
     if (anySuccess) {
         await loadGames();
@@ -2200,12 +2600,14 @@ async function updateGrinderRow(game) {
     }
 }
 
-document.getElementById('btn-close-tools').addEventListener('click', () => {
+function closeTools() {
     modalTools.classList.remove('active');
     document.getElementById('tools-search').value = '';
     document.querySelectorAll('.tools-section').forEach(c => c.style.display = '');
     document.getElementById('tools-no-results').style.display = 'none';
-});
+}
+document.getElementById('btn-close-tools').addEventListener('click', closeTools);
+modalTools.addEventListener('click', e => { if (e.target === modalTools) closeTools(); });
 
 document.getElementById('tools-search').addEventListener('input', (e) => {
     const q = e.target.value.trim().toLowerCase();
@@ -2223,11 +2625,13 @@ document.getElementById('tools-search').addEventListener('input', (e) => {
 document.getElementById('btn-batch-fetch').addEventListener('click', async () => {
     const hasImg = (v) => v && String(v).startsWith('GameManagerConfig');
     const hasText = (v) => v && String(v).trim() !== '';
+    const isPico8 = (g) => { const s = (g.store || '').toLowerCase(); return s.includes('pico-8') || s.includes('pico8'); };
     const gamesToFetch = allGames.filter(g =>
+        !isPico8(g) && (
         !hasImg(g.CoverArt) || !hasImg(g.HeroArt) || !hasImg(g.Logo) ||
         !hasImg(g.Icon) || !hasImg(g.Screenshot) ||
         !hasText(g.Description) || !hasText(g.DEV) || !hasText(g.GENRE) ||
-        !hasText(g.SimilarGames) || !hasText(g.Franchise)
+        !hasText(g.SimilarGames) || !hasText(g.Franchise))
     );
 
     const btn = document.getElementById('btn-batch-fetch');
@@ -2339,9 +2743,10 @@ function updateHeroMosaic(filtered, filterName) {
 
     let mediaPool = [];
     filtered.forEach(g => {
-        if (g.HeroArt && String(g.HeroArt).trim() !== "") mediaPool.push({ path: g.HeroArt, name: g.Game });
-        else if (g.Screenshot && String(g.Screenshot).trim() !== "") {
+        if (g.Screenshot && String(g.Screenshot).trim() !== "") {
             String(g.Screenshot).split('|').filter(s => s.trim() !== "").forEach(s => mediaPool.push({ path: s, name: g.Game }));
+        } else if (g.HeroArt && String(g.HeroArt).trim() !== "") {
+            mediaPool.push({ path: g.HeroArt, name: g.Game });
         } else if (g.CoverArt && String(g.CoverArt).trim() !== "") {
             mediaPool.push({ path: g.CoverArt, name: g.Game });
         }
