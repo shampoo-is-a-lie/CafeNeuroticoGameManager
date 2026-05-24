@@ -174,7 +174,9 @@ window.addEventListener('focus', () => {
     }, 400);
 });
 let currentLaunchCmd = '';
-let currentFilter = 'all';
+let activeFilters = new Set(); // empty = ALL GAMES
+const STORE_FILTERS     = new Set(['steam','gog','epic','flatpak','pico8','itch','physical','emulation','apps','others']);
+const QUALIFIER_FILTERS = new Set(['installed','favs','want','playable']);
 let lastGridView = 'view-gallery';
 let savedGridScrollTop = 0;
 let baseDir = '';
@@ -587,16 +589,29 @@ document.getElementById('search-bar').addEventListener('input', applyFilters);
 const filterButtons = document.querySelectorAll('#sidebar-filters button');
 filterButtons.forEach(btn => {
     btn.addEventListener('click', async (e) => {
-        filterButtons.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentFilter = e.target.getAttribute('data-filter');
-        if (currentFilter === 'flatpak') {
+        const filter = e.target.getAttribute('data-filter');
+        if (filter === 'all') {
+            activeFilters.clear();
+        } else {
+            if (activeFilters.has(filter)) {
+                activeFilters.delete(filter);
+            } else {
+                activeFilters.add(filter);
+            }
+        }
+        // Sync active class on all buttons
+        filterButtons.forEach(b => {
+            const f = b.getAttribute('data-filter');
+            b.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+        });
+        // Side-effects for flatpak / pico8 when newly activated
+        if (filter === 'flatpak' && activeFilters.has('flatpak')) {
             const scanResult = await window.api.scanFlatpak();
             await loadGames();
             if (scanResult.iconMap && Object.keys(scanResult.iconMap).length > 0)
                 generateFlatpakArt(scanResult.iconMap);
         }
-        if (currentFilter === 'pico8') {
+        if (filter === 'pico8' && activeFilters.has('pico8')) {
             await window.api.scanPico8();
             await loadGames();
         }
@@ -610,35 +625,44 @@ filterButtons.forEach(btn => {
 
 function applyFilters() {
     const query = document.getElementById('search-bar').value.toLowerCase();
+    const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
+    const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
     let filtered = allGames.filter(game => {
-        let matchesCategory = true;
         const storeLower = (game.Store || '').toLowerCase();
 
-        if (currentFilter === 'playable') matchesCategory = !!game.LaunchCommand;
-        else if (currentFilter === 'favs') matchesCategory = game.FAV === 'YES';
-        else if (currentFilter === 'want') matchesCategory = game.WANT_TO_PLAY === 'YES';
-        else if (currentFilter === 'steam') matchesCategory = storeLower.includes('steam');
-        else if (currentFilter === 'epic') matchesCategory = storeLower.includes('epic');
-        else if (currentFilter === 'gog') matchesCategory = storeLower.includes('gog');
-        else if (currentFilter === 'physical') matchesCategory = storeLower.includes('physical');
-        else if (currentFilter === 'flatpak') matchesCategory = storeLower.includes('flatpak');
-        else if (currentFilter === 'pico8') matchesCategory = storeLower.includes('pico-8');
-        else if (currentFilter === 'itch')  matchesCategory = storeLower.includes('itch') || (game.LaunchCommand || '').startsWith('itch://');
-        else if (currentFilter === 'apps') matchesCategory = storeLower.includes('apps');
-        else if (currentFilter === 'others') matchesCategory = storeLower.includes('others');
-        else if (currentFilter === 'emulation') matchesCategory = storeLower.includes('emulation');
-        else if (currentFilter === 'installed') {
-            const cat = (game.Store || '').toLowerCase();
-            const isManual = !game.GrinderGameId && (cat.includes('others') || cat.includes('emulation') || cat.includes('physical') || cat.includes('apps'));
-            matchesCategory = isManual ? !!game.LaunchCommand : game.Installed == 1;
+        // Stores: OR — game must match at least one selected store (open if none selected)
+        if (storeActive.length > 0) {
+            const storeMatch = storeActive.some(f => {
+                if (f === 'steam')     return storeLower.includes('steam');
+                if (f === 'epic')      return storeLower.includes('epic');
+                if (f === 'gog')       return storeLower.includes('gog');
+                if (f === 'physical')  return storeLower.includes('physical');
+                if (f === 'flatpak')   return storeLower.includes('flatpak');
+                if (f === 'pico8')     return storeLower.includes('pico-8');
+                if (f === 'itch')      return storeLower.includes('itch') || (game.LaunchCommand || '').startsWith('itch://');
+                if (f === 'apps')      return storeLower.includes('apps');
+                if (f === 'others')    return storeLower.includes('others');
+                if (f === 'emulation') return storeLower.includes('emulation');
+                return false;
+            });
+            if (!storeMatch) return false;
         }
 
-        if (!matchesCategory) return false;
-        if (!query) return true;
+        // Qualifiers: AND — game must satisfy every selected qualifier
+        for (const f of qualifierActive) {
+            if (f === 'playable' && !game.LaunchCommand) return false;
+            if (f === 'favs'     && game.FAV !== 'YES') return false;
+            if (f === 'want'     && game.WANT_TO_PLAY !== 'YES') return false;
+            if (f === 'installed') {
+                const cat = storeLower;
+                const isManual = !game.GrinderGameId && (cat.includes('others') || cat.includes('emulation') || cat.includes('physical') || cat.includes('apps'));
+                if (!(isManual ? !!game.LaunchCommand : game.Installed == 1)) return false;
+            }
+        }
 
-        const globalMatch = Object.values(game).some(val => String(val).toLowerCase().includes(query));
-        return globalMatch;
+        if (!query) return true;
+        return Object.values(game).some(val => String(val).toLowerCase().includes(query));
     });
 
     if (query) {
@@ -651,17 +675,18 @@ function applyFilters() {
         });
     }
 
-    updateHeroMosaic(filtered, currentFilter);
+    updateHeroMosaic(filtered);
 
-    // Show category hero buttons
+    // Hero buttons: only show when that store is the sole active store filter
+    const singleStore = storeActive.length === 1;
     [
-        ['pico8-hero-btns',    currentFilter === 'pico8'],
-        ['steam-hero-btns',    currentFilter === 'steam'],
-        ['gog-hero-btns',      currentFilter === 'gog'],
-        ['epic-hero-btns',     currentFilter === 'epic'],
-        ['flatpak-hero-btns',  currentFilter === 'flatpak'],
-        ['itch-hero-btns',     currentFilter === 'itch'],
-        ['others-hero-btns',   currentFilter === 'others']
+        ['pico8-hero-btns',   singleStore && activeFilters.has('pico8')],
+        ['steam-hero-btns',   singleStore && activeFilters.has('steam')],
+        ['gog-hero-btns',     singleStore && activeFilters.has('gog')],
+        ['epic-hero-btns',    singleStore && activeFilters.has('epic')],
+        ['flatpak-hero-btns', singleStore && activeFilters.has('flatpak')],
+        ['itch-hero-btns',    singleStore && activeFilters.has('itch')],
+        ['others-hero-btns',  singleStore && activeFilters.has('others')]
     ].forEach(([id, show]) => {
         const el = document.getElementById(id);
         if (el) el.style.display = show ? 'flex' : 'none';
@@ -2741,13 +2766,13 @@ document.getElementById('btn-import-csv').addEventListener('click', async () => 
 // --- THEME ENGINE ---
 
 let _lastMosaicKey = '';
-function updateHeroMosaic(filtered, filterName) {
+function updateHeroMosaic(filtered) {
     // Always update count label (cheap)
     const countEl = document.getElementById('gallery-category-count');
     if (countEl) countEl.innerText = `${filtered.length} ${filtered.length === 1 ? t('game.singular') : t('game.plural')}`;
 
     // Skip full mosaic rebuild if filter + game set is identical to last render
-    const mosaicKey = `${filterName}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
+    const mosaicKey = `${[...activeFilters].join(',') || 'all'}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
     if (mosaicKey === _lastMosaicKey) return;
     _lastMosaicKey = mosaicKey;
 
@@ -2763,11 +2788,22 @@ function updateHeroMosaic(filtered, filterName) {
         'gog': { text: 'GOG', icon: 'gog' }, 'flatpak': { text: 'FLATPAK', icon: 'flatpak' }, 'pico8': { text: 'PICO-8', icon: 'pico8' }, 'itch': { text: 'ITCH.IO', icon: 'itch' },
         'physical': { text: t('filter.physical'), icon: 'physical' },
         'others': { text: t('filter.others'), icon: 'others' }, 'emulation': { text: t('filter.emulation'), icon: 'emulation' },
-        'apps': { text: t('filter.apps'), icon: 'apps' }
+        'apps': { text: t('filter.apps'), icon: 'apps' },
+        'installed': { text: 'INSTALLED', icon: 'installed' }
     };
-    const currentCat = filterMap[filterName] || { text: filterName.toUpperCase(), icon: filterName };
-    document.getElementById('gallery-category-text').innerText = currentCat.text;
-    const iconPath = getSafePath(`assets/logos/${currentCat.icon}.png`);
+    const active = [...activeFilters];
+    let displayText, displayIcon;
+    if (active.length === 0) {
+        displayText = t('filter.all'); displayIcon = 'all_games';
+    } else if (active.length === 1) {
+        const cat = filterMap[active[0]] || { text: active[0].toUpperCase(), icon: active[0] };
+        displayText = cat.text; displayIcon = cat.icon;
+    } else {
+        displayText = active.map(f => filterMap[f]?.text || f.toUpperCase()).join(' + ');
+        displayIcon = 'all_games';
+    }
+    document.getElementById('gallery-category-text').innerText = displayText;
+    const iconPath = getSafePath(`assets/logos/${displayIcon}.png`);
     document.getElementById('gallery-category-icon').style.webkitMaskImage = `url('${iconPath}')`;
 
     let mediaPool = [];
