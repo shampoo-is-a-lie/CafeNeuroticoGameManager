@@ -558,6 +558,8 @@ function switchView(viewId) {
     target.classList.add('active');
     target.scrollTop = 0;
 
+    document.getElementById('gamepage-back-bar').style.display = viewId === 'view-gamepage' ? 'block' : 'none';
+
     // Ensure video pauses when leaving the view
     const vp = document.getElementById('detail-video-player');
     if (vp) vp.pause();
