@@ -2940,44 +2940,79 @@ function applyTheme(themeName) {
     try { localStorage.setItem('cngm_theme_cache', JSON.stringify(tConfig)); } catch(e) {}
 }
 
-const modalThemes = document.getElementById('modal-themes');
-const themeList = document.getElementById('theme-list');
-const themeTitle = document.getElementById('theme-modal-title');
-const btnThemeBack = document.getElementById('btn-theme-back');
-
 document.getElementById('btn-theme-switch').addEventListener('click', () => {
     document.getElementById('modal-tools').classList.remove('active');
-    modalThemes.classList.add('active');
+    document.getElementById('modal-themes').classList.add('active');
     renderThemeCategories();
 });
-document.getElementById('btn-close-themes').addEventListener('click', () => { modalThemes.classList.remove('active'); });
-btnThemeBack.addEventListener('click', renderThemeCategories);
+document.getElementById('btn-close-themes').addEventListener('click', () => {
+    document.getElementById('modal-themes').classList.remove('active');
+});
+document.getElementById('btn-theme-back').addEventListener('click', () => {
+    document.getElementById('modal-themes').classList.remove('active');
+    document.getElementById('modal-tools').classList.add('active');
+});
+document.getElementById('btn-close-themes').addEventListener('mouseover', () => {
+    const el = document.getElementById('btn-close-themes');
+    el.style.background = '#c62828'; el.style.borderColor = '#c62828'; el.style.color = '#fff';
+});
+document.getElementById('btn-close-themes').addEventListener('mouseout', () => {
+    const el = document.getElementById('btn-close-themes');
+    el.style.background = 'rgba(0,0,0,0.35)'; el.style.borderColor = ''; el.style.color = '';
+});
 
 function renderThemeCategories() {
-    themeTitle.innerText = t('theme.modal_title');
-    btnThemeBack.style.display = 'none';
-    themeList.innerHTML = '';
-    Object.keys(THEME_CATEGORIES).forEach(category => {
+    const cats = document.getElementById('theme-cats');
+    const grid = document.getElementById('theme-grid');
+    const backBtn = document.getElementById('btn-theme-back');
+    if (!cats || !grid) return;
+    backBtn.style.display = 'none';
+    cats.innerHTML = '';
+    grid.innerHTML = '';
+    Object.keys(THEME_CATEGORIES).forEach(cat => {
         const btn = document.createElement('button');
-        btn.innerText = category; btn.style.width = '100%';
-        btn.addEventListener('click', () => renderThemesInCategory(category));
-        themeList.appendChild(btn);
+        btn.className = 'theme-cat-btn';
+        btn.textContent = cat;
+        btn.addEventListener('click', () => {
+            cats.querySelectorAll('.theme-cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderThemesInCategory(cat);
+        });
+        cats.appendChild(btn);
     });
+    cats.querySelector('.theme-cat-btn')?.classList.add('active');
+    renderThemesInCategory(Object.keys(THEME_CATEGORIES)[0]);
 }
 
 function renderThemesInCategory(category) {
-    themeTitle.innerText = category.toUpperCase();
-    btnThemeBack.style.display = 'block';
-    themeList.innerHTML = '';
-    const themes = THEME_CATEGORIES[category] || [];
-    themes.forEach(themeName => {
-        if (!THEMES[themeName]) return;
-        const btn = document.createElement('button');
-        btn.innerText = themeName === activeTheme ? `★ ${themeName}` : themeName;
-        btn.style.width = '100%';
-        if (themeName === activeTheme) { btn.style.backgroundColor = "var(--border_solid)"; btn.style.color = "var(--text_main)"; }
-        btn.addEventListener('click', () => { applyTheme(themeName); renderThemesInCategory(category); });
-        themeList.appendChild(btn);
+    const grid = document.getElementById('theme-grid');
+    const backBtn = document.getElementById('btn-theme-back');
+    if (!grid) return;
+    backBtn.style.display = '';
+    grid.innerHTML = '';
+    (THEME_CATEGORIES[category] || []).forEach(name => {
+        const t = THEMES[name];
+        if (!t) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'theme-swatch' + (name === activeTheme ? ' active' : '');
+        wrap.title = name;
+        wrap.innerHTML = `
+            <div style="background:${t.bg}; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
+                <div style="background:${t.bg_menu}; border-radius:4px; padding:6px 8px; border:1px solid ${t.border_solid};">
+                    <div style="font-size:9px; font-weight:900; color:${t.accent}; letter-spacing:1px; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <div style="width:14px; height:14px; border-radius:50%; background:${t.accent}; flex-shrink:0;"></div>
+                    <div style="font-size:9px; color:${t.text_sec};">Aa</div>
+                    <div style="font-size:9px; color:${t.text_dim}; margin-left:auto;">Bb</div>
+                </div>
+            </div>`;
+        wrap.addEventListener('click', () => {
+            applyTheme(name);
+            grid.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+            wrap.classList.add('active');
+        });
+        grid.appendChild(wrap);
     });
 }
 

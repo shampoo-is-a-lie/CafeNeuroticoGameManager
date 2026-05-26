@@ -70,6 +70,13 @@
     .segmented-btn:hover { background: var(--border_solid); color: var(--text_main); transform: none; box-shadow: none; }
     .segmented-btn.active { background: var(--accent); color: var(--bg); }
 
+    .theme-cat-btn { width:100%; text-align:left; padding:9px 12px; border-radius:6px; border:1px solid transparent; background:transparent; color:var(--text_sec); font-size:11px; font-weight:900; cursor:pointer; font-family:inherit; transition:0.15s; text-transform:uppercase; letter-spacing:0.5px; }
+    .theme-cat-btn:hover { border-color:var(--border_solid); background:rgba(0,0,0,0.2); transform:none; box-shadow:none; color:var(--text_main); }
+    .theme-cat-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    .theme-swatch { cursor:pointer; border-radius:8px; border:2px solid transparent; overflow:hidden; transition:border-color 0.15s, transform 0.15s; }
+    .theme-swatch:hover { transform:scale(1.04); border-color:var(--text_main); }
+    .theme-swatch.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+
     .tool-card { background-color: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
     .tool-card-title { color: var(--accent); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid var(--border_solid); padding-bottom: 5px; margin-bottom: 2px; }
 
@@ -887,7 +894,21 @@
     </div>
   </div>
 
-  <div id="modal-themes" class="modal-overlay"><div class="modal-box"><h3 id="theme-modal-title" style="margin: 0; color: var(--accent); text-transform: uppercase;">Theme Categories</h3><div id="theme-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; padding-right: 5px;"></div><button id="btn-theme-back" style="display: none; background-color: transparent; color: var(--text_sec); border: 1px solid var(--border);">Back to Categories</button><button id="btn-close-themes" style="margin-top: 10px;">Close</button></div></div>
+  <div id="modal-themes" class="modal-overlay" style="z-index:200;">
+    <div class="modal-box" style="width:min(820px,95vw); max-height:90vh; display:flex; flex-direction:column; gap:0; padding:0; overflow:hidden;">
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 24px 16px; border-bottom:1px solid var(--border_solid); flex-shrink:0;">
+        <div style="font-size:16px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Choose Theme</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="btn-theme-back" style="display:none; height:30px; padding:0 16px; border-radius:20px; border:1.5px solid var(--accent); background:transparent; color:var(--accent); font-size:10px; font-weight:900; letter-spacing:0.5px; cursor:pointer; font-family:inherit; white-space:nowrap; text-transform:uppercase; transition:background 0.15s, color 0.15s;">← Back</button>
+          <button id="btn-close-themes" style="width:30px; height:30px; border-radius:50%; border:1.5px solid var(--border_solid); background:rgba(0,0,0,0.35); color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; font-family:inherit; padding:0; text-transform:none; letter-spacing:0; transition:background 0.15s, border-color 0.15s, color 0.15s;">✕</button>
+        </div>
+      </div>
+      <div style="display:flex; flex:1; overflow:hidden;">
+        <div id="theme-cats" style="width:200px; flex-shrink:0; border-right:1px solid var(--border_solid); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:4px;"></div>
+        <div id="theme-grid" style="flex:1; overflow-y:auto; padding:16px; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; align-content:start;"></div>
+      </div>
+    </div>
+  </div>
 
   <div id="modal-sgdb" class="modal-overlay">
     <div class="modal-box" style="width: 800px; max-height: 85vh;">
