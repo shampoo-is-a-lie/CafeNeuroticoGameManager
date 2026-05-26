@@ -83,6 +83,22 @@ CNGM bundles the following tools:
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | [The Unlicense](https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE) (Public Domain) |
 | [FFmpeg](https://ffmpeg.org) | [GPL v2+](https://ffmpeg.org/legal.html) |
 
+## The Cafe Neurotico Ecosystem
+
+```
+  CNGM  ◈        Central hub — PC game library, store sync, launches all companion apps
+    │
+    ├──▸  CREMA       Fullscreen / gamepad counterpart for CNGM + EmuLatte
+    │
+    ├──▸  GRINDER     GOG & Epic install engine — feeds games back into CNGM
+    │
+    ├──▸  EmuLatte    ROM library manager — emulation counterpart to CNGM
+    │
+    └──▸  CN Clock    Floating desktop clock — shows art from CNGM + EmuLatte
+```
+
+Place all AppImages in the same folder. CNGM auto-detects its companions and integrates them — no configuration needed.
+
 ## License
 
 Copyright (C) 2026 J.R.A. (Shampoo is a Lie)
