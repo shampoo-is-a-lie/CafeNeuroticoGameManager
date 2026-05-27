@@ -3135,12 +3135,7 @@ document.getElementById('btn-sync-steam').addEventListener('click', async () => 
 
 document.getElementById('btn-tools-add-game')?.addEventListener('click', () => {
     closeTools();
-    const layout = localStorage.getItem('cngm_layout_mode') || 'sidebar';
-    if (layout === 'split') {
-        document.getElementById('btn-add-game').click();
-    } else {
-        openAddGameDialog();
-    }
+    openAddGameDialog();
 });
 
 document.getElementById('btn-update-library').addEventListener('click', async () => {
@@ -3462,29 +3457,7 @@ document.getElementById('btn-check-install').addEventListener('click', async () 
     loadGames();
 });
 
-document.getElementById('btn-add-game').addEventListener('click', () => {
-    const modal = document.getElementById('modal-add-game');
-    const input = document.getElementById('add-game-name-input');
-    input.value = '';
-    modal.classList.add('active');
-    setTimeout(() => input.focus(), 50);
-
-    const doCreate = async () => {
-        const name = input.value.trim();
-        if (!name) { input.focus(); return; }
-        modal.classList.remove('active');
-        const result = await window.api.addGame(name);
-        if (result.success) {
-            await loadGames();
-            const newGame = allGames.find(g => g.id === result.id);
-            if (newGame) { openDetails(newGame); document.getElementById('edit-name').focus(); }
-        } else { await showAlert(t('alert.add_failed')); }
-    };
-
-    document.getElementById('add-game-create').onclick = doCreate;
-    document.getElementById('add-game-cancel').onclick = () => modal.classList.remove('active');
-    input.onkeydown = (e) => { if (e.key === 'Enter') doCreate(); else if (e.key === 'Escape') modal.classList.remove('active'); };
-});
+document.getElementById('btn-add-game').addEventListener('click', () => openAddGameDialog());
 
 document.getElementById('btn-template-csv').addEventListener('click', async () => { const result = await window.api.downloadCsvTemplate(); if (result?.message) await showAlert(result.message); });
 document.getElementById('btn-export-csv').addEventListener('click', async () => { const result = await window.api.exportCsv(); if (result?.message) await showAlert(result.message); });
