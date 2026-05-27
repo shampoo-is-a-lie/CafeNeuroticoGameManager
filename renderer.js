@@ -368,7 +368,7 @@ document.getElementById('btn-close').addEventListener('click', () => window.api.
 // ── LAYOUT MODE ───────────────────────────────────────────────────────────
 function applyLayoutMode(mode) {
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -622,6 +622,10 @@ function syncFilterActiveStates() {
         const f = btn.dataset.filter;
         btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
     });
+    document.querySelectorAll('.split-ftab[data-filter]').forEach(btn => {
+        const f = btn.dataset.filter;
+        btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+    });
 }
 
 function switchView(viewId) {
@@ -723,7 +727,7 @@ document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
     document.getElementById('btn-add-game').click());
 
 function applyFilters() {
-    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || '').toLowerCase();
+    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
     const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
     const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
@@ -803,6 +807,7 @@ function applyFilters() {
 
     renderTable(recentGames, regularGames);
     renderGallery(recentGames, regularGames);
+    renderSplitList(filtered);
 }
 
 function renderTable(recent, regular) {
@@ -855,6 +860,162 @@ function renderTable(recent, regular) {
     regular.forEach(appendRow);
 
 }
+
+// ── SPLIT PANE ────────────────────────────────────────────────────────────────
+let _splitGames = [], _splitIdx = -1, _splitGame = null;
+
+function renderSplitList(games) {
+    if (!document.getElementById('app-container')?.classList.contains('layout-split')) return;
+    _splitGames = games;
+    const body = document.getElementById('split-list-body');
+    const count = document.getElementById('split-list-count');
+    if (!body) return;
+    body.innerHTML = '';
+    count.textContent = games.length + ' game' + (games.length !== 1 ? 's' : '');
+
+    const storeLabel = s => (s || 'OTHER').toUpperCase().replace('EPIC', 'EPIC').replace('STEAM', 'STEAM');
+
+    games.forEach((game, idx) => {
+        const isInstalled = game.Installed == null || game.Installed == 1;
+        const row = document.createElement('div');
+        row.className = 'split-row' + (idx === _splitIdx ? ' selected' : '');
+        row.dataset.idx = idx;
+        row.innerHTML = `
+            <span class="split-inst-dot ${isInstalled ? 'on' : 'off'}"></span>
+            <span class="split-row-title">${game.Game}</span>
+            <span class="split-store-tag">${storeLabel(game.Store)}</span>`;
+        row.addEventListener('click', () => selectSplitRow(idx));
+        body.appendChild(row);
+    });
+
+    // Preserve or reset selection
+    if (_splitIdx >= 0 && _splitIdx < games.length) {
+        selectSplitRow(_splitIdx, true);
+    } else if (games.length > 0) {
+        selectSplitRow(0, true);
+    } else {
+        _splitIdx = -1;
+        _splitGame = null;
+        const empty = document.getElementById('split-empty');
+        const detail = document.getElementById('split-detail');
+        if (empty) empty.style.display = 'flex';
+        if (detail) detail.style.display = 'none';
+    }
+}
+
+function selectSplitRow(idx, skipScroll = false) {
+    _splitIdx = idx;
+    _splitGame = _splitGames[idx] || null;
+    document.querySelectorAll('#split-list-body .split-row').forEach((el, i) => {
+        el.classList.toggle('selected', i === idx);
+    });
+    if (!skipScroll) {
+        const el = document.querySelector(`#split-list-body .split-row[data-idx="${idx}"]`);
+        el?.scrollIntoView({ block: 'nearest' });
+    }
+    if (_splitGame) renderSplitDetail(_splitGame);
+}
+
+function renderSplitDetail(game) {
+    const empty = document.getElementById('split-empty');
+    const detail = document.getElementById('split-detail');
+    if (!empty || !detail) return;
+    empty.style.display = 'none';
+    detail.style.display = 'flex';
+
+    // Hero background
+    const heroBg = document.getElementById('split-hero-bg');
+    const heroSrc = game.HeroArt ? getSafePath(game.HeroArt)
+                  : game.Screenshots ? getSafePath(game.Screenshots.split('|')[0])
+                  : game.CoverArt   ? getSafePath(game.CoverArt)
+                  : '';
+    heroBg.style.backgroundImage = heroSrc ? `url('${heroSrc}')` : 'none';
+
+    // Cover art
+    const coverImg = document.getElementById('split-cover-img');
+    const coverPh  = document.getElementById('split-cover-ph');
+    if (game.CoverArt && game.CoverArt.trim()) {
+        coverImg.src = getSafePath(game.CoverArt);
+        coverImg.style.display = 'block';
+        if (coverPh) coverPh.style.display = 'none';
+    } else {
+        coverImg.style.display = 'none';
+        if (coverPh) { coverPh.style.display = 'flex'; coverPh.textContent = game.Game; }
+    }
+
+    // Title & meta
+    document.getElementById('split-game-title').textContent = game.Game || '';
+    const metaParts = [];
+    if (game.RELEASED) metaParts.push(game.RELEASED);
+    if (game.GENRE) metaParts.push(game.GENRE);
+    if (game.DEVELOPER) metaParts.push(game.DEVELOPER);
+    if (game.Store) metaParts.push(game.Store.toUpperCase());
+    document.getElementById('split-game-meta').textContent = metaParts.join('  ·  ');
+
+    // Description
+    const desc = document.getElementById('split-game-desc');
+    desc.textContent = game.DESCRIPTION || '';
+    desc.style.display = game.DESCRIPTION ? 'block' : 'none';
+
+    // Stats
+    const stats = document.getElementById('split-game-stats');
+    const lastPlayed = game.LastPlayed ? new Date(game.LastPlayed * 1000).toLocaleDateString() : null;
+    stats.textContent = lastPlayed ? 'Last played: ' + lastPlayed : '';
+
+    // Play button
+    const playBtn = document.getElementById('btn-split-play');
+    if (game.LaunchCommand) {
+        playBtn.style.display = 'inline-flex';
+        playBtn.onclick = () => verifyAndLaunch(game.id, game.LaunchCommand);
+    } else {
+        playBtn.style.display = 'none';
+    }
+
+    // Fav button
+    const favBtn = document.getElementById('btn-split-fav');
+    favBtn.classList.toggle('active', game.FAV === 'YES');
+    favBtn.onclick = async () => {
+        game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
+        favBtn.classList.toggle('active', game.FAV === 'YES');
+        await window.api.updateGame(game.id, { FAV: game.FAV });
+    };
+
+    // Want button
+    const wantBtn = document.getElementById('btn-split-want');
+    wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
+    wantBtn.onclick = async () => {
+        game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+        wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
+        await window.api.updateGame(game.id, { WANT_TO_PLAY: game.WANT_TO_PLAY });
+    };
+
+    // Edit button
+    document.getElementById('btn-split-edit').onclick = () => openDetails(game);
+}
+
+// Split filter tabs
+document.querySelectorAll('#split-filter-strip .split-ftab').forEach(btn => {
+    btn.addEventListener('click', () => activateFilter(btn.dataset.filter));
+});
+
+// Split search
+document.getElementById('split-search')?.addEventListener('input', () => applyFilters());
+
+// Split keyboard navigation
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('app-container')?.classList.contains('layout-split')) return;
+    if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) &&
+        document.activeElement.id !== 'split-search') return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (_splitIdx < _splitGames.length - 1) selectSplitRow(_splitIdx + 1);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (_splitIdx > 0) selectSplitRow(_splitIdx - 1);
+    } else if (e.key === 'Enter' && _splitGame?.LaunchCommand) {
+        verifyAndLaunch(_splitGame.id, _splitGame.LaunchCommand);
+    }
+});
 
 // ── Table event delegation (set up once) ──────────────────────────────────────
 const _tbody = document.getElementById('list-tbody');
@@ -2343,6 +2504,7 @@ async function applySeeFilterVisibility() {
             document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
             document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
             document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
+            document.querySelector(`#split-filter-strip .split-ftab[data-filter="${filter}"]`),
         ].forEach(el => { if (el) el.style.display = hidden ? 'none' : ''; });
     }
 }
