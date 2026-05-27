@@ -123,11 +123,12 @@
     #split-left { width:280px; flex-shrink:0; display:flex; flex-direction:column; border-right:1px solid var(--border_solid); background:var(--bg_menu); overflow:hidden; }
     #split-left-header { padding:10px 10px 8px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
     #split-search-row { display:flex; gap:6px; align-items:center; }
-    #split-search { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:12px; padding:6px 10px; border-radius:6px; flex:1; min-width:0; box-sizing:border-box; }
+    #split-search-wrap { position:relative; flex:1; min-width:0; display:flex; align-items:center; }
+    #split-search { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:12px; padding:6px 28px 6px 10px; border-radius:6px; width:100%; box-sizing:border-box; }
     #split-search:focus { outline:none; border-color:var(--accent); }
     #split-search::placeholder { color:var(--text_dim); font-style:italic; font-weight:400; }
-    #btn-split-filter-cfg { background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); font-family:'Raleway',sans-serif; font-size:14px; padding:0; width:30px; height:30px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:0.12s; }
-    #btn-split-filter-cfg:hover { border-color:var(--accent); color:var(--accent); }
+    #btn-split-filter-cfg { background:color-mix(in srgb,var(--accent) 10%,transparent); border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); color:var(--accent); font-family:'Raleway',sans-serif; padding:0; width:30px; height:30px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; }
+    #btn-split-filter-cfg:hover { background:color-mix(in srgb,var(--accent) 22%,transparent); border-color:var(--accent); box-shadow:0 0 10px color-mix(in srgb,var(--accent) 35%,transparent); transform:scale(1.06); }
     #split-filter-strip { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; }
     .split-ftab { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:700; font-size:9px; padding:3px 8px; border-radius:3px; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; transition:0.12s; white-space:nowrap; }
     .split-ftab:hover { background:rgba(255,255,255,0.07); color:var(--text_main); transform:none; box-shadow:none; }
@@ -152,7 +153,7 @@
     .split-nav-btn.active { color:var(--accent); }
     .split-nav-btn.active svg { opacity:1; stroke:var(--accent); }
     /* Search clear button */
-    #btn-split-search-clear { background:transparent; border:none; color:var(--text_dim); font-size:16px; line-height:1; padding:0 4px; cursor:pointer; flex-shrink:0; transition:0.12s; display:none; }
+    #btn-split-search-clear { position:absolute; right:6px; background:transparent; border:none; color:var(--text_dim); font-size:13px; line-height:1; padding:2px; cursor:pointer; transition:0.12s; display:none; }
     #btn-split-search-clear:hover { color:var(--text_main); }
     /* Right detail panel */
     #split-right { flex:1; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; background:var(--bg); min-width:0; }
@@ -930,9 +931,13 @@
       <div id="split-left">
         <div id="split-left-header">
           <div id="split-search-row">
-            <input type="text" id="split-search" placeholder="Search…" autocomplete="off" spellcheck="false">
-            <button id="btn-split-search-clear" title="Clear">✕</button>
-            <button id="btn-split-filter-cfg" title="Configure visible filters">⚙</button>
+            <div id="split-search-wrap">
+              <input type="text" id="split-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+              <button id="btn-split-search-clear" title="Clear">✕</button>
+            </div>
+            <button id="btn-split-filter-cfg" title="Configure visible filters">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><circle cx="12" cy="4" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="20" r="2"/></svg>
+            </button>
           </div>
           <div id="split-filter-strip">
             <button class="split-ftab active" data-filter="all">All</button>
@@ -1330,13 +1335,7 @@
           </div>
         </div>
 
-        <div class="tool-card tools-section" data-search="language idioma english portuguese brasil">
-          <div class="tool-card-title" data-i18n="html.card_language">🌐 Language</div>
-          <div class="segmented-control" id="language-segmented-control">
-            <button class="segmented-btn lang-btn" data-lang="en">English</button>
-            <button class="segmented-btn lang-btn" data-lang="pt_BR">Português (BR)</button>
-          </div>
-        </div>
+
 
         <div class="tool-card tools-section" data-search="history gaming recent games clear played">
           <div class="tool-card-title" data-i18n="html.card_history">🕒 Gaming History</div>
