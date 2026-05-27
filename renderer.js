@@ -10,6 +10,7 @@ function isManualCategory(game) {
 function openAddCmdDialog(gameId, gameName) {
     const modal = document.getElementById('modal-add-cmd');
     const input = document.getElementById('add-cmd-input');
+    document.getElementById('add-cmd-newgame-wrap').style.display = 'none';
     input.value = '';
     modal.classList.add('active');
     setTimeout(() => input.focus(), 50);
@@ -23,6 +24,36 @@ function openAddCmdDialog(gameId, gameName) {
     document.getElementById('add-cmd-cancel').onclick = () => modal.classList.remove('active');
     document.getElementById('add-cmd-grinder').onclick = () => {
         modal.classList.remove('active');
+        window.api.openGrinder();
+    };
+}
+
+function openAddGameDialog() {
+    const modal   = document.getElementById('modal-add-cmd');
+    const nameWrap = document.getElementById('add-cmd-newgame-wrap');
+    const nameInput = document.getElementById('add-cmd-new-name');
+    const cmdInput  = document.getElementById('add-cmd-input');
+    nameWrap.style.display = 'block';
+    nameInput.value = '';
+    cmdInput.value  = '';
+    modal.classList.add('active');
+    setTimeout(() => nameInput.focus(), 50);
+    const close = () => { nameWrap.style.display = 'none'; modal.classList.remove('active'); };
+    document.getElementById('add-cmd-save').onclick = async () => {
+        const name = nameInput.value.trim();
+        if (!name) { nameInput.focus(); return; }
+        const result = await window.api.addGame(name);
+        if (!result.success) { await showAlert(t('alert.add_failed')); return; }
+        const cmd = cmdInput.value.trim();
+        if (cmd) await window.api.setLaunchCommand(result.id, cmd);
+        close();
+        await loadGames();
+    };
+    document.getElementById('add-cmd-cancel').onclick = close;
+    document.getElementById('add-cmd-grinder').onclick = async () => {
+        const name = nameInput.value.trim();
+        close();
+        if (name) { const r = await window.api.addGame(name); if (r.success) await loadGames(); }
         window.api.openGrinder();
     };
 }
@@ -2887,9 +2918,15 @@ async function openSeeConfig() {
         grid.appendChild(btn);
     }
     document.getElementById('see-config-panel').style.display = 'flex';
+    const btn = document.getElementById('btn-see-config');
+    if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 }
 
-const _closeSeeConfig = () => { document.getElementById('see-config-panel').style.display = 'none'; };
+const _closeSeeConfig = () => {
+    document.getElementById('see-config-panel').style.display = 'none';
+    const btn = document.getElementById('btn-see-config');
+    if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+};
 ['btn-see-config', 'btn-see-config-sb', 'btn-topnav-cfg'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', openSeeConfig));
 document.getElementById('btn-see-config-close')?.addEventListener('click', _closeSeeConfig);
@@ -3098,7 +3135,12 @@ document.getElementById('btn-sync-steam').addEventListener('click', async () => 
 
 document.getElementById('btn-tools-add-game')?.addEventListener('click', () => {
     closeTools();
-    document.getElementById('btn-add-game').click();
+    const layout = localStorage.getItem('cngm_layout_mode') || 'sidebar';
+    if (layout === 'split') {
+        document.getElementById('btn-add-game').click();
+    } else {
+        openAddGameDialog();
+    }
 });
 
 document.getElementById('btn-update-library').addEventListener('click', async () => {
