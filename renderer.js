@@ -970,9 +970,11 @@ function renderSplitDetail(game) {
     if (game.CoverArt && game.CoverArt.trim()) {
         coverImg.src = getSafePath(game.CoverArt);
         coverImg.style.display = 'block';
+        coverImg.style.cursor = 'zoom-in';
         coverPh.style.display = 'none';
     } else {
         coverImg.style.display = 'none';
+        coverImg.style.cursor = '';
         coverPh.style.display = 'flex';
         coverPh.textContent = game.Game;
     }
@@ -1158,6 +1160,17 @@ document.querySelectorAll('#split-filter-strip .split-ftab').forEach(btn => {
     });
 });
 
+// Cover art zoom overlay
+document.getElementById('split-cover-img')?.addEventListener('click', () => {
+    const src = document.getElementById('split-cover-img').src;
+    if (!src) return;
+    document.getElementById('split-cover-zoom-img').src = src;
+    document.getElementById('split-cover-zoom').classList.add('active');
+});
+document.getElementById('split-cover-zoom')?.addEventListener('click', () => {
+    document.getElementById('split-cover-zoom').classList.remove('active');
+});
+
 // Split search — also exits history mode
 document.getElementById('split-search')?.addEventListener('input', () => {
     if (_splitHistoryMode) {
@@ -1205,6 +1218,10 @@ document.getElementById('btn-split-history')?.addEventListener('click', () => {
 
 // Split keyboard navigation
 document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.getElementById('split-cover-zoom')?.classList.contains('active')) {
+        document.getElementById('split-cover-zoom').classList.remove('active');
+        return;
+    }
     if (!document.getElementById('app-container')?.classList.contains('layout-split')) return;
     if (_splitEditActive) return;
     if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) &&
