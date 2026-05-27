@@ -173,7 +173,11 @@
     /* Detail body below card */
     #split-detail-lower { padding:0 28px 40px; display:flex; flex-direction:column; gap:20px; }
     #split-game-desc { font-size:13px; color:var(--text_sec); line-height:1.85; }
-    #split-stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    #split-hero-logo { display:none; position:absolute; bottom:16px; left:50%; transform:translateX(-50%); max-width:200px; max-height:72px; object-fit:contain; z-index:3; filter:drop-shadow(0 2px 12px rgba(0,0,0,0.9)); }
+    #split-short-desc { font-size:13px; font-weight:900; color:var(--text_main); line-height:1.7; }
+    #split-game-desc { font-size:13px; color:var(--text_sec); line-height:1.85; margin-top:6px; }
+    #split-ach-container { display:flex; flex-direction:column; gap:10px; }
+    #split-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
     .split-stat-cell { background:var(--bg_menu); padding:10px 14px; display:flex; flex-direction:column; gap:3px; }
     .split-stat-label { font-size:8px; font-weight:900; color:var(--text_dim); letter-spacing:1.5px; text-transform:uppercase; }
     .split-stat-value { font-size:12px; font-weight:700; color:var(--text_sec); }
@@ -953,6 +957,7 @@
             <div id="split-hero-bg"></div>
             <div id="split-hero-img"></div>
             <div id="split-hero-grad"></div>
+            <img id="split-hero-logo" alt="">
           </div>
           <div id="split-card-body">
             <div id="split-cover-wrap">
@@ -965,6 +970,7 @@
               <div id="split-game-meta"></div>
               <div id="split-game-actions">
                 <button id="btn-split-play" class="primary" style="display:none;">▶ PLAY</button>
+                <button id="btn-split-trailer" class="split-flag-btn" style="display:none;">▶ TRAILER</button>
                 <button id="btn-split-fav" class="split-flag-btn">★ FAV</button>
                 <button id="btn-split-want" class="split-flag-btn">⚑ WANT</button>
                 <button id="btn-split-edit" class="split-flag-btn">EDIT</button>
@@ -972,9 +978,11 @@
             </div>
           </div>
           <div id="split-detail-lower">
+            <div id="split-short-desc"></div>
             <div id="split-game-desc"></div>
             <div id="split-screenshots-row"></div>
             <div id="split-stats-grid"></div>
+            <div id="split-ach-container"></div>
           </div>
         </div>
       </div>

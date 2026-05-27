@@ -934,6 +934,9 @@ function renderSplitDetail(game) {
     empty.style.display = 'none';
     detail.style.display = 'flex';
 
+    // Keep currentGameId in sync (needed for achievement modal + trailer search)
+    currentGameId = game.id;
+
     // Hero: blurred bg + sharp image layer
     const heroSrc = game.HeroArt ? getSafePath(game.HeroArt)
                   : (game.Screenshot ? getSafePath(game.Screenshot.split('|')[0]) : '')
@@ -941,6 +944,15 @@ function renderSplitDetail(game) {
     const heroUrl = heroSrc ? `url('${heroSrc}')` : 'none';
     document.getElementById('split-hero-bg').style.backgroundImage = heroUrl;
     document.getElementById('split-hero-img').style.backgroundImage = heroUrl;
+
+    // Logo in hero (bottom-center, above the card body)
+    const logoEl = document.getElementById('split-hero-logo');
+    if (game.Logo && game.Logo.trim()) {
+        logoEl.src = getSafePath(game.Logo);
+        logoEl.style.display = 'block';
+    } else {
+        logoEl.style.display = 'none';
+    }
 
     // Cover art
     const coverImg = document.getElementById('split-cover-img');
@@ -975,6 +987,31 @@ function renderSplitDetail(game) {
         playBtn.style.display = 'none';
     }
 
+    // Trailer button — check local cache first, then fall back to search
+    const trailerBtn = document.getElementById('btn-split-trailer');
+    trailerBtn.style.display = 'none';
+    trailerBtn.onclick = null;
+    const _trailerGameId = game.id;
+    window.api.checkLocalTrailer(game.Game).then(localUrl => {
+        if (_splitGame?.id !== _trailerGameId) return;
+        if (localUrl) {
+            trailerBtn.style.display = 'inline-flex';
+            trailerBtn.onclick = () => {
+                document.getElementById('modal-trailer-player').classList.add('active');
+                const vid = document.getElementById('detail-video-player');
+                vid.src = localUrl;
+                vid.play();
+            };
+        } else if (game.IGDBTrailer || game.SteamTrailer) {
+            trailerBtn.style.display = 'inline-flex';
+            trailerBtn.onclick = () => {
+                // Set edit-name so btn-watch-trailer logic can find the game name
+                document.getElementById('edit-name').value = game.Game;
+                document.getElementById('btn-watch-trailer').click();
+            };
+        }
+    });
+
     // Fav/Want toggles
     const favBtn = document.getElementById('btn-split-fav');
     favBtn.classList.toggle('active', game.FAV === 'YES');
@@ -1000,28 +1037,62 @@ function renderSplitDetail(game) {
         openDetails(game);
     };
 
-    // Description
-    const desc = document.getElementById('split-game-desc');
-    const descText = game.Description || game.DESCRIPTION || '';
-    desc.textContent = descText;
-    desc.style.display = descText ? 'block' : 'none';
-
-    // Screenshots row
-    const ssRow = document.getElementById('split-screenshots-row');
-    ssRow.innerHTML = '';
-    if (game.Screenshot && game.Screenshot.trim()) {
-        const screens = game.Screenshot.split('|').filter(s => s.trim());
-        screens.forEach(src => {
-            const img = document.createElement('img');
-            img.className = 'split-ss-thumb';
-            img.src = getSafePath(src);
-            img.style.aspectRatio = '16/9';
-            img.addEventListener('click', () => window.api.openImageViewer?.(getSafePath(src)));
-            ssRow.appendChild(img);
-        });
+    // Short description (bold) + full Steam HTML description
+    const shortDescEl = document.getElementById('split-short-desc');
+    const fullDescEl  = document.getElementById('split-game-desc');
+    const shortText = getLocalizedDescription(game);
+    if (shortText && shortText.trim()) {
+        shortDescEl.textContent = shortText;
+        shortDescEl.style.display = 'block';
+    } else {
+        shortDescEl.style.display = 'none';
+    }
+    if (game.SteamDesc && game.SteamDesc.trim()) {
+        fullDescEl.innerHTML = game.SteamDesc;
+        fullDescEl.style.display = 'block';
+    } else {
+        fullDescEl.style.display = 'none';
     }
 
-    // Stats grid
+    // Screenshots row — thumbnails open the existing slideshow modal
+    const ssRow = document.getElementById('split-screenshots-row');
+    ssRow.innerHTML = '';
+    const screens = (game.Screenshot && game.Screenshot.trim())
+        ? game.Screenshot.split('|').filter(s => s.trim())
+        : [];
+    if (screens.length) {
+        const modalSs   = document.getElementById('modal-slideshow');
+        const ssImg     = document.getElementById('slideshow-img');
+        const ssCounter = document.getElementById('slideshow-counter');
+        screens.forEach((src, startIdx) => {
+            const thumb = document.createElement('img');
+            thumb.className = 'split-ss-thumb';
+            thumb.src = getSafePath(src);
+            thumb.style.aspectRatio = '16/9';
+            thumb.addEventListener('click', () => {
+                let currentIdx = startIdx;
+                const updateSlide = () => {
+                    ssImg.src = getSafePath(screens[currentIdx]);
+                    ssCounter.innerText = `${currentIdx + 1} / ${screens.length}`;
+                };
+                updateSlide();
+                document.getElementById('btn-slideshow-prev').onclick = () => {
+                    currentIdx = (currentIdx - 1 + screens.length) % screens.length;
+                    updateSlide();
+                };
+                document.getElementById('btn-slideshow-next').onclick = () => {
+                    currentIdx = (currentIdx + 1) % screens.length;
+                    updateSlide();
+                };
+                document.getElementById('btn-slideshow-close').onclick = () => modalSs.classList.remove('active');
+                modalSs.classList.add('active');
+            });
+            ssRow.appendChild(thumb);
+        });
+    }
+    ssRow.style.display = screens.length ? 'flex' : 'none';
+
+    // Stats grid — only cells with data, auto-fit collapses empty tracks
     const statsGrid = document.getElementById('split-stats-grid');
     const statCells = [];
     const lastPlayed = game.LastPlayed ? new Date(game.LastPlayed * 1000).toLocaleDateString() : null;
@@ -1035,6 +1106,30 @@ function renderSplitDetail(game) {
         `<div class="split-stat-cell"><span class="split-stat-label">${label}</span><span class="split-stat-value">${val}</span></div>`
     ).join('');
     statsGrid.style.display = statCells.length ? 'grid' : 'none';
+
+    // Achievements — load into split-specific container
+    loadSplitAchievements(game);
+}
+
+async function loadSplitAchievements(game) {
+    const container = document.getElementById('split-ach-container');
+    container.innerHTML = '';
+    const gogId    = _gogAppIdFromGame(game);
+    const steamRaw = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '') : null;
+    const tasks = [];
+    if (gogId)    tasks.push({ label: 'GOG',   fetch: async () => { let r = await window.api.getGameAchievements(gogId); if (!r.ok || !r.achievements.length) r = await window.api.fetchAchievementsNow(gogId); return r; } });
+    if (steamRaw) tasks.push({ label: 'STEAM', fetch: async () => { const k = `steam_${steamRaw}`; let r = await window.api.getGameAchievements(k); if (!r.ok || !r.achievements.length) r = await window.api.fetchSteamAchievements(steamRaw); return r; } });
+    if (!tasks.length) return;
+    const results = await Promise.all(tasks.map(t => t.fetch()));
+    const multi = results.filter((r, i) => r.ok && r.achievements.length).length > 1;
+    for (let i = 0; i < tasks.length; i++) {
+        const res = results[i];
+        if (!res.ok || !res.achievements.length) continue;
+        const label = tasks[i].label;
+        _achStores[label] = res.achievements;
+        if (!_achAll.length) _achAll = res.achievements;
+        _renderAchStrip(container, label, res.achievements, multi);
+    }
 }
 
 // Observe when view-details loses .active → exit split-edit overlay
