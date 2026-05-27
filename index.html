@@ -180,7 +180,8 @@
     .split-flag-btn:hover { border-color:var(--accent); color:var(--text_main); background:rgba(0,0,0,0.5); transform:none; box-shadow:none; }
     .split-flag-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
     /* Info column: year/title/meta/play */
-    #split-info { flex:1; min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:8px; }
+    #split-info { flex:1; min-width:0; padding-top:16px; display:flex; flex-direction:row; gap:12px; align-items:flex-start; }
+    #split-info-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
     #split-game-year { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:2px; opacity:0.85; }
     #split-game-title { font-size:22px; font-weight:900; color:var(--text_main); line-height:1.15; }
     #split-game-meta { font-size:10px; font-weight:700; color:var(--text_dim); letter-spacing:1px; text-transform:uppercase; line-height:1.8; display:flex; flex-wrap:wrap; gap:4px 8px; }
@@ -1004,9 +1005,11 @@
               </div>
             </div>
             <div id="split-info">
-              <div id="split-game-year"></div>
-              <div id="split-game-title"></div>
-              <div id="split-game-meta"></div>
+              <div id="split-info-text">
+                <div id="split-game-year"></div>
+                <div id="split-game-title"></div>
+                <div id="split-game-meta"></div>
+              </div>
               <button id="btn-split-play" class="primary">▶ PLAY</button>
             </div>
           </div>
