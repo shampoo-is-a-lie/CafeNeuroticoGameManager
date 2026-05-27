@@ -1103,7 +1103,7 @@ function renderSplitDetail(game) {
     // Stats grid — only cells with data, auto-fit collapses empty tracks
     const statsGrid = document.getElementById('split-stats-grid');
     const statCells = [];
-    const lastPlayed = game.LastPlayed ? new Date(game.LastPlayed * 1000).toLocaleDateString() : null;
+    const lastPlayed = game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString() : null;
     if (lastPlayed) statCells.push(['Last Played', lastPlayed]);
     if (game.METACRITIC) statCells.push(['Metacritic', game.METACRITIC]);
     if (game.HLTB_Main) statCells.push(['HowLongToBeat', game.HLTB_Main + 'h']);
@@ -1167,8 +1167,10 @@ document.getElementById('split-cover-img')?.addEventListener('click', () => {
     document.getElementById('split-cover-zoom-img').src = src;
     document.getElementById('split-cover-zoom').classList.add('active');
 });
-document.getElementById('split-cover-zoom')?.addEventListener('click', () => {
-    document.getElementById('split-cover-zoom').classList.remove('active');
+['split-cover-zoom', 'split-cover-zoom-img'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
+        document.getElementById('split-cover-zoom').classList.remove('active');
+    });
 });
 
 // Split search — also exits history mode
