@@ -990,10 +990,33 @@ function renderSplitDetail(game) {
     if (game.Store) chips.push(game.Store.toUpperCase().replace(/,/g, ' · '));
     metaEl.innerHTML = chips.map(c => `<span class="split-meta-chip">${c}</span>`).join('');
 
-    // Play button (lives in hero bottom-right, gamepage-style)
+    // Play / Install button
     const playBtn = document.getElementById('btn-split-play');
-    playBtn.style.display = game.LaunchCommand ? 'inline-flex' : 'none';
-    playBtn.onclick = game.LaunchCommand ? () => verifyAndLaunch(game.id, game.LaunchCommand) : null;
+    const isInstalled = game.Installed == null || game.Installed == 1;
+    if (game.LaunchCommand && isInstalled) {
+        playBtn.textContent = '▶ PLAY';
+        playBtn.className = 'primary';
+        playBtn.style.display = 'inline-flex';
+        playBtn.onclick = () => verifyAndLaunch(game.id, game.LaunchCommand);
+    } else if (!isInstalled) {
+        const store = (game.Store || '').toLowerCase();
+        const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
+        const installCmd = getInstallCommand(game);
+        if (isGrinderStore || installCmd) {
+            playBtn.textContent = '⬇ INSTALL';
+            playBtn.className = 'btn-install-primary';
+            playBtn.style.display = 'inline-flex';
+            playBtn.onclick = isGrinderStore
+                ? () => window.api.openGrinder(game.Game)
+                : () => window.api.openInstallUrl(installCmd);
+        } else {
+            playBtn.style.display = 'none';
+            playBtn.onclick = null;
+        }
+    } else {
+        playBtn.style.display = 'none';
+        playBtn.onclick = null;
+    }
 
     // Trailer button — check local cache first, then fall back to search
     const trailerBtn = document.getElementById('btn-split-trailer');
