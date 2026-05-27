@@ -24,9 +24,10 @@
     .win-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--text_main); transform: none; box-shadow: none; }
     .win-close:hover { background-color: #d32f2f; color: white; }
 
-    #app-container { display: flex; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
+    #app-container { display: flex; flex-direction: column; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
+    #app-inner { display: flex; flex-direction: row; flex: 1; overflow: hidden; }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     .modal-box { background: var(--bg_menu); padding: 30px; border-radius: 12px; border: 2px solid var(--border_solid); width: 400px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
 
@@ -55,8 +56,208 @@
     .btn-install-primary:hover { background: #ff6d00; }
     .gallery-title { padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text_sec); }
 
-    #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
+    #icon-rail { width: 48px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg_menu); border-right: 1px solid var(--border_solid); overflow: hidden; }
+    #rail-top, #rail-bottom { display: flex; flex-direction: column; align-items: center; padding: 6px 0; }
+    .rail-btn { width: 48px; height: 44px; border: none; background: transparent; color: var(--text_dim); cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; transition: color 0.15s; padding: 0; text-transform: none; letter-spacing: 0; border-radius: 0; }
+    .rail-btn:hover { color: var(--accent); background: transparent; box-shadow: none; transform: none; }
+    .rail-btn.active { color: var(--accent); }
+    .rail-btn.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 22px; background: var(--accent); border-radius: 0 2px 2px 0; }
+    .rail-sep { width: 28px; height: 1px; background: var(--border_solid); margin: 3px 0; flex-shrink: 0; }
+    #side-panel { width: 0; flex-shrink: 0; overflow: hidden; transition: width 0.22s ease; background: rgba(0,0,0,0.25); display: flex; flex-direction: column; border-right: 0px solid var(--border_solid); }
+    #side-panel.open { width: 220px; border-right: 1px solid var(--border_solid); }
+    .panel-section { width: 220px; display: flex; flex-direction: column; height: 100%; overflow: hidden; flex-shrink: 0; }
+    .panel-hdr { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 10px; border-bottom: 1px solid var(--border_solid); flex-shrink: 0; }
+    .panel-hdr-title { font-size: 10px; font-weight: 900; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; }
+    .panel-content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .panel-filter-btn { width: 100%; text-align: left; font-size: 11px; padding: 8px 10px; background: var(--bg_menu); border: 1px solid var(--border); color: var(--text_sec); border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 900; transition: background 0.15s, color 0.15s, border-color 0.15s; letter-spacing: 0.5px; text-transform: uppercase; }
+    .panel-filter-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); transform: none; box-shadow: none; }
+    .panel-filter-btn.active { background: var(--text_main); color: var(--bg); border-color: var(--text_main); box-shadow: 0 0 10px var(--text_main); }
+    #gallery-search-wrap { display: flex; align-items: center; gap: 14px; padding: 0 0 18px; }
+    #gallery-search-inner { position: relative; flex: 1; }
+    #gallery-search { width: 100%; box-sizing: border-box; padding: 13px 44px 13px 46px; background: rgba(0,0,0,0.35); border: 1.5px solid var(--border_solid); border-radius: 12px; color: var(--text_main); font-family: 'Raleway', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; transition: border-color 0.2s, box-shadow 0.2s; }
+    #gallery-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--border), 0 6px 24px rgba(0,0,0,0.4); }
+    #gallery-search::placeholder { color: var(--text_dim); font-weight: 400; font-style: italic; letter-spacing: 0; }
+    .gsearch-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text_dim); pointer-events: none; transition: color 0.2s; }
+    #gallery-search-inner:focus-within .gsearch-icon { color: var(--accent); }
+    #btn-gsearch-clear { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; border: none; background: rgba(255,255,255,0.08); color: var(--text_dim); cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 11px; padding: 0; letter-spacing: 0; text-transform: none; transition: background 0.15s, color 0.15s, transform 0.15s; }
+    #btn-gsearch-clear:hover { background: var(--accent); color: var(--bg); transform: translateY(-50%) scale(1.1); box-shadow: 0 0 10px var(--accent); }
+    #gallery-search-count { font-size: 10px; font-weight: 900; color: var(--text_dim); letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; min-width: 64px; text-align: right; transition: color 0.2s; }
     #main-content { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; overflow: hidden; }
+
+    /* ── CLASSIC SIDEBAR ─────────────────────────────────────────────────────── */
+    #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
+
+    /* ── LAYOUT SWITCHING (JS adds layout-rail / layout-sidebar / layout-cp) ─── */
+    /* Default: icon-rail active, sidebar + cp-bar hidden */
+    #sidebar { display: none; }
+    #cp-bar, #cp-chips { display: none; }
+    #app-container.layout-sidebar #icon-rail,
+    #app-container.layout-sidebar #side-panel,
+    #app-container.layout-sidebar #gallery-search-wrap { display: none !important; }
+    #app-container.layout-sidebar #sidebar { display: flex !important; }
+    #app-container.layout-rail #sidebar { display: none !important; }
+    #app-container.layout-cp #icon-rail,
+    #app-container.layout-cp #side-panel,
+    #app-container.layout-cp #gallery-search-wrap { display: none !important; }
+    #app-container.layout-cp #sidebar { display: none !important; }
+    #app-container.layout-cp #cp-bar { display: flex !important; }
+    #app-container.layout-cp #cp-chips { display: flex !important; }
+    /* Top Nav Bar */
+    #topnav { display:none; flex-shrink:0; height:44px; background:var(--bg_menu); border-bottom:1px solid var(--border_solid); align-items:center; padding:0 10px; gap:2px; overflow:hidden; }
+    #app-container.layout-topnav #topnav { display:flex !important; }
+    #app-container.layout-topnav #icon-rail,
+    #app-container.layout-topnav #side-panel,
+    #app-container.layout-topnav #sidebar,
+    #app-container.layout-topnav #gallery-search-wrap { display:none !important; }
+    /* Split Pane */
+    #split-shell { display:none; flex:1; overflow:hidden; }
+    #app-container.layout-split #split-shell { display:flex !important; }
+    #app-container.layout-split #icon-rail,
+    #app-container.layout-split #side-panel,
+    #app-container.layout-split #sidebar,
+    #app-container.layout-split #gallery-search-wrap,
+    #app-container.layout-split #main-content { display:none !important; }
+    /* specificity beats the hide rule above, so split-edit overlay wins */
+    #app-container.layout-split #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
+    /* Left list panel */
+    #split-left { width:280px; flex-shrink:0; display:flex; flex-direction:column; border-right:1px solid var(--border_solid); background:var(--bg_menu); overflow:hidden; }
+    #split-left-header { padding:10px 10px 8px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+    #split-search-row { display:flex; gap:6px; align-items:center; }
+    #split-search-wrap { position:relative; flex:1; min-width:0; display:flex; align-items:center; }
+    #split-search { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:12px; padding:6px 28px 6px 10px; border-radius:6px; width:100%; box-sizing:border-box; }
+    #split-search:focus { outline:none; border-color:var(--accent); }
+    #split-search::placeholder { color:var(--text_dim); font-style:italic; font-weight:400; }
+    #btn-split-filter-cfg { background:color-mix(in srgb,var(--accent) 10%,transparent); border:1px solid color-mix(in srgb,var(--accent) 35%,transparent); color:var(--accent); font-family:'Raleway',sans-serif; padding:0; width:30px; height:30px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; }
+    #btn-split-filter-cfg:hover { background:color-mix(in srgb,var(--accent) 22%,transparent); border-color:var(--accent); box-shadow:0 0 10px color-mix(in srgb,var(--accent) 35%,transparent); transform:scale(1.06); }
+    #split-filter-strip { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; }
+    .split-ftab { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:700; font-size:9px; padding:3px 8px; border-radius:3px; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; transition:0.12s; white-space:nowrap; }
+    .split-ftab:hover { background:rgba(255,255,255,0.07); color:var(--text_main); transform:none; box-shadow:none; }
+    .split-ftab.active { background:var(--accent); color:var(--bg); font-weight:900; }
+    #split-list-count { font-size:9px; font-weight:900; color:var(--text_dim); letter-spacing:1.5px; text-transform:uppercase; padding:6px 14px 3px; flex-shrink:0; }
+    #split-list-body { flex:1; overflow-y:auto; }
+    .split-row { display:flex; align-items:center; gap:8px; padding:8px 14px; cursor:pointer; border-left:3px solid transparent; transition:background 0.1s, border-color 0.1s; }
+    .split-row:hover { background:rgba(255,255,255,0.04); }
+    .split-row.selected { background:rgba(255,255,255,0.06); border-left-color:var(--accent); }
+    .split-row-title { font-size:12px; font-weight:700; color:var(--text_sec); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; line-height:1.3; }
+    .split-row.selected .split-row-title { color:var(--text_main); }
+    .split-store-tag { font-size:8px; font-weight:900; padding:2px 5px; border-radius:3px; background:rgba(255,255,255,0.07); color:var(--text_dim); flex-shrink:0; letter-spacing:0.5px; text-transform:uppercase; white-space:nowrap; }
+    .split-inst-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .split-inst-dot.on { background:#66bb6a; }
+    .split-inst-dot.off { background:transparent; }
+    /* Left footer nav — 2-row 3-col grid */
+    #split-left-footer { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; padding:6px; border-top:1px solid var(--border); flex-shrink:0; background:var(--bg_menu); }
+    .split-nav-btn { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-size:8px; font-weight:900; letter-spacing:0.8px; text-transform:uppercase; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px; border-radius:6px; transition:0.15s; }
+    .split-nav-btn svg { opacity:0.55; }
+    .split-nav-btn:hover { background:rgba(255,255,255,0.06); color:var(--text_main); }
+    .split-nav-btn:hover svg { opacity:1; }
+    .split-nav-btn.active { color:var(--accent); }
+    .split-nav-btn.active svg { opacity:1; stroke:var(--accent); }
+    /* Search clear button */
+    #btn-split-search-clear { position:absolute; right:6px; background:transparent; border:none; color:var(--text_dim); font-size:13px; line-height:1; padding:2px; cursor:pointer; transition:0.12s; display:none; }
+    #btn-split-search-clear:hover { color:var(--text_main); }
+    /* Right detail panel */
+    #split-right { flex:1; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; background:var(--bg); min-width:0; }
+    /* Welcome screen */
+    #split-welcome { flex:1; display:none; align-items:center; justify-content:center; }
+    .split-welcome-inner { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; padding:40px; }
+    .split-welcome-mono { font-size:108px; font-weight:900; line-height:1; letter-spacing:-6px; color:var(--accent); text-shadow:0 0 120px color-mix(in srgb,var(--accent) 40%,transparent); }
+    #split-cover-zoom { position:fixed; inset:0; z-index:25000; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.88); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); cursor:zoom-out; }
+    #split-cover-zoom.active { display:flex; }
+    #split-cover-zoom img { max-height:88vh; max-width:65vw; object-fit:contain; border-radius:14px; box-shadow:0 40px 100px rgba(0,0,0,0.95); animation:coverZoomIn 0.3s cubic-bezier(0.34,1.4,0.64,1); }
+    @keyframes coverZoomIn { from { transform:scale(0.65); opacity:0; } to { transform:scale(1); opacity:1; } }
+    .split-welcome-title { font-size:21px; font-weight:900; color:var(--text_main); letter-spacing:7px; text-transform:uppercase; margin-top:8px; }
+    .split-welcome-sub { font-size:14px; font-weight:900; color:var(--text_dim); letter-spacing:6px; text-transform:uppercase; }
+    .split-welcome-hint { font-size:15px; color:var(--text_dim); letter-spacing:1.5px; margin-top:24px; opacity:0.45; font-style:italic; }
+    #split-empty { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text_dim); font-size:10px; font-weight:900; letter-spacing:3px; text-transform:uppercase; }
+    #split-detail { display:none; flex-direction:column; }
+    #split-hero-wrap { position:relative; height:290px; flex-shrink:0; overflow:hidden; background:var(--bg_menu); }
+    #split-hero-bg { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.7; filter:blur(28px); transform:scale(1.15); }
+    #split-hero-img { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.55; }
+    #split-hero-grad { position:absolute; inset:0; background:linear-gradient(to top, var(--bg) 0%, transparent 60%); }
+    #split-hero-logo { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:190px; max-width:78%; object-fit:contain; z-index:5; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.95)); }
+    #split-title-row { display:flex; align-items:center; gap:10px; }
+    #split-game-title { flex:1; min-width:0; }
+    #split-title-actions { display:flex; gap:5px; align-items:center; flex-shrink:0; }
+    .split-action-btn { width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:50%; color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; padding:0; }
+    .split-action-btn:hover { background:rgba(255,255,255,0.14); color:var(--text_main); border-color:rgba(255,255,255,0.25); transform:scale(1.1); }
+    .split-action-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent); }
+    #split-card-body { padding:0 28px 20px; display:flex; gap:22px; align-items:flex-start; }
+    /* Cover column: image + action buttons stacked below */
+    #split-cover-wrap { flex-shrink:0; margin-top:-60px; position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; width:110px; }
+    #split-cover-img { width:110px; height:165px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); display:block; }
+    #split-cover-ph { width:110px; height:165px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); background:var(--bg_panel); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text_dim); text-align:center; padding:10px; font-weight:700; box-sizing:border-box; line-height:1.5; }
+    /* Info column: year/title/meta/play */
+    #split-info { flex:1; min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:8px; }
+    #split-game-year { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:2px; opacity:0.85; }
+    #split-game-title { font-size:22px; font-weight:900; color:var(--text_main); line-height:1.15; }
+    #split-game-meta { font-size:10px; font-weight:700; color:var(--text_dim); letter-spacing:1px; text-transform:uppercase; line-height:1.8; display:flex; flex-wrap:wrap; gap:4px 8px; }
+    .split-meta-chip { background:rgba(255,255,255,0.06); border:1px solid var(--border); padding:2px 8px; border-radius:12px; font-size:9px; font-weight:900; letter-spacing:0.8px; white-space:nowrap; }
+    /* PLAY: floating action button pinned to bottom-right of the detail panel */
+    #btn-split-play { font-size:18px; padding:14px 36px; border-radius:50px; letter-spacing:2px; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:none; position:fixed; bottom:28px; right:28px; z-index:50; }
+    /* Detail body below card */
+    #split-detail-lower { padding:0 28px 40px; display:flex; flex-direction:column; gap:20px; }
+    #split-short-desc { font-size:14px; font-weight:900; color:var(--text_main); line-height:1.7; }
+    #split-game-desc { font-size:13px; color:var(--text_sec); line-height:1.85; }
+    #split-game-desc * { max-width:100% !important; box-sizing:border-box; }
+    #split-ach-container { display:flex; flex-direction:column; gap:10px; }
+    #split-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .split-stat-cell { background:var(--bg_menu); padding:10px 14px; display:flex; flex-direction:column; gap:3px; }
+    .split-stat-label { font-size:8px; font-weight:900; color:var(--text_dim); letter-spacing:1.5px; text-transform:uppercase; }
+    .split-stat-value { font-size:12px; font-weight:700; color:var(--text_sec); }
+    #split-screenshots-row { display:flex; gap:8px; overflow-x:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; padding-bottom:4px; }
+    #split-screenshots-row::-webkit-scrollbar { height:4px; }
+    #split-screenshots-row::-webkit-scrollbar-track { background:transparent; }
+    #split-screenshots-row::-webkit-scrollbar-thumb { background:var(--border_solid); border-radius:2px; }
+    .split-ss-thumb { height:80px; border-radius:6px; object-fit:cover; cursor:pointer; border:2px solid transparent; flex-shrink:0; transition:0.15s; opacity:0.7; }
+    .split-ss-thumb:hover { opacity:1; border-color:var(--accent); transform:none; box-shadow:none; }
+    /* Top Nav: filter tabs */
+    #topnav-filters { display:flex; align-items:center; gap:1px; overflow-x:auto; scrollbar-width:none; flex-shrink:1; min-width:0; }
+    #topnav-filters::-webkit-scrollbar { display:none; }
+    .topnav-filter { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:700; font-size:10px; padding:3px 10px; border-radius:4px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:0.15s; white-space:nowrap; height:28px; }
+    .topnav-filter:hover { background:rgba(255,255,255,0.06); color:var(--text_main); transform:none; box-shadow:none; }
+    .topnav-filter.active { background:var(--accent); color:var(--bg); font-weight:900; }
+    /* Top Nav: separator */
+    .topnav-sep { width:1px; height:22px; background:var(--border_solid); flex-shrink:0; margin:0 6px; }
+    /* Top Nav: search */
+    #topnav-search { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:12px; padding:5px 12px; border-radius:6px; width:160px; flex-shrink:0; height:28px; box-sizing:border-box; }
+    #topnav-search:focus { outline:none; border-color:var(--accent); }
+    #topnav-search::placeholder { color:var(--text_dim); font-style:italic; font-weight:400; }
+    /* Top Nav: icon action buttons */
+    .topnav-action { background:transparent; border:1px solid transparent; color:var(--text_dim); width:30px; height:30px; padding:0; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.15s; flex-shrink:0; }
+    .topnav-action:hover { background:var(--bg_panel); border-color:var(--border_solid); color:var(--accent); transform:none; box-shadow:none; }
+    .topnav-action.active { color:var(--text_main); }
+    #btn-topnav-add { color:var(--accent); }
+    #btn-topnav-add:hover { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+
+    /* ── COMMAND BAR ──────────────────────────────────────────────────────────── */
+    #cp-bar { height: 52px; flex-shrink: 0; align-items: center; gap: 8px; padding: 0 14px; background: var(--bg_menu); border-bottom: 1px solid var(--border_solid); }
+    #cp-input-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+    #cp-input { width: 100%; box-sizing: border-box; padding: 10px 38px 10px 42px; background: rgba(0,0,0,0.35); border: 1.5px solid var(--border_solid); border-radius: 10px; color: var(--text_main); font-family: 'Raleway', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; transition: border-color 0.2s, box-shadow 0.2s; }
+    #cp-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--border), 0 4px 16px rgba(0,0,0,0.4); }
+    #cp-input::placeholder { color: var(--text_dim); font-weight: 400; font-style: italic; }
+    .cp-input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text_dim); pointer-events: none; transition: color 0.2s; }
+    #cp-input-wrap:focus-within .cp-input-icon { color: var(--accent); }
+    #btn-cp-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(255,255,255,0.08); color: var(--text_dim); cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px; padding: 0; letter-spacing: 0; text-transform: none; transition: background 0.15s, color 0.15s; }
+    #btn-cp-clear:hover { background: var(--accent); color: var(--bg); box-shadow: none; transform: translateY(-50%); }
+    .cp-kbd { font-size: 9px; font-weight: 900; color: var(--text_dim); background: rgba(0,0,0,0.3); border: 1px solid var(--border_solid); border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; position: absolute; right: 38px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.7; }
+    .cp-action-btn { width: 36px; height: 36px; border: 1px solid var(--border_solid); border-radius: 8px; background: transparent; color: var(--text_dim); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color 0.15s, border-color 0.15s, background 0.15s; padding: 0; text-transform: none; letter-spacing: 0; }
+    .cp-action-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,0,0,0.2); box-shadow: none; transform: none; }
+    .cp-action-btn.active { color: var(--accent); border-color: var(--accent); }
+    #cp-menu-wrap { position: relative; flex-shrink: 0; }
+    #cp-menu { position: absolute; right: 0; top: calc(100% + 8px); background: var(--bg_menu); border: 1px solid var(--border_solid); border-radius: 10px; min-width: 190px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 500; display: none; flex-direction: column; padding: 4px 0; }
+    #cp-menu.open { display: flex; }
+    .cp-menu-item { padding: 10px 16px; color: var(--text_sec); font-size: 11px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.1s, color 0.1s; border: none; background: transparent; width: 100%; text-align: left; border-radius: 0; }
+    .cp-menu-item:hover { background: rgba(255,255,255,0.06); color: var(--text_main); transform: none; box-shadow: none; }
+    .cp-menu-sep { height: 1px; background: var(--border_solid); margin: 3px 0; flex-shrink: 0; }
+    /* ── FILTER CHIP STRIP ────────────────────────────────────────────────────── */
+    #cp-chips { height: 40px; flex-shrink: 0; align-items: center; padding: 0 14px; gap: 5px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+    #cp-chips::-webkit-scrollbar { display: none; }
+    .cp-chip { flex-shrink: 0; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border_solid); background: transparent; color: var(--text_dim); font-family: 'Raleway', sans-serif; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .cp-chip:hover { border-color: var(--accent); color: var(--accent); background: transparent; box-shadow: none; transform: none; }
+    .cp-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 8px var(--border); }
+    .cp-chip-sep { width: 1px; height: 18px; background: var(--border_solid); flex-shrink: 0; margin: 0 3px; }
+    #btn-cp-cfg { flex-shrink: 0; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text_dim); font-size: 10px; font-weight: 900; cursor: pointer; letter-spacing: 0; text-transform: none; transition: color 0.15s, border-color 0.15s; margin-left: auto; }
+    #btn-cp-cfg:hover { color: var(--accent); border-color: var(--accent); box-shadow: none; transform: none; }
 
     .row { display: flex; gap: 10px; }
     button { background-color: var(--bg_panel); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px 12px; font-family: 'Raleway', sans-serif; font-weight: 900; cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
@@ -202,61 +403,251 @@
   </div>
 
   <div id="app-container">
-      <div id="sidebar">
-        <div class="row">
-          <button id="btn-refresh-library" title="Refresh library" style="width:36px; flex-shrink:0; align-self:stretch; padding:0; background:transparent; border:1px solid var(--border_solid); border-radius:6px; color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s, border-color 0.2s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)';" onmouseout="this.style.color='var(--text_dim)';this.style.borderColor='var(--border_solid)';">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="1 4 1 10 7 10"/>
-              <path d="M3.51 15a9 9 0 1 0 .49-4.56"/>
-            </svg>
+
+    <!-- ── TOP NAV BAR (layout-topnav only) ─────────────────────────────────── -->
+    <div id="topnav">
+      <div id="topnav-filters">
+        <button class="topnav-filter active" data-filter="all">All</button>
+        <button class="topnav-filter" data-filter="installed">Installed</button>
+        <button class="topnav-filter" data-filter="favs">Favs</button>
+        <button class="topnav-filter" data-filter="want">Want</button>
+        <button class="topnav-filter" data-filter="steam">Steam</button>
+        <button class="topnav-filter" data-filter="epic">Epic</button>
+        <button class="topnav-filter" data-filter="gog">GOG</button>
+        <button class="topnav-filter" data-filter="flatpak">Flatpak</button>
+        <button class="topnav-filter" data-filter="pico8">PICO-8</button>
+        <button class="topnav-filter" data-filter="itch">itch.io</button>
+        <button class="topnav-filter" data-filter="physical">Physical</button>
+        <button class="topnav-filter" data-filter="others">Others</button>
+        <button class="topnav-filter" data-filter="emulation">Emulation</button>
+        <button class="topnav-filter" data-filter="apps">Apps</button>
+      </div>
+      <div class="topnav-sep"></div>
+      <input type="text" id="topnav-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+      <div class="topnav-sep"></div>
+      <!-- View toggles -->
+      <button id="btn-topnav-gallery" class="topnav-action active" title="Gallery view">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button id="btn-topnav-list" class="topnav-action" title="List view">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+      <div class="topnav-sep"></div>
+      <!-- Actions -->
+      <button id="btn-topnav-refresh" class="topnav-action" title="Refresh library">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+      </button>
+      <button id="btn-topnav-add" class="topnav-action" title="Add game">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button id="btn-topnav-connect" class="topnav-action" title="Connect services">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+      <button id="btn-topnav-tools" class="topnav-action" title="Tools &amp; Settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      </button>
+      <button id="btn-topnav-cfg" class="topnav-action" title="Configure visible filters">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+      </button>
+      <button id="btn-topnav-crema" class="topnav-action" title="Launch CREMA" style="display:none; width:auto; padding:0 8px; font-size:9px; font-weight:900; letter-spacing:1px; color:var(--text_dim);">CREMA</button>
+    </div>
+
+    <!-- ── COMMAND BAR (layout-cp only) ─────────────────────────────────────── -->
+    <div id="cp-bar">
+      <div id="cp-input-wrap">
+        <svg class="cp-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="cp-input" type="text" placeholder="Search games, or press Enter with: steam · gog · favs · installed…" autocomplete="off" spellcheck="false">
+        <span class="cp-kbd">Ctrl+K</span>
+        <button id="btn-cp-clear" title="Clear">✕</button>
+      </div>
+      <button id="btn-cp-gallery" class="cp-action-btn active" title="Gallery View">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
+      </button>
+      <button id="btn-cp-list" class="cp-action-btn" title="List View">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
+      </button>
+      <button id="btn-cp-refresh" class="cp-action-btn" title="Refresh Library">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+      </button>
+      <button id="btn-cp-add" class="cp-action-btn" title="Add Game">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </button>
+      <div id="cp-menu-wrap">
+        <button id="btn-cp-menu" class="cp-action-btn" title="More actions">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <div id="cp-menu">
+          <button class="cp-menu-item" id="cp-menu-connect">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Connect &amp; Sync
           </button>
-          <button style="flex:1;" id="btn-view-list" data-i18n="html.list_view">List</button>
-          <button style="flex:1;" id="btn-view-gallery" data-i18n="html.gallery_view">Gallery</button>
-        </div>
-        <button id="btn-add-game" class="primary" data-i18n="html.add_game">+ Add Game</button>
-        <fieldset>
-          <legend data-i18n="html.legend_search">Search & Filter</legend>
-          <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
-        </fieldset>
-        <fieldset>
-          <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
-            <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
-            <button id="btn-see-config" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
-          </legend>
-          <div class="filter-grid" id="sidebar-filters">
-            <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
-            <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
-            <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
-            <button data-filter="want" data-i18n="html.filter_want">Want</button>
-            <button data-filter="steam">Steam</button>
-            <button data-filter="epic">Epic</button>
-            <button data-filter="gog">GOG</button>
-            <button data-filter="flatpak">Flatpak</button>
-            <button data-filter="pico8">PICO-8</button>
-            <button data-filter="itch">itch.io</button>
-            <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
-            <button data-filter="others" data-i18n="html.filter_others">Others</button>
-            <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
-            <button data-filter="apps" data-i18n="html.filter_apps">Apps</button>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend data-i18n="html.legend_menu">Menu</legend>
-          <div class="row">
-            <button id="btn-open-connect" style="flex:1;" data-i18n="html.connect">Connect</button>
-            <button id="btn-open-tools" style="flex:1;" data-i18n="html.tools">Tools</button>
-          </div>
-        </fieldset>
-        <button id="btn-launch-crema" style="display:none; width:100%; flex-direction:column; align-items:center; gap:2px; line-height:1.2;"><span style="font-size:9px; font-weight:400; letter-spacing:1px; opacity:0.7; text-transform:uppercase;">Go Fullscreen With</span><span>CREMA</span></button>
-
-        <div style="flex: 1;"></div>
-
-        <div id="btn-about" style="text-align: center; padding: 20px 0 10px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.75';" onmouseout="this.style.opacity='1';">
-          <div style="color: var(--text_dim); font-size: 14px; font-weight: 900; letter-spacing: 4px;">CAFE NEUROTICO</div>
-          <div style="color: var(--text_main); font-size: 22px; font-weight: 900; letter-spacing: 1px;">GAME MANAGER</div>
-          <div><p style="font-size: 11px; color: var(--text_dim); margin: 0;" data-i18n="html.click_to_learn">CLICK TO LEARN ABOUT</p></div>
+          <button class="cp-menu-item" id="cp-menu-tools">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Tools
+          </button>
+          <div class="cp-menu-sep"></div>
+          <button class="cp-menu-item" id="cp-menu-crema" style="display:none;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+            Go Fullscreen (CREMA)
+          </button>
+          <button class="cp-menu-item" id="cp-menu-about">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 12 12 16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            About CNGM
+          </button>
         </div>
       </div>
+    </div>
+
+    <!-- ── FILTER CHIP STRIP (layout-cp only) ───────────────────────────────── -->
+    <div id="cp-chips">
+      <button class="cp-chip active" data-cp-filter="all">All</button>
+      <button class="cp-chip" data-cp-filter="installed">Installed</button>
+      <button class="cp-chip" data-cp-filter="favs">Favs</button>
+      <button class="cp-chip" data-cp-filter="want">Want</button>
+      <div class="cp-chip-sep"></div>
+      <button class="cp-chip" data-cp-filter="steam">Steam</button>
+      <button class="cp-chip" data-cp-filter="epic">Epic</button>
+      <button class="cp-chip" data-cp-filter="gog">GOG</button>
+      <button class="cp-chip" data-cp-filter="flatpak">Flatpak</button>
+      <button class="cp-chip" data-cp-filter="pico8">PICO-8</button>
+      <button class="cp-chip" data-cp-filter="itch">itch.io</button>
+      <button class="cp-chip" data-cp-filter="physical">Physical</button>
+      <button class="cp-chip" data-cp-filter="others">Others</button>
+      <button class="cp-chip" data-cp-filter="emulation">Emulation</button>
+      <button class="cp-chip" data-cp-filter="apps">Apps</button>
+      <button id="btn-cp-cfg" title="Show / hide filters">+ / −</button>
+    </div>
+
+    <div id="app-inner">
+
+    <!-- ── CLASSIC SIDEBAR (layout-sidebar only) ────────────────────────────── -->
+    <div id="sidebar">
+      <div class="row">
+        <button id="btn-refresh-library-sb" title="Refresh library" style="width:36px; flex-shrink:0; align-self:stretch; padding:0; background:transparent; border:1px solid var(--border_solid); border-radius:6px; color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s, border-color 0.2s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)';" onmouseout="this.style.color='var(--text_dim)';this.style.borderColor='var(--border_solid)';">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+        </button>
+        <button style="flex:1;" id="btn-view-list-sb" data-i18n="html.list_view">List</button>
+        <button style="flex:1;" id="btn-view-gallery-sb" data-i18n="html.gallery_view">Gallery</button>
+      </div>
+      <button id="btn-add-game-sb" class="primary" data-i18n="html.add_game">+ Add Game</button>
+      <fieldset>
+        <legend data-i18n="html.legend_search">Search &amp; Filter</legend>
+        <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
+      </fieldset>
+      <fieldset>
+        <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+          <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
+          <button id="btn-see-config-sb" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
+        </legend>
+        <div class="filter-grid" id="sidebar-filters">
+          <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
+          <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
+          <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
+          <button data-filter="want" data-i18n="html.filter_want">Want</button>
+          <button data-filter="steam">Steam</button>
+          <button data-filter="epic">Epic</button>
+          <button data-filter="gog">GOG</button>
+          <button data-filter="flatpak">Flatpak</button>
+          <button data-filter="pico8">PICO-8</button>
+          <button data-filter="itch">itch.io</button>
+          <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
+          <button data-filter="others" data-i18n="html.filter_others">Others</button>
+          <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
+          <button data-filter="apps" data-i18n="html.filter_apps">Apps</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="html.legend_menu">Menu</legend>
+        <div class="row">
+          <button id="btn-open-connect-sb" style="flex:1;" data-i18n="html.connect">Connect</button>
+          <button id="btn-open-tools-sb" style="flex:1;" data-i18n="html.tools">Tools</button>
+        </div>
+      </fieldset>
+      <button id="btn-launch-crema-sb" style="display:none; width:100%; flex-direction:column; align-items:center; gap:2px; line-height:1.2;"><span style="font-size:9px; font-weight:400; letter-spacing:1px; opacity:0.7; text-transform:uppercase;">Go Fullscreen With</span><span>CREMA</span></button>
+      <div id="btn-about-sb" style="text-align:center; padding:20px 0 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px; cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.75';" onmouseout="this.style.opacity='1';">
+        <span style="font-size:9px; font-weight:900; color:var(--text_dim); letter-spacing:3px; text-transform:uppercase;">Cafe Neurotico</span>
+        <span style="font-size:11px; font-weight:900; color:var(--accent); letter-spacing:2px; text-transform:uppercase;">Game Manager</span>
+      </div>
+    </div>
+
+    <!-- ── ICON RAIL (48px) ──────────────────────────────────────────────────── -->
+    <div id="icon-rail">
+      <div id="rail-top">
+        <button class="rail-btn active" id="rail-all" data-rail="all" title="All Games">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <button class="rail-btn" id="rail-installed" data-rail="installed" title="Installed">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
+        </button>
+        <button class="rail-btn" id="rail-favs" data-rail="favs" title="Favourites">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+        <button class="rail-btn" id="rail-want" data-rail="want" title="Want to Play">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </button>
+        <div class="rail-sep"></div>
+        <button class="rail-btn" id="rail-panel-stores" data-panel="stores" title="Browse by Store / Category">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </button>
+        <button class="rail-btn" id="rail-panel-search" data-panel="search" title="Search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      </div>
+      <div id="rail-bottom">
+        <button class="rail-btn active" id="btn-view-gallery" title="Gallery View">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
+        </button>
+        <button class="rail-btn" id="btn-view-list" title="List View">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
+        </button>
+        <div class="rail-sep"></div>
+        <button class="rail-btn" id="btn-add-game" title="Add Game">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </button>
+        <button class="rail-btn" id="btn-refresh-library" title="Refresh Library">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+        </button>
+        <div class="rail-sep"></div>
+        <button class="rail-btn" id="btn-open-connect" title="Connect">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </button>
+        <button class="rail-btn" id="btn-open-tools" title="Tools">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </button>
+        <button class="rail-btn" id="btn-launch-crema" title="Go Fullscreen With CREMA" style="display:none;">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+        </button>
+        <div id="btn-about" class="rail-btn" title="Cafe Neurotico Game Manager" style="cursor:pointer; height:38px; flex-direction:column; gap:1px; margin-top:6px; border-top:1px solid var(--border_solid);">
+          <span style="font-size:7px; font-weight:900; color:var(--text_dim); letter-spacing:1px; line-height:1;">CN</span>
+          <span style="font-size:9px; font-weight:900; color:var(--accent); letter-spacing:0.5px; line-height:1;">GM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SIDE PANEL (collapsible 220px) ────────────────────────────────────── -->
+    <div id="side-panel">
+      <div id="panel-sec-stores" class="panel-section" style="display:none;">
+        <div class="panel-hdr">
+          <span class="panel-hdr-title">Stores &amp; Categories</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button id="btn-see-config" title="Show / hide filters" style="font-size:10px; padding:2px 8px; background:transparent; border:1px solid var(--border); color:var(--text_dim); border-radius:4px; cursor:pointer; letter-spacing:0; text-transform:none; font-family:inherit; font-weight:900;">+ / −</button>
+            <button id="btn-panel-close" class="btn-modal-x" style="width:24px; height:24px; font-size:10px; border-radius:50%; border:1.5px solid var(--border_solid); background:rgba(0,0,0,0.35); color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Raleway',sans-serif; padding:0; text-transform:none; letter-spacing:0; transition:background 0.15s, border-color 0.15s, color 0.15s;">✕</button>
+          </div>
+        </div>
+        <div class="panel-content" id="panel-stores-grid">
+          <button class="panel-filter-btn" data-filter="steam">Steam</button>
+          <button class="panel-filter-btn" data-filter="epic">Epic Games</button>
+          <button class="panel-filter-btn" data-filter="gog">GOG</button>
+          <button class="panel-filter-btn" data-filter="flatpak">Flatpak</button>
+          <button class="panel-filter-btn" data-filter="pico8">PICO-8</button>
+          <button class="panel-filter-btn" data-filter="itch">itch.io</button>
+          <button class="panel-filter-btn" data-filter="physical" data-i18n="html.filter_physical">Physical</button>
+          <button class="panel-filter-btn" data-filter="others" data-i18n="html.filter_others">Others</button>
+          <button class="panel-filter-btn" data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
+          <button class="panel-filter-btn" data-filter="apps" data-i18n="html.filter_apps">Apps</button>
+        </div>
+      </div>
+    </div>
 
       <div id="main-content">
 
@@ -334,6 +725,16 @@
               <button id="btn-itch-open-hero" class="btn-hero">OPEN ITCH</button>
             </div>
           </div>
+          <!-- Gallery inline search -->
+          <div id="gallery-search-wrap">
+            <div id="gallery-search-inner">
+              <svg class="gsearch-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="gallery-search" placeholder="Search All Games…" autocomplete="off" spellcheck="false">
+              <button id="btn-gsearch-clear" title="Clear search">✕</button>
+            </div>
+            <span id="gallery-search-count"></span>
+          </div>
+
           <div id="gallery-grid"></div>
         </div>
 
@@ -524,7 +925,126 @@
         </div>
 
       </div>
-  </div>
+    <!-- ── SPLIT PANE (layout-split only) ──────────────────────────────── -->
+    <div id="split-shell">
+      <!-- Left: scrollable game list -->
+      <div id="split-left">
+        <div id="split-left-header">
+          <div id="split-search-row">
+            <div id="split-search-wrap">
+              <input type="text" id="split-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+              <button id="btn-split-search-clear" title="Clear">✕</button>
+            </div>
+            <button id="btn-split-filter-cfg" title="Configure visible filters">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><circle cx="12" cy="4" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="14" cy="20" r="2"/></svg>
+            </button>
+          </div>
+          <div id="split-filter-strip">
+            <button class="split-ftab active" data-filter="all">All</button>
+            <button class="split-ftab" data-filter="installed">Installed</button>
+            <button class="split-ftab" data-filter="favs">Favs</button>
+            <button class="split-ftab" data-filter="want">Want</button>
+            <button class="split-ftab" data-filter="steam">Steam</button>
+            <button class="split-ftab" data-filter="epic">Epic</button>
+            <button class="split-ftab" data-filter="gog">GOG</button>
+            <button class="split-ftab" data-filter="flatpak">Flatpak</button>
+            <button class="split-ftab" data-filter="pico8">PICO-8</button>
+            <button class="split-ftab" data-filter="itch">itch.io</button>
+            <button class="split-ftab" data-filter="physical">Physical</button>
+            <button class="split-ftab" data-filter="others">Others</button>
+            <button class="split-ftab" data-filter="emulation">Emulation</button>
+            <button class="split-ftab" data-filter="apps">Apps</button>
+          </div>
+        </div>
+        <div id="split-list-count"></div>
+        <div id="split-list-body"></div>
+        <div id="split-left-footer">
+          <button class="split-nav-btn" id="btn-split-connect" title="Connect &amp; Sync">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Connect
+          </button>
+          <button class="split-nav-btn" id="btn-split-tools" title="Tools &amp; Settings">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Tools
+          </button>
+          <button class="split-nav-btn" id="btn-split-refresh" title="Refresh library">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+            Refresh
+          </button>
+          <button class="split-nav-btn" id="btn-split-history" title="Recent plays">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            History
+          </button>
+          <button class="split-nav-btn" id="btn-split-crema" title="Launch CREMA" style="display:none;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3 4-4"/></svg>
+            CREMA
+          </button>
+          <button class="split-nav-btn" id="btn-split-emulatte" title="Launch EmuLatte" style="display:none;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h4M8 8v4"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="10" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></svg>
+            EmuLatte
+          </button>
+        </div>
+      </div>
+      <!-- Right: persistent detail card -->
+      <div id="split-right">
+        <div id="split-empty">← Select a game</div>
+        <div id="split-welcome">
+          <div class="split-welcome-inner">
+            <div class="split-welcome-mono">CNGM</div>
+            <div class="split-welcome-title">CAFE NEUROTICO</div>
+            <div class="split-welcome-sub">GAME MANAGER</div>
+            <div class="split-welcome-hint">← Select a game to explore</div>
+          </div>
+        </div>
+        <div id="split-detail">
+          <div id="split-hero-wrap">
+            <div id="split-hero-bg"></div>
+            <div id="split-hero-img"></div>
+            <div id="split-hero-grad"></div>
+            <img id="split-hero-logo" alt="">
+          </div>
+          <div id="split-card-body">
+            <div id="split-cover-wrap">
+              <img id="split-cover-img" src="" alt="">
+              <div id="split-cover-ph" style="display:none;"></div>
+            </div>
+            <div id="split-info">
+              <div id="split-game-year"></div>
+              <div id="split-title-row">
+                <div id="split-game-title"></div>
+                <div id="split-title-actions">
+                  <button id="btn-split-trailer" class="split-action-btn" title="Watch Trailer" style="display:none;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                  </button>
+                  <button id="btn-split-fav" class="split-action-btn" title="Favourite">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </button>
+                  <button id="btn-split-want" class="split-action-btn" title="Want to Play">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                  <button id="btn-split-edit" class="split-action-btn" title="Edit Details">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div id="split-game-meta"></div>
+            </div>
+          </div>
+          <button id="btn-split-play" class="primary">▶ PLAY</button>
+          <div id="split-detail-lower">
+            <div id="split-short-desc"></div>
+            <div id="split-screenshots-row"></div>
+            <div id="split-stats-grid"></div>
+            <div id="split-ach-container"></div>
+            <div id="split-game-desc"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ── END SPLIT PANE ────────────────────────────────────────────── -->
+
+    </div><!-- /#app-inner -->
+  </div><!-- /#app-container -->
 
   <div id="modal-about" class="modal-overlay">
     <div class="modal-box" style="text-align: center;">
@@ -791,6 +1311,17 @@
       <!-- Scrollable cards -->
       <div id="tools-cards-container" style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px;">
 
+        <div class="tool-card tools-section" data-search="layout sidebar rail command palette navigation icon panel view">
+          <div class="tool-card-title">Layout</div>
+          <div class="segmented-control" id="layout-segmented-control">
+            <button class="segmented-btn" data-val="rail">Icon Rail</button>
+            <button class="segmented-btn" data-val="sidebar">Classic Sidebar</button>
+            <button class="segmented-btn" data-val="cp">Command Bar</button>
+            <button class="segmented-btn" data-val="topnav">Top Nav</button>
+            <button class="segmented-btn" data-val="split">Split Pane</button>
+          </div>
+        </div>
+
         <div class="tool-card tools-section" data-search="appearance theme color scheme ui scale zoom size">
 
           <div class="tool-card-title" data-i18n="html.card_appearance">🎨 Appearance</div>
@@ -804,16 +1335,10 @@
           </div>
         </div>
 
-        <div class="tool-card tools-section" data-search="language idioma english portuguese brasil">
-          <div class="tool-card-title" data-i18n="html.card_language">🌐 Language</div>
-          <div class="segmented-control" id="language-segmented-control">
-            <button class="segmented-btn lang-btn" data-lang="en">English</button>
-            <button class="segmented-btn lang-btn" data-lang="pt_BR">Português (BR)</button>
-          </div>
-        </div>
+
 
         <div class="tool-card tools-section" data-search="history gaming recent games clear played">
-          <div class="tool-card-title" data-i18n="html.card_history">🕒 Gaming History</div>
+          <div class="tool-card-title">🕒 Gaming History <span style="font-weight:400; font-size:9px; color:var(--text_dim); letter-spacing:0.5px;">(Gallery Mode)</span></div>
           <div class="segmented-control" id="history-segmented-control">
             <button class="segmented-btn" data-val="0">OFF</button>
             <button class="segmented-btn" data-val="5">5</button>
@@ -840,6 +1365,12 @@
             <button id="btn-export-csv" style="flex: 1; font-size: 11px;" data-i18n="html.btn_export_csv">📤 Export CSV</button>
             <button id="btn-template-csv" style="flex: 1; font-size: 11px;" data-i18n="html.btn_csv_template">CSV Template</button>
           </div>
+        </div>
+
+        <div class="tool-card tools-section" data-search="add game custom manual entry library new">
+          <div class="tool-card-title">➕ Add Custom Game</div>
+          <p style="font-size:10px; color:var(--text_dim); margin:0 0 8px; line-height:1.5;">Manually add any game, app, or emulator to your library.</p>
+          <button id="btn-tools-add-game" style="width:100%; font-size:12px; padding:10px; letter-spacing:1px;" class="primary">+ Add Custom Game</button>
         </div>
 
         <div class="tool-card tools-section" data-search="system backup restore zip menu install desktop application welcome setup guide">
@@ -1106,6 +1637,8 @@
     </div>
   </div>
 
+  <div id="split-cover-zoom"><img id="split-cover-zoom-img" src="" alt=""></div>
+
   <script src="renderer.js"></script>
 
   <!-- Now Playing overlay -->
@@ -1187,8 +1720,6 @@
       </div>
     </div>
   </div>
-
-
 
 </body>
 </html>
