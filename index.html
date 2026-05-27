@@ -170,15 +170,12 @@
     #split-hero-img { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.55; }
     #split-hero-grad { position:absolute; inset:0; background:linear-gradient(to top, var(--bg) 0%, transparent 60%); }
     #split-hero-logo { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:190px; max-width:78%; object-fit:contain; z-index:5; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.95)); }
+    #split-hero-actions { position:absolute; bottom:14px; right:16px; z-index:6; display:flex; flex-direction:row; gap:8px; align-items:center; }
     #split-card-body { padding:0 28px 20px; display:flex; gap:22px; align-items:flex-start; }
     /* Cover column: image + action buttons stacked below */
     #split-cover-wrap { flex-shrink:0; margin-top:-60px; position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; width:110px; }
     #split-cover-img { width:110px; height:165px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); display:block; }
     #split-cover-ph { width:110px; height:165px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); background:var(--bg_panel); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text_dim); text-align:center; padding:10px; font-weight:700; box-sizing:border-box; line-height:1.5; }
-    #split-cover-actions { display:flex; flex-direction:row; gap:4px; padding:0 28px 12px; }
-    .split-flag-btn { background:rgba(0,0,0,0.35); border:1px solid var(--border_solid); color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:900; font-size:9px; padding:6px 8px; border-radius:5px; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; transition:0.15s; text-align:center; flex:1; }
-    .split-flag-btn:hover { border-color:var(--accent); color:var(--text_main); background:rgba(0,0,0,0.5); transform:none; box-shadow:none; }
-    .split-flag-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
     /* Info column: year/title/meta/play */
     #split-info { flex:1; min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:8px; }
     #split-game-year { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:2px; opacity:0.85; }
@@ -991,6 +988,20 @@
             <div id="split-hero-img"></div>
             <div id="split-hero-grad"></div>
             <img id="split-hero-logo" alt="">
+            <div id="split-hero-actions">
+              <button id="btn-split-trailer" class="btn-hero" style="display:none;">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><polygon points="5 3 19 12 5 21 5 3"/></svg>TRAILER
+              </button>
+              <button id="btn-split-fav" class="btn-hero">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>FAV
+              </button>
+              <button id="btn-split-want" class="btn-hero">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>WANT
+              </button>
+              <button id="btn-split-edit" class="btn-hero">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>EDIT
+              </button>
+            </div>
           </div>
           <div id="split-card-body">
             <div id="split-cover-wrap">
@@ -1003,12 +1014,6 @@
               <div id="split-game-meta"></div>
               <button id="btn-split-play" class="primary">▶ PLAY</button>
             </div>
-          </div>
-          <div id="split-cover-actions">
-            <button id="btn-split-trailer" class="split-flag-btn" style="display:none;">▶ TRAILER</button>
-            <button id="btn-split-fav" class="split-flag-btn">★ FAV</button>
-            <button id="btn-split-want" class="split-flag-btn">⚑ WANT</button>
-            <button id="btn-split-edit" class="split-flag-btn">EDIT</button>
           </div>
           <div id="split-detail-lower">
             <div id="split-short-desc"></div>
