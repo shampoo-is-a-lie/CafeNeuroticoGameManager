@@ -820,6 +820,7 @@ function applyFilters() {
 
     renderTable(recentGames, regularGames);
     renderGallery(recentGames, regularGames);
+    if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
 
@@ -881,10 +882,11 @@ function showSplitHistory() {
     _splitHistoryMode = true;
     document.getElementById('btn-split-history')?.classList.add('active');
     document.querySelectorAll('.split-ftab').forEach(b => b.classList.remove('active'));
-    _splitIdx = -1;
+    const prevId = _splitGame?.id;
     const played = allGames
         .filter(g => g.LastPlayed && g.LastPlayed > 0)
         .sort((a, b) => b.LastPlayed - a.LastPlayed);
+    _splitIdx = prevId != null ? played.findIndex(g => g.id === prevId) : -1;
     renderSplitList(played);
 }
 
