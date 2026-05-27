@@ -862,7 +862,18 @@ function renderTable(recent, regular) {
 }
 
 // ── SPLIT PANE ────────────────────────────────────────────────────────────────
-let _splitGames = [], _splitIdx = -1, _splitGame = null, _splitEditActive = false;
+let _splitGames = [], _splitIdx = -1, _splitGame = null, _splitEditActive = false, _splitHistoryMode = false;
+
+function showSplitHistory() {
+    _splitHistoryMode = true;
+    document.getElementById('btn-split-history')?.classList.add('active');
+    document.querySelectorAll('.split-ftab').forEach(b => b.classList.remove('active'));
+    _splitIdx = -1;
+    const played = allGames
+        .filter(g => g.LastPlayed && g.LastPlayed > 0)
+        .sort((a, b) => b.LastPlayed - a.LastPlayed);
+    renderSplitList(played);
+}
 
 function renderSplitList(games) {
     if (!document.getElementById('app-container')?.classList.contains('layout-split')) return;
@@ -978,14 +989,10 @@ function renderSplitDetail(game) {
     if (game.Store) chips.push(game.Store.toUpperCase().replace(/,/g, ' · '));
     metaEl.innerHTML = chips.map(c => `<span class="split-meta-chip">${c}</span>`).join('');
 
-    // Play button
+    // Play button (lives in hero bottom-right, gamepage-style)
     const playBtn = document.getElementById('btn-split-play');
-    if (game.LaunchCommand) {
-        playBtn.style.display = 'inline-flex';
-        playBtn.onclick = () => verifyAndLaunch(game.id, game.LaunchCommand);
-    } else {
-        playBtn.style.display = 'none';
-    }
+    playBtn.style.display = game.LaunchCommand ? 'inline-flex' : 'none';
+    playBtn.onclick = game.LaunchCommand ? () => verifyAndLaunch(game.id, game.LaunchCommand) : null;
 
     // Trailer button — check local cache first, then fall back to search
     const trailerBtn = document.getElementById('btn-split-trailer');
@@ -1143,13 +1150,23 @@ new MutationObserver(() => {
     }
 }).observe(document.getElementById('view-details'), { attributes: true, attributeFilter: ['class'] });
 
-// Split filter tabs
+// Split filter tabs — also exit history mode
 document.querySelectorAll('#split-filter-strip .split-ftab').forEach(btn => {
-    btn.addEventListener('click', () => activateFilter(btn.dataset.filter));
+    btn.addEventListener('click', () => {
+        _splitHistoryMode = false;
+        document.getElementById('btn-split-history')?.classList.remove('active');
+        activateFilter(btn.dataset.filter);
+    });
 });
 
-// Split search
-document.getElementById('split-search')?.addEventListener('input', () => applyFilters());
+// Split search — also exits history mode
+document.getElementById('split-search')?.addEventListener('input', () => {
+    if (_splitHistoryMode) {
+        _splitHistoryMode = false;
+        document.getElementById('btn-split-history')?.classList.remove('active');
+    }
+    applyFilters();
+});
 
 // Split filter config button → reuse the SEE config modal
 document.getElementById('btn-split-filter-cfg')?.addEventListener('click', () => openSeeConfig());
@@ -1158,7 +1175,24 @@ document.getElementById('btn-split-filter-cfg')?.addEventListener('click', () =>
 document.getElementById('btn-split-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
 document.getElementById('btn-split-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
 document.getElementById('btn-split-tools')?.addEventListener('click', () => openToolsModal());
-document.getElementById('btn-split-settings')?.addEventListener('click', () => openToolsModal());
+document.getElementById('btn-split-crema')?.addEventListener('click', () => window.api.launchCrema());
+document.getElementById('btn-split-refresh')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-split-refresh');
+    btn.classList.add('active');
+    await syncGrinderInstalled();
+    await loadGames();
+    if (_splitHistoryMode) showSplitHistory(); else applyFilters();
+    btn.classList.remove('active');
+});
+document.getElementById('btn-split-history')?.addEventListener('click', () => {
+    if (_splitHistoryMode) {
+        _splitHistoryMode = false;
+        document.getElementById('btn-split-history').classList.remove('active');
+        applyFilters();
+    } else {
+        showSplitHistory();
+    }
+});
 
 // Split keyboard navigation
 document.addEventListener('keydown', e => {
