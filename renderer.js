@@ -21,6 +21,20 @@ function openAddCmdDialog(gameId, gameName) {
         await loadGames();
     };
     document.getElementById('add-cmd-cancel').onclick = () => modal.classList.remove('active');
+    document.getElementById('add-cmd-grinder').onclick = () => {
+        modal.classList.remove('active');
+        window.api.openGrinder();
+    };
+}
+
+function openInstallPicker(game, installCmd) {
+    const modal = document.getElementById('modal-install-picker');
+    document.getElementById('install-picker-game').textContent = game.Game;
+    modal.classList.add('active');
+    const close = () => modal.classList.remove('active');
+    document.getElementById('btn-install-pick-steam').onclick   = () => { close(); window.api.openInstallUrl(installCmd); };
+    document.getElementById('btn-install-pick-grinder').onclick = () => { close(); window.api.openGrinder(game.Game); };
+    document.getElementById('btn-install-pick-cancel').onclick  = close;
 }
 
 function getInstallCommand(game) {
@@ -863,11 +877,17 @@ function renderTable(recent, regular) {
         const installCmd = getInstallCommand(game);
         let actionCell;
         if (game.LaunchCommand) {
-            actionCell = isInstalled
-                ? `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`
-                : (isGrinderStore
-                    ? `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`
-                    : (installCmd ? `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>` : `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`));
+            if (isInstalled) {
+                actionCell = `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`;
+            } else if (isGrinderStore && installCmd) {
+                actionCell = `<button class="btn-install" data-multistore="1" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+            } else if (isGrinderStore) {
+                actionCell = `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+            } else if (installCmd) {
+                actionCell = `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+            } else {
+                actionCell = `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`;
+            }
         } else if (isManualCategory(game)) {
             actionCell = `<button class="btn-install" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="padding: 4px 8px;">${t('status.install')}</button>`;
         } else {
@@ -1046,9 +1066,13 @@ function renderSplitDetail(game) {
             playBtn.textContent = '⬇ INSTALL';
             playBtn.className = 'btn-install-primary';
             playBtn.style.display = 'inline-flex';
-            playBtn.onclick = isGrinderStore
-                ? () => window.api.openGrinder(game.Game)
-                : () => window.api.openInstallUrl(installCmd);
+            if (isGrinderStore && installCmd) {
+                playBtn.onclick = () => openInstallPicker(game, installCmd);
+            } else if (isGrinderStore) {
+                playBtn.onclick = () => window.api.openGrinder(game.Game);
+            } else {
+                playBtn.onclick = () => window.api.openInstallUrl(installCmd);
+            }
         } else {
             playBtn.style.display = 'none';
             playBtn.onclick = null;
@@ -1294,7 +1318,19 @@ _tbody.addEventListener('click', (e) => {
     const play = e.target.closest('.btn-play');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install');
-    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); }
+    if (install) {
+        e.stopPropagation();
+        if (install.dataset.addcmd) {
+            openAddCmdDialog(install.dataset.id, install.dataset.name);
+        } else if (install.dataset.multistore) {
+            const g = allGames.find(x => String(x.id) === install.dataset.id);
+            if (g) openInstallPicker(g, getInstallCommand(g));
+        } else if (install.dataset.grinder) {
+            window.api.openGrinder(install.dataset.name);
+        } else {
+            window.api.openInstallUrl(install.dataset.url);
+        }
+    }
 });
 _tbody.addEventListener('dblclick', (e) => {
     const tr = e.target.closest('tr[data-id]');
@@ -1436,11 +1472,14 @@ function renderGallery(recent, regular) {
                 actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
             } else {
                 const stL = (game.Store || '').toLowerCase();
-                if (stL.includes('gog') || stL.includes('epic') || game.GrinderGameId) {
+                const isGrinderStoreG = stL.includes('gog') || stL.includes('epic') || !!game.GrinderGameId;
+                const installCmdG = getInstallCommand(game);
+                if (isGrinderStoreG && installCmdG) {
+                    actionBtn = `<button class="btn-install-gallery" data-multistore="1" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
+                } else if (isGrinderStoreG) {
                     actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
-                } else {
-                    const installCmd = getInstallCommand(game);
-                    actionBtn = installCmd ? `<button class="btn-install-gallery" data-url="${installCmd}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>` : '';
+                } else if (installCmdG) {
+                    actionBtn = `<button class="btn-install-gallery" data-url="${installCmdG}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
                 }
             }
         } else if (isManualCategory(game)) {
@@ -1493,7 +1532,20 @@ _grid.addEventListener('click', (e) => {
     const play = e.target.closest('.btn-play-gallery');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install-gallery');
-    if (install) { e.stopPropagation(); install.dataset.addcmd ? openAddCmdDialog(install.dataset.id, install.dataset.name) : install.dataset.grinder ? window.api.openGrinder(install.dataset.name) : window.api.openInstallUrl(install.dataset.url); return; }
+    if (install) {
+        e.stopPropagation();
+        if (install.dataset.addcmd) {
+            openAddCmdDialog(install.dataset.id, install.dataset.name);
+        } else if (install.dataset.multistore) {
+            const g = allGames.find(x => String(x.id) === install.dataset.id);
+            if (g) openInstallPicker(g, getInstallCommand(g));
+        } else if (install.dataset.grinder) {
+            window.api.openGrinder(install.dataset.name);
+        } else {
+            window.api.openInstallUrl(install.dataset.url);
+        }
+        return;
+    }
 
     const favBtn = e.target.closest('.btn-gallery-fav');
     if (favBtn) {
@@ -1752,12 +1804,15 @@ function refreshGamepagePlayBtn(game) {
             playBtn.innerText = t('status.install');
             playBtn.className = 'btn-install-primary';
             playBtn.style.display = 'block';
-            if (isGrinderStore) {
+            const installCmd = getInstallCommand(game);
+            if (isGrinderStore && installCmd) {
+                playBtn.onclick = () => openInstallPicker(game, installCmd);
+            } else if (isGrinderStore) {
                 playBtn.onclick = () => window.api.openGrinder(game.Game);
+            } else if (installCmd) {
+                playBtn.onclick = () => window.api.openInstallUrl(installCmd);
             } else {
-                const installCmd = getInstallCommand(game);
-                playBtn.onclick = installCmd ? () => window.api.openInstallUrl(installCmd) : null;
-                if (!installCmd) playBtn.style.display = 'none';
+                playBtn.style.display = 'none';
             }
         }
     } else if (isManualCategory(game)) {
