@@ -1033,30 +1033,12 @@ function renderSplitDetail(game) {
         playBtn.onclick = null;
     }
 
-    // Trailer button — check local cache first, then fall back to search
+    // Trailer button — always visible; plays local trailer or opens download flow
     const trailerBtn = document.getElementById('btn-split-trailer');
-    trailerBtn.style.display = 'none';
-    trailerBtn.onclick = null;
-    const _trailerGameId = game.id;
-    window.api.checkLocalTrailer(game.Game).then(localUrl => {
-        if (_splitGame?.id !== _trailerGameId) return;
-        if (localUrl) {
-            trailerBtn.style.display = 'inline-flex';
-            trailerBtn.onclick = () => {
-                document.getElementById('modal-trailer-player').classList.add('active');
-                const vid = document.getElementById('detail-video-player');
-                vid.src = localUrl;
-                vid.play();
-            };
-        } else if (game.IGDBTrailer || game.SteamTrailer) {
-            trailerBtn.style.display = 'inline-flex';
-            trailerBtn.onclick = () => {
-                // Set edit-name so btn-watch-trailer logic can find the game name
-                document.getElementById('edit-name').value = game.Game;
-                document.getElementById('btn-watch-trailer').click();
-            };
-        }
-    });
+    trailerBtn.onclick = () => {
+        document.getElementById('edit-name').value = game.Game;
+        document.getElementById('btn-watch-trailer').click();
+    };
 
     // Fav/Want toggles
     const favBtn = document.getElementById('btn-split-fav');
@@ -1865,21 +1847,11 @@ function openGamepage(game) {
         sploreBtn.onclick = null;
     }
 
-    // Local Trailer Only Logic
-    trailerBtn.style.display = 'none';
-    trailerBtn.onclick = null;
-    const trailerGameId = game.id;
-    window.api.checkLocalTrailer(game.Game).then(localUrl => {
-        if (localUrl && currentGameId === trailerGameId) {
-            trailerBtn.style.display = 'block';
-            trailerBtn.onclick = () => {
-                document.getElementById('modal-trailer-player').classList.add('active');
-                const vid = document.getElementById('detail-video-player');
-                vid.src = localUrl;
-                vid.play();
-            };
-        }
-    });
+    // Trailer button — always visible; plays local trailer or opens download flow
+    trailerBtn.onclick = () => {
+        document.getElementById('edit-name').value = game.Game;
+        document.getElementById('btn-watch-trailer').click();
+    };
 
     // Info Column
     coverEl.src = (game.CoverArt && game.CoverArt.trim() !== "") ? getSafePath(game.CoverArt) : 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
@@ -2565,15 +2537,23 @@ document.getElementById('btn-fetch-proton').addEventListener('click', async () =
     }
 });
 
-// Used in Detailed View (Edit Mode)
+let _currentTrailerGame = '';
+
+function openVideoPlayer(gameName, url) {
+    _currentTrailerGame = gameName;
+    const vid = document.getElementById('detail-video-player');
+    vid.src = url;
+    document.getElementById('modal-trailer-player').classList.add('active');
+    vid.play();
+}
+
+// Used in Detailed View (Edit Mode) and as shared entry-point for all trailer buttons
 document.getElementById('btn-watch-trailer').addEventListener('click', async () => {
     const gameName = document.getElementById('edit-name').value;
     if(!gameName) return;
     const localUrl = await window.api.checkLocalTrailer(gameName);
     if (localUrl) {
-        document.getElementById('modal-trailer-player').classList.add('active');
-        const vid = document.getElementById('detail-video-player');
-        vid.src = localUrl; vid.play();
+        openVideoPlayer(gameName, localUrl);
     } else {
         document.getElementById('modal-trailer-search').classList.add('active');
         const lst = document.getElementById('yt-search-list'); const stat = document.getElementById('yt-search-status');
@@ -2628,6 +2608,22 @@ document.getElementById('btn-close-player').addEventListener('click', () => {
     document.getElementById('modal-trailer-player').classList.remove('active');
     const vid = document.getElementById('detail-video-player');
     vid.pause(); vid.removeAttribute('src'); vid.load();
+    _currentTrailerGame = '';
+});
+
+document.getElementById('btn-delete-player').addEventListener('click', async () => {
+    if (!_currentTrailerGame) return;
+    const confirmed = await showConfirm(
+        `Delete the downloaded trailer for "${_currentTrailerGame}"?\n\nThis will remove the video file from your hard drive. You can download it again at any time.`,
+        'Delete', true
+    );
+    if (!confirmed) return;
+    const success = await window.api.deleteTrailer(_currentTrailerGame);
+    if (success) {
+        document.getElementById('btn-close-player').click();
+    } else {
+        await showAlert('Could not delete the trailer file.');
+    }
 });
 
 
