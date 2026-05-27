@@ -159,18 +159,25 @@ async function verifyAndLaunch(gameId, launchCmd) {
 
 window.api.onInstallStatusUpdated(() => loadGames());
 
-// Auto-refresh gamepage play button when CNGM regains focus (e.g. after installing via GRINDER)
+// Auto-refresh play button when CNGM regains focus (e.g. after installing via GRINDER)
 let _focusRefreshTimer = null;
 window.addEventListener('focus', () => {
-    if (!document.getElementById('view-gamepage')?.classList.contains('active')) return;
     clearTimeout(_focusRefreshTimer);
     _focusRefreshTimer = setTimeout(async () => {
+        const onGamepage = document.getElementById('view-gamepage')?.classList.contains('active');
+        const onSplit = document.getElementById('app-container')?.classList.contains('layout-split');
         if (!currentGameId) return;
         await window.api.verifyInstallStatus(currentGameId);
         await syncGrinderInstalled();
         await loadGames();
-        const updated = allGames.find(g => g.id === currentGameId);
-        if (updated) refreshGamepagePlayBtn(updated);
+        if (onGamepage) {
+            const updated = allGames.find(g => g.id === currentGameId);
+            if (updated) refreshGamepagePlayBtn(updated);
+        }
+        if (onSplit && _splitGame) {
+            const updated = allGames.find(g => g.id === _splitGame.id);
+            if (updated) { _splitGame = updated; renderSplitDetail(updated); }
+        }
     }, 400);
 });
 let currentLaunchCmd = '';
