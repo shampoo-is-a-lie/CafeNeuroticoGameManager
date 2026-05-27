@@ -368,7 +368,7 @@ document.getElementById('btn-close').addEventListener('click', () => window.api.
 // ── LAYOUT MODE ───────────────────────────────────────────────────────────
 function applyLayoutMode(mode) {
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -618,6 +618,10 @@ function syncFilterActiveStates() {
         const f = btn.dataset.cpFilter;
         btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
     });
+    document.querySelectorAll('.topnav-filter[data-filter]').forEach(btn => {
+        const f = btn.dataset.filter;
+        btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+    });
 }
 
 function switchView(viewId) {
@@ -719,7 +723,7 @@ document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
     document.getElementById('btn-add-game').click());
 
 function applyFilters() {
-    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || '').toLowerCase();
+    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || '').toLowerCase();
     const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
     const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
@@ -2338,6 +2342,7 @@ async function applySeeFilterVisibility() {
             document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
             document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
             document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
+            document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
         ].forEach(el => { if (el) el.style.display = hidden ? 'none' : ''; });
     }
 }
@@ -2363,6 +2368,7 @@ async function openSeeConfig() {
                 document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
                 document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
                 document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
+                document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
             ].forEach(el => { if (el) el.style.display = next ? '' : 'none'; });
         });
         grid.appendChild(btn);
@@ -2371,7 +2377,7 @@ async function openSeeConfig() {
 }
 
 const _closeSeeConfig = () => { document.getElementById('see-config-panel').style.display = 'none'; };
-['btn-see-config', 'btn-see-config-sb', 'btn-cp-cfg'].forEach(id =>
+['btn-see-config', 'btn-see-config-sb', 'btn-cp-cfg', 'btn-topnav-cfg'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', openSeeConfig));
 document.getElementById('btn-see-config-close')?.addEventListener('click', _closeSeeConfig);
 document.getElementById('see-config-panel')?.addEventListener('click', e => { if (e.target === e.currentTarget) _closeSeeConfig(); });
@@ -2464,6 +2470,39 @@ document.getElementById('cp-menu-about')?.addEventListener('click', () => {
     _cpMenu?.classList.remove('open');
     document.getElementById('modal-about').classList.add('active');
 });
+
+// ── TOP NAV BAR WIRING ────────────────────────────────────────────────────
+document.querySelectorAll('.topnav-filter[data-filter]').forEach(btn =>
+    btn.addEventListener('click', () => activateFilter(btn.dataset.filter)));
+document.getElementById('topnav-search')?.addEventListener('input', applyFilters);
+document.getElementById('btn-topnav-gallery')?.addEventListener('click', () => {
+    switchView('view-gallery');
+    document.getElementById('btn-topnav-gallery').classList.add('active');
+    document.getElementById('btn-topnav-list').classList.remove('active');
+});
+document.getElementById('btn-topnav-list')?.addEventListener('click', () => {
+    switchView('view-list');
+    document.getElementById('btn-topnav-list').classList.add('active');
+    document.getElementById('btn-topnav-gallery').classList.remove('active');
+});
+document.getElementById('btn-topnav-refresh')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-topnav-refresh');
+    btn.style.animation = 'spin 0.6s linear infinite';
+    const onGamepage = document.getElementById('view-gamepage').classList.contains('active');
+    if (onGamepage && currentGameId) await window.api.verifyInstallStatus(currentGameId);
+    await syncGrinderInstalled();
+    await loadGames();
+    btn.style.animation = '';
+    if (onGamepage && currentGameId) {
+        const updated = allGames.find(g => g.id === currentGameId);
+        if (updated) refreshGamepagePlayBtn(updated);
+    }
+});
+document.getElementById('btn-topnav-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
+document.getElementById('btn-topnav-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
+document.getElementById('btn-topnav-tools')?.addEventListener('click', () => openToolsModal());
+window.api.checkCrema().then(e => { if (e) document.getElementById('btn-topnav-crema').style.display = ''; });
+document.getElementById('btn-topnav-crema')?.addEventListener('click', () => window.api.launchCrema());
 
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
 

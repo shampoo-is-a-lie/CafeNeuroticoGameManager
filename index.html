@@ -102,6 +102,31 @@
     #app-container.layout-cp #sidebar { display: none !important; }
     #app-container.layout-cp #cp-bar { display: flex !important; }
     #app-container.layout-cp #cp-chips { display: flex !important; }
+    /* Top Nav Bar */
+    #topnav { display:none; flex-shrink:0; height:44px; background:var(--bg_menu); border-bottom:1px solid var(--border_solid); align-items:center; padding:0 10px; gap:2px; overflow:hidden; }
+    #app-container.layout-topnav #topnav { display:flex !important; }
+    #app-container.layout-topnav #icon-rail,
+    #app-container.layout-topnav #side-panel,
+    #app-container.layout-topnav #sidebar,
+    #app-container.layout-topnav #gallery-search-wrap { display:none !important; }
+    /* Top Nav: filter tabs */
+    #topnav-filters { display:flex; align-items:center; gap:1px; overflow-x:auto; scrollbar-width:none; flex-shrink:1; min-width:0; }
+    #topnav-filters::-webkit-scrollbar { display:none; }
+    .topnav-filter { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:700; font-size:10px; padding:3px 10px; border-radius:4px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:0.15s; white-space:nowrap; height:28px; }
+    .topnav-filter:hover { background:rgba(255,255,255,0.06); color:var(--text_main); transform:none; box-shadow:none; }
+    .topnav-filter.active { background:var(--accent); color:var(--bg); font-weight:900; }
+    /* Top Nav: separator */
+    .topnav-sep { width:1px; height:22px; background:var(--border_solid); flex-shrink:0; margin:0 6px; }
+    /* Top Nav: search */
+    #topnav-search { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:12px; padding:5px 12px; border-radius:6px; width:160px; flex-shrink:0; height:28px; box-sizing:border-box; }
+    #topnav-search:focus { outline:none; border-color:var(--accent); }
+    #topnav-search::placeholder { color:var(--text_dim); font-style:italic; font-weight:400; }
+    /* Top Nav: icon action buttons */
+    .topnav-action { background:transparent; border:1px solid transparent; color:var(--text_dim); width:30px; height:30px; padding:0; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.15s; flex-shrink:0; }
+    .topnav-action:hover { background:var(--bg_panel); border-color:var(--border_solid); color:var(--accent); transform:none; box-shadow:none; }
+    .topnav-action.active { color:var(--text_main); }
+    #btn-topnav-add { color:var(--accent); }
+    #btn-topnav-add:hover { background:var(--accent); color:var(--bg); border-color:var(--accent); }
 
     /* ── COMMAND BAR ──────────────────────────────────────────────────────────── */
     #cp-bar { height: 52px; flex-shrink: 0; align-items: center; gap: 8px; padding: 0 14px; background: var(--bg_menu); border-bottom: 1px solid var(--border_solid); }
@@ -277,6 +302,54 @@
   </div>
 
   <div id="app-container">
+
+    <!-- ── TOP NAV BAR (layout-topnav only) ─────────────────────────────────── -->
+    <div id="topnav">
+      <div id="topnav-filters">
+        <button class="topnav-filter active" data-filter="all">All</button>
+        <button class="topnav-filter" data-filter="installed">Installed</button>
+        <button class="topnav-filter" data-filter="favs">Favs</button>
+        <button class="topnav-filter" data-filter="want">Want</button>
+        <button class="topnav-filter" data-filter="steam">Steam</button>
+        <button class="topnav-filter" data-filter="epic">Epic</button>
+        <button class="topnav-filter" data-filter="gog">GOG</button>
+        <button class="topnav-filter" data-filter="flatpak">Flatpak</button>
+        <button class="topnav-filter" data-filter="pico8">PICO-8</button>
+        <button class="topnav-filter" data-filter="itch">itch.io</button>
+        <button class="topnav-filter" data-filter="physical">Physical</button>
+        <button class="topnav-filter" data-filter="others">Others</button>
+        <button class="topnav-filter" data-filter="emulation">Emulation</button>
+        <button class="topnav-filter" data-filter="apps">Apps</button>
+      </div>
+      <div class="topnav-sep"></div>
+      <input type="text" id="topnav-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+      <div class="topnav-sep"></div>
+      <!-- View toggles -->
+      <button id="btn-topnav-gallery" class="topnav-action active" title="Gallery view">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
+      <button id="btn-topnav-list" class="topnav-action" title="List view">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+      <div class="topnav-sep"></div>
+      <!-- Actions -->
+      <button id="btn-topnav-refresh" class="topnav-action" title="Refresh library">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+      </button>
+      <button id="btn-topnav-add" class="topnav-action" title="Add game">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button id="btn-topnav-connect" class="topnav-action" title="Connect services">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      </button>
+      <button id="btn-topnav-tools" class="topnav-action" title="Tools &amp; Settings">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      </button>
+      <button id="btn-topnav-cfg" class="topnav-action" title="Configure visible filters">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+      </button>
+      <button id="btn-topnav-crema" class="topnav-action" title="Launch CREMA" style="display:none; width:auto; padding:0 8px; font-size:9px; font-weight:900; letter-spacing:1px; color:var(--text_dim);">CREMA</button>
+    </div>
 
     <!-- ── COMMAND BAR (layout-cp only) ─────────────────────────────────────── -->
     <div id="cp-bar">
@@ -1025,6 +1098,7 @@
             <button class="segmented-btn" data-val="rail">Icon Rail</button>
             <button class="segmented-btn" data-val="sidebar">Classic Sidebar</button>
             <button class="segmented-btn" data-val="cp">Command Bar</button>
+            <button class="segmented-btn" data-val="topnav">Top Nav</button>
           </div>
         </div>
 
