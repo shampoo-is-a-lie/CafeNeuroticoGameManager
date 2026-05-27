@@ -170,7 +170,12 @@
     #split-hero-img { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.55; }
     #split-hero-grad { position:absolute; inset:0; background:linear-gradient(to top, var(--bg) 0%, transparent 60%); }
     #split-hero-logo { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:190px; max-width:78%; object-fit:contain; z-index:5; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.95)); }
-    #split-hero-actions { position:absolute; top:14px; left:16px; z-index:6; display:flex; flex-direction:row; gap:8px; align-items:center; }
+    #split-title-row { display:flex; align-items:center; gap:10px; }
+    #split-game-title { flex:1; min-width:0; }
+    #split-title-actions { display:flex; gap:5px; align-items:center; flex-shrink:0; }
+    .split-action-btn { width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:50%; color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.15s; padding:0; }
+    .split-action-btn:hover { background:rgba(255,255,255,0.14); color:var(--text_main); border-color:rgba(255,255,255,0.25); transform:scale(1.1); }
+    .split-action-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); box-shadow:0 0 8px color-mix(in srgb,var(--accent) 60%,transparent); }
     #split-card-body { padding:0 28px 20px; display:flex; gap:22px; align-items:flex-start; }
     /* Cover column: image + action buttons stacked below */
     #split-cover-wrap { flex-shrink:0; margin-top:-60px; position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; width:110px; }
@@ -988,20 +993,6 @@
             <div id="split-hero-img"></div>
             <div id="split-hero-grad"></div>
             <img id="split-hero-logo" alt="">
-            <div id="split-hero-actions">
-              <button id="btn-split-trailer" class="btn-hero btn-hero-sq" title="Watch Trailer" style="display:none;">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              </button>
-              <button id="btn-split-fav" class="btn-hero btn-hero-sq" title="Favourite">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </button>
-              <button id="btn-split-want" class="btn-hero btn-hero-sq" title="Want to Play">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-              </button>
-              <button id="btn-split-edit" class="btn-hero btn-hero-sq" title="Edit Details">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-            </div>
           </div>
           <div id="split-card-body">
             <div id="split-cover-wrap">
@@ -1010,7 +1001,23 @@
             </div>
             <div id="split-info">
               <div id="split-game-year"></div>
-              <div id="split-game-title"></div>
+              <div id="split-title-row">
+                <div id="split-game-title"></div>
+                <div id="split-title-actions">
+                  <button id="btn-split-trailer" class="split-action-btn" title="Watch Trailer" style="display:none;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  </button>
+                  <button id="btn-split-fav" class="split-action-btn" title="Favourite">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </button>
+                  <button id="btn-split-want" class="split-action-btn" title="Want to Play">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                  <button id="btn-split-edit" class="split-action-btn" title="Edit Details">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                </div>
+              </div>
               <div id="split-game-meta"></div>
               <button id="btn-split-play" class="primary">▶ PLAY</button>
             </div>
