@@ -247,8 +247,6 @@ window.api.checkCrema().then(exists => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'flex';
         });
-        const cpCrema = document.getElementById('cp-menu-crema');
-        if (cpCrema) cpCrema.style.display = '';
         const splitCrema = document.getElementById('btn-split-crema');
         if (splitCrema) splitCrema.style.display = '';
     }
@@ -396,6 +394,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 
 // ── LAYOUT MODE ───────────────────────────────────────────────────────────
 function applyLayoutMode(mode) {
+    if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
     c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split');
     c.classList.add('layout-' + mode);
@@ -643,10 +642,6 @@ function syncFilterActiveStates() {
         const f = btn.dataset.filter;
         btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
     });
-    document.querySelectorAll('.cp-chip[data-cp-filter]').forEach(btn => {
-        const f = btn.dataset.cpFilter;
-        btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
-    });
     document.querySelectorAll('.topnav-filter[data-filter]').forEach(btn => {
         const f = btn.dataset.filter;
         btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
@@ -674,9 +669,9 @@ function switchView(viewId) {
     if (viewId !== 'view-details') clearInterval(detailScreenshotInterval);
     if (viewId === 'view-gallery' || viewId === 'view-list') lastGridView = viewId;
 
-    ['btn-view-gallery', 'btn-view-gallery-sb', 'btn-cp-gallery'].forEach(id =>
+    ['btn-view-gallery', 'btn-view-gallery-sb'].forEach(id =>
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-gallery'));
-    ['btn-view-list', 'btn-view-list-sb', 'btn-cp-list'].forEach(id =>
+    ['btn-view-list', 'btn-view-list-sb'].forEach(id =>
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-list'));
 }
 
@@ -708,6 +703,14 @@ document.getElementById('btn-gsearch-clear').addEventListener('click', () => {
 async function activateFilter(filter) {
     if (filter === 'all') {
         activeFilters.clear();
+    } else if (_hidePico8 && filter === 'pico8') {
+        // Exclusive: pico8 can't be combined with other filters when hidden
+        if (activeFilters.has('pico8')) activeFilters.clear();
+        else { activeFilters.clear(); activeFilters.add('pico8'); }
+    } else if (_hidePico8 && activeFilters.has('pico8') && STORE_FILTERS.has(filter)) {
+        // Switching away from exclusive pico8 mode to another store filter
+        activeFilters.clear();
+        activeFilters.add(filter);
     } else {
         if (activeFilters.has(filter)) activeFilters.delete(filter);
         else activeFilters.add(filter);
@@ -756,15 +759,18 @@ document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
     document.getElementById('btn-add-game').click());
 
 function applyFilters() {
-    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
+    const query = (document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
     const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
     const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
     let filtered = allGames.filter(game => {
         const storeLower = (game.Store || '').toLowerCase();
 
-        // PICO-8 visibility
-        if (_hidePico8 && (storeLower.includes('pico-8') || storeLower.includes('pico8'))) return false;
+        // PICO-8 visibility: hide unless pico8 filter is active or user explicitly searches for it
+        if (_hidePico8) {
+            const isPico8 = storeLower.includes('pico-8') || storeLower.includes('pico8');
+            if (isPico8 && !activeFilters.has('pico8') && !query.includes('pico')) return false;
+        }
 
         // Stores: OR — game must match at least one selected store (open if none selected)
         if (storeActive.length > 0) {
@@ -2781,7 +2787,6 @@ async function applySeeFilterVisibility() {
         [
             document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
             document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
-            document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
             document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
             document.querySelector(`#split-filter-strip .split-ftab[data-filter="${filter}"]`),
         ].forEach(el => { if (el) el.style.display = hidden ? 'none' : ''; });
@@ -2808,8 +2813,7 @@ async function openSeeConfig() {
             [
                 document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
                 document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
-                document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
-                document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
+                    document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
             ].forEach(el => { if (el) el.style.display = next ? '' : 'none'; });
         });
         grid.appendChild(btn);
@@ -2818,7 +2822,7 @@ async function openSeeConfig() {
 }
 
 const _closeSeeConfig = () => { document.getElementById('see-config-panel').style.display = 'none'; };
-['btn-see-config', 'btn-see-config-sb', 'btn-cp-cfg', 'btn-topnav-cfg'].forEach(id =>
+['btn-see-config', 'btn-see-config-sb', 'btn-topnav-cfg'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', openSeeConfig));
 document.getElementById('btn-see-config-close')?.addEventListener('click', _closeSeeConfig);
 document.getElementById('see-config-panel')?.addEventListener('click', e => { if (e.target === e.currentTarget) _closeSeeConfig(); });
@@ -2837,80 +2841,6 @@ const CP_KEYWORDS = {
     'emulation': 'emulation', 'emulated': 'emulation', 'retro': 'emulation',
     'apps': 'apps',
 };
-const _cpInput = document.getElementById('cp-input');
-if (_cpInput) {
-    _cpInput.addEventListener('input', applyFilters);
-    _cpInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            const kw = CP_KEYWORDS[_cpInput.value.trim().toLowerCase()];
-            if (kw !== undefined) {
-                activateFilter(kw);
-                _cpInput.value = '';
-                document.getElementById('btn-cp-clear').style.display = 'none';
-                e.preventDefault();
-            }
-        } else if (e.key === 'Escape') {
-            _cpInput.value = '';
-            document.getElementById('btn-cp-clear').style.display = 'none';
-            applyFilters();
-            _cpInput.blur();
-        }
-    });
-}
-document.getElementById('btn-cp-clear')?.addEventListener('click', () => {
-    document.getElementById('cp-input').value = '';
-    document.getElementById('btn-cp-clear').style.display = 'none';
-    applyFilters();
-    document.getElementById('cp-input').focus();
-});
-document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        document.getElementById('cp-input')?.focus();
-        document.getElementById('cp-input')?.select();
-    }
-});
-document.querySelectorAll('.cp-chip[data-cp-filter]').forEach(btn =>
-    btn.addEventListener('click', () => activateFilter(btn.dataset.cpFilter)));
-document.getElementById('btn-cp-gallery')?.addEventListener('click', () => switchView('view-gallery'));
-document.getElementById('btn-cp-list')?.addEventListener('click', () => switchView('view-list'));
-document.getElementById('btn-cp-refresh')?.addEventListener('click', async () => {
-    const btn = document.getElementById('btn-cp-refresh');
-    btn.style.animation = 'spin 0.6s linear infinite';
-    const onGamepage = document.getElementById('view-gamepage').classList.contains('active');
-    if (onGamepage && currentGameId) await window.api.verifyInstallStatus(currentGameId);
-    await syncGrinderInstalled();
-    await loadGames();
-    btn.style.animation = '';
-    if (onGamepage && currentGameId) {
-        const updated = allGames.find(g => g.id === currentGameId);
-        if (updated) refreshGamepagePlayBtn(updated);
-    }
-});
-const _cpMenu = document.getElementById('cp-menu');
-document.getElementById('btn-cp-menu')?.addEventListener('click', e => {
-    e.stopPropagation();
-    _cpMenu?.classList.toggle('open');
-});
-document.addEventListener('click', e => {
-    if (!document.getElementById('cp-menu-wrap')?.contains(e.target)) _cpMenu?.classList.remove('open');
-});
-document.getElementById('cp-menu-connect')?.addEventListener('click', () => {
-    _cpMenu?.classList.remove('open');
-    document.getElementById('btn-open-connect').click();
-});
-document.getElementById('cp-menu-tools')?.addEventListener('click', () => {
-    _cpMenu?.classList.remove('open');
-    openToolsModal();
-});
-document.getElementById('cp-menu-crema')?.addEventListener('click', () => {
-    _cpMenu?.classList.remove('open');
-    window.api.launchCrema();
-});
-document.getElementById('cp-menu-about')?.addEventListener('click', () => {
-    _cpMenu?.classList.remove('open');
-    document.getElementById('modal-about').classList.add('active');
-});
 
 // ── TOP NAV BAR WIRING ────────────────────────────────────────────────────
 document.querySelectorAll('.topnav-filter[data-filter]').forEach(btn =>
@@ -3422,9 +3352,6 @@ document.getElementById('btn-check-install').addEventListener('click', async () 
     loadGames();
 });
 
-document.getElementById('btn-cp-add')?.addEventListener('click', () =>
-    document.getElementById('btn-add-game').click());
-
 document.getElementById('btn-add-game').addEventListener('click', () => {
     const modal = document.getElementById('modal-add-game');
     const input = document.getElementById('add-game-name-input');
@@ -3478,17 +3405,6 @@ function updateHeroMosaic(filtered) {
             : 'Selection';
         searchEl.placeholder = `Search ${label}…`;
     }
-    const cpInput = document.getElementById('cp-input');
-    const cpClear = document.getElementById('btn-cp-clear');
-    if (cpClear) cpClear.style.display = cpInput?.value ? 'flex' : 'none';
-    if (cpInput && !cpInput.value) {
-        const active = [...activeFilters];
-        const label = active.length === 0 ? 'All Games'
-            : active.length === 1 ? (document.querySelector(`.cp-chip[data-cp-filter="${active[0]}"]`)?.textContent || active[0])
-            : 'Selection';
-        cpInput.placeholder = `Search ${label}… or press Enter with a filter name`;
-    }
-
     // Skip full mosaic rebuild if filter + game set is identical to last render
     const mosaicKey = `${[...activeFilters].join(',') || 'all'}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
     if (mosaicKey === _lastMosaicKey) return;
