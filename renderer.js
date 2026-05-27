@@ -253,6 +253,13 @@ window.api.checkCrema().then(exists => {
         if (splitCrema) splitCrema.style.display = '';
     }
 });
+
+window.api.checkEmuLatte().then(exists => {
+    if (exists) {
+        const splitEmu = document.getElementById('btn-split-emulatte');
+        if (splitEmu) splitEmu.style.display = '';
+    }
+});
 ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', () => window.api.launchCrema()));
 
@@ -1233,6 +1240,7 @@ document.getElementById('btn-split-add')?.addEventListener('click', () => docume
 document.getElementById('btn-split-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
 document.getElementById('btn-split-tools')?.addEventListener('click', () => openToolsModal());
 document.getElementById('btn-split-crema')?.addEventListener('click', () => window.api.launchCrema());
+document.getElementById('btn-split-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
 document.getElementById('btn-split-refresh')?.addEventListener('click', async () => {
     const btn = document.getElementById('btn-split-refresh');
     btn.classList.add('active');

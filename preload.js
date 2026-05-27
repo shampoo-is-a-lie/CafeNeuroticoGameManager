@@ -86,6 +86,10 @@ contextBridge.exposeInMainWorld('api', {
                                 checkCrema: () => ipcRenderer.invoke('check-crema'),
                                 launchCrema: () => ipcRenderer.send('launch-crema'),
 
+                                // --- EMULATTE ---
+                                checkEmuLatte: () => ipcRenderer.invoke('check-emulatte'),
+                                launchEmuLatte: () => ipcRenderer.send('launch-emulatte'),
+
                                 // --- ACHIEVEMENTS ---
                                 getGameAchievements: (appId) => ipcRenderer.invoke('get-game-achievements', appId),
                                 fetchAchievementsNow: (appId) => ipcRenderer.invoke('fetch-achievements-now', appId),

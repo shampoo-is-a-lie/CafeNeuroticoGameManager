@@ -229,6 +229,14 @@ function findCremaPath() {
 }
 ipcMain.handle('check-crema', () => !!findCremaPath());
 
+function findEmuLattePath() {
+    try {
+        const f = fs.readdirSync(baseDir).find(n => /^EmuLatte\.(AppImage|appimage)$/i.test(n));
+        return f ? path.join(baseDir, f) : null;
+    } catch(e) { return null; }
+}
+ipcMain.handle('check-emulatte', () => !!findEmuLattePath());
+
 // ── INSTALL STATUS HELPERS ────────────────────────────────────────────────
 function getSteamLibraryPaths() {
     const home = os.homedir();
@@ -569,6 +577,15 @@ ipcMain.handle('sync-all-grinder-games', (_, allGrinderGames, grinderPath) => {
 
 ipcMain.on('launch-crema', () => {
     const p = findCremaPath();
+    if (!p) return;
+    const child = spawn(p, [], { detached: true, stdio: 'ignore' });
+    child.unref();
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win) win.minimize();
+});
+
+ipcMain.on('launch-emulatte', () => {
+    const p = findEmuLattePath();
     if (!p) return;
     const child = spawn(p, [], { detached: true, stdio: 'ignore' });
     child.unref();
