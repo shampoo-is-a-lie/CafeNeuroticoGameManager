@@ -39,14 +39,16 @@ function openInstallPicker(game, installCmd) {
 
 function getInstallCommand(game) {
     const cmd = game.LaunchCommand || '';
+    const store = (game.Store || '').toLowerCase();
     // Heroic: use the heroic:// URL — Heroic shows install prompt when not installed
     if (/heroic:\/\/launch/i.test(cmd)) {
         const m = cmd.match(/heroic:\/\/launch\/[^"\s]+/i);
         return m ? m[0] : null;
     }
-    // Steam: use install protocol
-    if (/steam:\/\/rungameid/i.test(cmd) && game.SteamAppID && String(game.SteamAppID).trim() !== '' && String(game.SteamAppID) !== 'None') {
-        return `steam://install/${String(game.SteamAppID).replace(/\.0+$/, '')}`;
+    // Steam: derive install URL from SteamAppID — works even when LaunchCommand is empty
+    const appId = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '').trim() : '';
+    if (appId && appId !== 'None' && (store.includes('steam') || /steam:\/\/rungameid/i.test(cmd))) {
+        return `steam://install/${appId}`;
     }
     return null;
 }
@@ -871,23 +873,19 @@ function renderTable(recent, regular) {
         const tr = document.createElement('tr');
         tr.style.cursor = "pointer";
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
-        const isInstalled = game.Installed == null || game.Installed == 1;
         const storeLc = (game.Store || '').toLowerCase();
         const isGrinderStore = storeLc.includes('gog') || storeLc.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
+        const isInstalled = !!game.LaunchCommand && (game.Installed == null || game.Installed == 1);
         let actionCell;
-        if (game.LaunchCommand) {
-            if (isInstalled) {
-                actionCell = `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`;
-            } else if (isGrinderStore && installCmd) {
-                actionCell = `<button class="btn-install" data-multistore="1" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
-            } else if (isGrinderStore) {
-                actionCell = `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
-            } else if (installCmd) {
-                actionCell = `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
-            } else {
-                actionCell = `<span style="color:#555; font-size:12px;">${t('status.not_installed')}</span>`;
-            }
+        if (isInstalled) {
+            actionCell = `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`;
+        } else if (isGrinderStore && installCmd) {
+            actionCell = `<button class="btn-install" data-multistore="1" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+        } else if (isGrinderStore) {
+            actionCell = `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
+        } else if (installCmd) {
+            actionCell = `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
         } else if (isManualCategory(game)) {
             actionCell = `<button class="btn-install" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="padding: 4px 8px;">${t('status.install')}</button>`;
         } else {
@@ -1052,39 +1050,40 @@ function renderSplitDetail(game) {
 
     // Play / Install button
     const playBtn = document.getElementById('btn-split-play');
-    const isInstalled = game.Installed == null || game.Installed == 1;
-    if (game.LaunchCommand && isInstalled) {
+    const isInstalled = !!game.LaunchCommand && (game.Installed == null || game.Installed == 1);
+    if (isInstalled) {
         playBtn.textContent = '▶ PLAY';
         playBtn.className = 'primary';
         playBtn.style.display = 'inline-flex';
         playBtn.onclick = () => verifyAndLaunch(game.id, game.LaunchCommand);
-    } else if (!isInstalled) {
+    } else {
         const store = (game.Store || '').toLowerCase();
         const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
-        if (isGrinderStore || installCmd) {
+        if (isGrinderStore && installCmd) {
             playBtn.textContent = '⬇ INSTALL';
             playBtn.className = 'btn-install-primary';
             playBtn.style.display = 'inline-flex';
-            if (isGrinderStore && installCmd) {
-                playBtn.onclick = () => openInstallPicker(game, installCmd);
-            } else if (isGrinderStore) {
-                playBtn.onclick = () => window.api.openGrinder(game.Game);
-            } else {
-                playBtn.onclick = () => window.api.openInstallUrl(installCmd);
-            }
+            playBtn.onclick = () => openInstallPicker(game, installCmd);
+        } else if (isGrinderStore) {
+            playBtn.textContent = '⬇ INSTALL';
+            playBtn.className = 'btn-install-primary';
+            playBtn.style.display = 'inline-flex';
+            playBtn.onclick = () => window.api.openGrinder(game.Game);
+        } else if (installCmd) {
+            playBtn.textContent = '⬇ INSTALL';
+            playBtn.className = 'btn-install-primary';
+            playBtn.style.display = 'inline-flex';
+            playBtn.onclick = () => window.api.openInstallUrl(installCmd);
+        } else if (isManualCategory(game)) {
+            playBtn.textContent = '⬇ INSTALL';
+            playBtn.className = 'btn-install-primary';
+            playBtn.style.display = 'inline-flex';
+            playBtn.onclick = () => openAddCmdDialog(game.id, game.Game);
         } else {
             playBtn.style.display = 'none';
             playBtn.onclick = null;
         }
-    } else if (isManualCategory(game)) {
-        playBtn.textContent = '⬇ INSTALL';
-        playBtn.className = 'btn-install-primary';
-        playBtn.style.display = 'inline-flex';
-        playBtn.onclick = () => openAddCmdDialog(game.id, game.Game);
-    } else {
-        playBtn.style.display = 'none';
-        playBtn.onclick = null;
     }
 
     // Trailer button — always visible; plays local trailer or opens download flow
@@ -1466,27 +1465,23 @@ function renderGallery(recent, regular) {
         const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover" loading="lazy">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
         const _badges = (game.Store ? String(game.Store).split(',') : []).map(s => s.trim()).filter(Boolean).map(s => { const l = getStoreLogo(s); return l ? `<div class="gallery-store-badge" style="-webkit-mask-image:url('${l}');"></div>` : ''; }).join('');
         const badgeHtml = _badges ? `<div class="gallery-store-badges">${_badges}</div>` : '';
-        const isInstalled = game.Installed == null || game.Installed == 1;
+        const stL = (game.Store || '').toLowerCase();
+        const isGrinderStoreG = stL.includes('gog') || stL.includes('epic') || !!game.GrinderGameId;
+        const installCmdG = getInstallCommand(game);
+        const isInstalled = !!game.LaunchCommand && (game.Installed == null || game.Installed == 1);
         const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
         const isFav  = game.FAV === 'YES';
         const isWant = game.WANT_TO_PLAY === 'YES';
         const flagsHtml = `<div class="gallery-flag-btns${isFav || isWant ? ' has-active' : ''}"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">★</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">⚑</button></div>`;
         let actionBtn = '';
-        if (game.LaunchCommand) {
-            if (isInstalled) {
-                actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
-            } else {
-                const stL = (game.Store || '').toLowerCase();
-                const isGrinderStoreG = stL.includes('gog') || stL.includes('epic') || !!game.GrinderGameId;
-                const installCmdG = getInstallCommand(game);
-                if (isGrinderStoreG && installCmdG) {
-                    actionBtn = `<button class="btn-install-gallery" data-multistore="1" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
-                } else if (isGrinderStoreG) {
-                    actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
-                } else if (installCmdG) {
-                    actionBtn = `<button class="btn-install-gallery" data-url="${installCmdG}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
-                }
-            }
+        if (isInstalled) {
+            actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
+        } else if (isGrinderStoreG && installCmdG) {
+            actionBtn = `<button class="btn-install-gallery" data-multistore="1" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
+        } else if (isGrinderStoreG) {
+            actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
+        } else if (installCmdG) {
+            actionBtn = `<button class="btn-install-gallery" data-url="${installCmdG}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
         } else if (isManualCategory(game)) {
             actionBtn = `<button class="btn-install-gallery" data-addcmd="1" data-id="${game.id}" data-name="${game.Game.replace(/"/g, '&quot;')}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
         }
@@ -1796,38 +1791,41 @@ document.getElementById('modal-achievements').addEventListener('click', e => {
 function refreshGamepagePlayBtn(game) {
     const playBtn = document.getElementById('btn-gamepage-play');
     currentLaunchCmd = game.LaunchCommand || '';
-    if (currentLaunchCmd) {
+    const isInstalled = !!currentLaunchCmd && (game.Installed == null || game.Installed == 1);
+
+    if (isInstalled) {
         playBtn.style.display = 'block';
-        const isInstalled = game.Installed == null || game.Installed == 1;
-        if (isInstalled) {
-            playBtn.innerText = t('status.play');
-            playBtn.className = 'primary';
-            playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
-        } else {
-            const store = (game.Store || '').toLowerCase();
-            const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
+        playBtn.innerText = t('status.play');
+        playBtn.className = 'primary';
+        playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
+    } else {
+        const store = (game.Store || '').toLowerCase();
+        const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
+        const installCmd = getInstallCommand(game);
+        if (isGrinderStore && installCmd) {
+            playBtn.style.display = 'block';
             playBtn.innerText = t('status.install');
             playBtn.className = 'btn-install-primary';
+            playBtn.onclick = () => openInstallPicker(game, installCmd);
+        } else if (isGrinderStore) {
             playBtn.style.display = 'block';
-            const installCmd = getInstallCommand(game);
-            if (isGrinderStore && installCmd) {
-                playBtn.onclick = () => openInstallPicker(game, installCmd);
-            } else if (isGrinderStore) {
-                playBtn.onclick = () => window.api.openGrinder(game.Game);
-            } else if (installCmd) {
-                playBtn.onclick = () => window.api.openInstallUrl(installCmd);
-            } else {
-                playBtn.style.display = 'none';
-            }
+            playBtn.innerText = t('status.install');
+            playBtn.className = 'btn-install-primary';
+            playBtn.onclick = () => window.api.openGrinder(game.Game);
+        } else if (installCmd) {
+            playBtn.style.display = 'block';
+            playBtn.innerText = t('status.install');
+            playBtn.className = 'btn-install-primary';
+            playBtn.onclick = () => window.api.openInstallUrl(installCmd);
+        } else if (isManualCategory(game)) {
+            playBtn.style.display = 'block';
+            playBtn.innerText = t('status.install');
+            playBtn.className = 'btn-install-primary';
+            playBtn.onclick = () => openAddCmdDialog(currentGameId, game.Game);
+        } else {
+            playBtn.style.display = 'none';
+            playBtn.onclick = null;
         }
-    } else if (isManualCategory(game)) {
-        playBtn.style.display = 'block';
-        playBtn.innerText = t('status.install');
-        playBtn.className = 'btn-install-primary';
-        playBtn.onclick = () => openAddCmdDialog(currentGameId, game.Game);
-    } else {
-        playBtn.style.display = 'none';
-        playBtn.onclick = null;
     }
 }
 
