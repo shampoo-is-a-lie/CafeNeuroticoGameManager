@@ -3604,7 +3604,7 @@ const THEME_CATEGORIES = {
     "PSIII Colors": ["PSIII CLASSIC", "PSIII RED", "PSIII GREEN", "PSIII BLUE", "PSIII PURPLE", "PSIII GOLD", "PSIII SILVER"]
 };
 
-let activeTheme = "DARK GRAY";
+let activeTheme = "CREMA";
 
 function applyTheme(themeName) {
     const tConfig = THEMES[themeName];
