@@ -188,7 +188,9 @@
     #split-game-meta { font-size:10px; font-weight:700; color:var(--text_dim); letter-spacing:1px; text-transform:uppercase; line-height:1.8; display:flex; flex-wrap:wrap; gap:4px 8px; }
     .split-meta-chip { background:rgba(255,255,255,0.06); border:1px solid var(--border); padding:2px 8px; border-radius:12px; font-size:9px; font-weight:900; letter-spacing:0.8px; white-space:nowrap; }
     /* PLAY inside info column, same gamepage pill style */
-    #btn-split-play { font-size:18px; padding:14px 36px; border-radius:50px; letter-spacing:2px; box-shadow:0 8px 20px rgba(0,0,0,0.6); display:none; align-self:flex-end; margin-top:4px; }
+    #split-meta-play-row { display:flex; align-items:center; gap:16px; }
+    #split-game-meta { flex:1; min-width:0; }
+    #btn-split-play { font-size:18px; padding:14px 36px; border-radius:50px; letter-spacing:2px; box-shadow:0 8px 20px rgba(0,0,0,0.6); display:none; flex-shrink:0; }
     /* Detail body below card */
     #split-detail-lower { padding:0 28px 40px; display:flex; flex-direction:column; gap:20px; }
     #split-short-desc { font-size:14px; font-weight:900; color:var(--text_main); line-height:1.7; }
@@ -1018,8 +1020,10 @@
                   </button>
                 </div>
               </div>
-              <div id="split-game-meta"></div>
-              <button id="btn-split-play" class="primary">▶ PLAY</button>
+              <div id="split-meta-play-row">
+                <div id="split-game-meta"></div>
+                <button id="btn-split-play" class="primary">▶ PLAY</button>
+              </div>
             </div>
           </div>
           <div id="split-detail-lower">
