@@ -4,7 +4,7 @@ let currentGameId = null;
 function isManualCategory(game) {
     if (game.GrinderGameId) return false;
     const s = (game.Store || '').toLowerCase();
-    return /physical|others|emulation|apps/.test(s) && !/steam|epic|gog|heroic|itch/.test(s);
+    return !/steam|epic|gog|heroic|itch|flatpak|pico/.test(s);
 }
 
 function openAddCmdDialog(gameId, gameName) {
