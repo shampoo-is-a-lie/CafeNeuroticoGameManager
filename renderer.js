@@ -238,9 +238,17 @@ window.api.getSetting('language').then(lang => {
 });
 
 window.api.checkCrema().then(exists => {
-    if (exists) document.getElementById('btn-launch-crema').style.display = 'flex';
+    if (exists) {
+        ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'flex';
+        });
+        const cpCrema = document.getElementById('cp-menu-crema');
+        if (cpCrema) cpCrema.style.display = '';
+    }
 });
-document.getElementById('btn-launch-crema').addEventListener('click', () => window.api.launchCrema());
+['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', () => window.api.launchCrema()));
 
 // Local variable to hold our gaming history limit preference
 let recentGamesCount = 0;
@@ -357,8 +365,28 @@ document.getElementById('btn-min').addEventListener('click', () => window.api.mi
 document.getElementById('btn-max').addEventListener('click', () => window.api.maximizeApp());
 document.getElementById('btn-close').addEventListener('click', () => window.api.closeApp());
 
-document.getElementById('btn-view-list').addEventListener('click', () => switchView('view-list'));
-document.getElementById('btn-view-gallery').addEventListener('click', () => switchView('view-gallery'));
+// ── LAYOUT MODE ───────────────────────────────────────────────────────────
+function applyLayoutMode(mode) {
+    const c = document.getElementById('app-container');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp');
+    c.classList.add('layout-' + mode);
+    document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === mode));
+    localStorage.setItem('cngm_layout_mode', mode);
+    window.api.setSetting('layout_mode', mode);
+}
+document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(btn =>
+    btn.addEventListener('click', () => applyLayoutMode(btn.dataset.val)));
+(async () => {
+    const saved = await window.api.getSetting('layout_mode') || localStorage.getItem('cngm_layout_mode') || 'rail';
+    applyLayoutMode(saved);
+})();
+
+// ── VIEW / REFRESH (all layouts) ──────────────────────────────────────────
+['btn-view-list', 'btn-view-list-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', () => switchView('view-list')));
+['btn-view-gallery', 'btn-view-gallery-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', () => switchView('view-gallery')));
 document.getElementById('btn-refresh-library').addEventListener('click', async () => {
     const btn = document.getElementById('btn-refresh-library');
     btn.style.animation = 'spin 0.6s linear';
@@ -372,6 +400,8 @@ document.getElementById('btn-refresh-library').addEventListener('click', async (
         if (updated) refreshGamepagePlayBtn(updated);
     }
 });
+document.getElementById('btn-refresh-library-sb')?.addEventListener('click', () =>
+    document.getElementById('btn-refresh-library').click());
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
     applyFilters();
@@ -391,7 +421,8 @@ document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
 });
 
 // --- ABOUT BUTTON LOGIC ---
-document.getElementById('btn-about').addEventListener('click', () => { document.getElementById('modal-about').classList.add('active'); });
+['btn-about', 'btn-about-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', () => document.getElementById('modal-about').classList.add('active')));
 document.getElementById('btn-close-about').addEventListener('click', () => { document.getElementById('modal-about').classList.remove('active'); });
 
 // --- MANUAL (opens as separate window) ---
@@ -579,6 +610,14 @@ function syncFilterActiveStates() {
     document.querySelectorAll('.panel-filter-btn[data-filter]').forEach(btn => {
         btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
     });
+    document.querySelectorAll('#sidebar-filters button[data-filter]').forEach(btn => {
+        const f = btn.dataset.filter;
+        btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+    });
+    document.querySelectorAll('.cp-chip[data-cp-filter]').forEach(btn => {
+        const f = btn.dataset.cpFilter;
+        btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
+    });
 }
 
 function switchView(viewId) {
@@ -598,8 +637,10 @@ function switchView(viewId) {
     if (viewId !== 'view-details') clearInterval(detailScreenshotInterval);
     if (viewId === 'view-gallery' || viewId === 'view-list') lastGridView = viewId;
 
-    document.getElementById('btn-view-gallery')?.classList.toggle('active', viewId === 'view-gallery');
-    document.getElementById('btn-view-list')?.classList.toggle('active', viewId === 'view-list');
+    ['btn-view-gallery', 'btn-view-gallery-sb', 'btn-cp-gallery'].forEach(id =>
+        document.getElementById(id)?.classList.toggle('active', viewId === 'view-gallery'));
+    ['btn-view-list', 'btn-view-list-sb', 'btn-cp-list'].forEach(id =>
+        document.getElementById(id)?.classList.toggle('active', viewId === 'view-list'));
 }
 
 // Debounced loadGames — collapses rapid successive calls (e.g. from two parallel .then() chains)
@@ -667,9 +708,18 @@ document.querySelectorAll('.panel-filter-btn[data-filter]').forEach(btn => {
 });
 // Panel close
 document.getElementById('btn-panel-close')?.addEventListener('click', closePanel);
+// Sidebar filter buttons
+document.querySelectorAll('#sidebar-filters button[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => activateFilter(btn.dataset.filter));
+});
+// Sidebar search bar
+document.getElementById('search-bar')?.addEventListener('input', applyFilters);
+// Sidebar add-game delegate
+document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
+    document.getElementById('btn-add-game').click());
 
 function applyFilters() {
-    const query = document.getElementById('gallery-search').value.toLowerCase();
+    const query = (document.getElementById('cp-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || '').toLowerCase();
     const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
     const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
@@ -2258,6 +2308,8 @@ window.api.onPico8CartDownloaded(({ name }) => {
     const connectBtn = document.getElementById('btn-open-connect');
     if (connectBtn) connectBtn.addEventListener('click', () => setTimeout(refreshPico8Status, 50));
 })();
+document.getElementById('btn-open-connect-sb')?.addEventListener('click', () =>
+    document.getElementById('btn-open-connect').click());
 
 // ── SEE FILTER VISIBILITY CONFIG ─────────────────────────────────────────
 
@@ -2282,8 +2334,11 @@ async function applySeeFilterVisibility() {
     for (const { filter } of SEE_FILTERS) {
         const val = await window.api.getSetting(`filter_vis_${filter}`);
         const hidden = val === '0';
-        const btn = document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`);
-        if (btn) btn.style.display = hidden ? 'none' : '';
+        [
+            document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
+            document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
+            document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
+        ].forEach(el => { if (el) el.style.display = hidden ? 'none' : ''; });
     }
 }
 
@@ -2304,8 +2359,11 @@ async function openSeeConfig() {
             btn.style.background = next ? 'var(--accent)' : 'transparent';
             btn.style.color = next ? 'var(--bg)' : 'var(--text_dim)';
             await window.api.setSetting(`filter_vis_${filter}`, next ? '1' : '0');
-            const sidebarBtn = document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`);
-            if (sidebarBtn) sidebarBtn.style.display = next ? '' : 'none';
+            [
+                document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
+                document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
+                document.querySelector(`.cp-chip[data-cp-filter="${filter}"]`),
+            ].forEach(el => { if (el) el.style.display = next ? '' : 'none'; });
         });
         grid.appendChild(btn);
     }
@@ -2313,10 +2371,99 @@ async function openSeeConfig() {
 }
 
 const _closeSeeConfig = () => { document.getElementById('see-config-panel').style.display = 'none'; };
-document.getElementById('btn-see-config')?.addEventListener('click', openSeeConfig);
+['btn-see-config', 'btn-see-config-sb', 'btn-cp-cfg'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', openSeeConfig));
 document.getElementById('btn-see-config-close')?.addEventListener('click', _closeSeeConfig);
 document.getElementById('see-config-panel')?.addEventListener('click', e => { if (e.target === e.currentTarget) _closeSeeConfig(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.getElementById('see-config-panel')?.style.display === 'flex') _closeSeeConfig(); });
+
+// ── COMMAND BAR WIRING ────────────────────────────────────────────────────
+const CP_KEYWORDS = {
+    'all': 'all', 'everything': 'all',
+    'installed': 'installed',
+    'favs': 'favs', 'favorites': 'favs', 'favourites': 'favs',
+    'want': 'want', 'wishlist': 'want',
+    'steam': 'steam', 'epic': 'epic', 'gog': 'gog',
+    'flatpak': 'flatpak', 'pico8': 'pico8', 'pico-8': 'pico8',
+    'itch': 'itch', 'itch.io': 'itch',
+    'physical': 'physical', 'others': 'others', 'custom': 'others',
+    'emulation': 'emulation', 'emulated': 'emulation', 'retro': 'emulation',
+    'apps': 'apps',
+};
+const _cpInput = document.getElementById('cp-input');
+if (_cpInput) {
+    _cpInput.addEventListener('input', applyFilters);
+    _cpInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            const kw = CP_KEYWORDS[_cpInput.value.trim().toLowerCase()];
+            if (kw !== undefined) {
+                activateFilter(kw);
+                _cpInput.value = '';
+                document.getElementById('btn-cp-clear').style.display = 'none';
+                e.preventDefault();
+            }
+        } else if (e.key === 'Escape') {
+            _cpInput.value = '';
+            document.getElementById('btn-cp-clear').style.display = 'none';
+            applyFilters();
+            _cpInput.blur();
+        }
+    });
+}
+document.getElementById('btn-cp-clear')?.addEventListener('click', () => {
+    document.getElementById('cp-input').value = '';
+    document.getElementById('btn-cp-clear').style.display = 'none';
+    applyFilters();
+    document.getElementById('cp-input').focus();
+});
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('cp-input')?.focus();
+        document.getElementById('cp-input')?.select();
+    }
+});
+document.querySelectorAll('.cp-chip[data-cp-filter]').forEach(btn =>
+    btn.addEventListener('click', () => activateFilter(btn.dataset.cpFilter)));
+document.getElementById('btn-cp-gallery')?.addEventListener('click', () => switchView('view-gallery'));
+document.getElementById('btn-cp-list')?.addEventListener('click', () => switchView('view-list'));
+document.getElementById('btn-cp-refresh')?.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-cp-refresh');
+    btn.style.animation = 'spin 0.6s linear infinite';
+    const onGamepage = document.getElementById('view-gamepage').classList.contains('active');
+    if (onGamepage && currentGameId) await window.api.verifyInstallStatus(currentGameId);
+    await syncGrinderInstalled();
+    await loadGames();
+    btn.style.animation = '';
+    if (onGamepage && currentGameId) {
+        const updated = allGames.find(g => g.id === currentGameId);
+        if (updated) refreshGamepagePlayBtn(updated);
+    }
+});
+const _cpMenu = document.getElementById('cp-menu');
+document.getElementById('btn-cp-menu')?.addEventListener('click', e => {
+    e.stopPropagation();
+    _cpMenu?.classList.toggle('open');
+});
+document.addEventListener('click', e => {
+    if (!document.getElementById('cp-menu-wrap')?.contains(e.target)) _cpMenu?.classList.remove('open');
+});
+document.getElementById('cp-menu-connect')?.addEventListener('click', () => {
+    _cpMenu?.classList.remove('open');
+    document.getElementById('btn-open-connect').click();
+});
+document.getElementById('cp-menu-tools')?.addEventListener('click', () => {
+    _cpMenu?.classList.remove('open');
+    openToolsModal();
+});
+document.getElementById('cp-menu-crema')?.addEventListener('click', () => {
+    _cpMenu?.classList.remove('open');
+    window.api.launchCrema();
+});
+document.getElementById('cp-menu-about')?.addEventListener('click', () => {
+    _cpMenu?.classList.remove('open');
+    document.getElementById('modal-about').classList.add('active');
+});
 
 // ── PICO-8 HERO BUTTONS ───────────────────────────────────────────────────
 
@@ -2583,7 +2730,7 @@ document.getElementById('btn-restore-zip').addEventListener('click', async () =>
 });
 
 const modalTools = document.getElementById('modal-tools');
-document.getElementById('btn-open-tools').addEventListener('click', () => {
+function openToolsModal() {
     modalTools.classList.add('active');
     document.getElementById('batch-status').innerText = '';
     document.getElementById('install-menu-status').innerText = '';
@@ -2591,7 +2738,9 @@ document.getElementById('btn-open-tools').addEventListener('click', () => {
     document.querySelectorAll('.tools-section').forEach(c => c.style.display = '');
     document.getElementById('tools-no-results').style.display = 'none';
     setTimeout(() => document.getElementById('tools-search').focus(), 150);
-});
+}
+['btn-open-tools', 'btn-open-tools-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', openToolsModal));
 
 document.getElementById('btn-install-menu').addEventListener('click', async () => {
     const btn = document.getElementById('btn-install-menu');
@@ -2788,6 +2937,9 @@ document.getElementById('btn-check-install').addEventListener('click', async () 
     loadGames();
 });
 
+document.getElementById('btn-cp-add')?.addEventListener('click', () =>
+    document.getElementById('btn-add-game').click());
+
 document.getElementById('btn-add-game').addEventListener('click', () => {
     const modal = document.getElementById('modal-add-game');
     const input = document.getElementById('add-game-name-input');
@@ -2840,6 +2992,16 @@ function updateHeroMosaic(filtered) {
             : active.length === 1 ? (document.querySelector(`.panel-filter-btn[data-filter="${active[0]}"]`)?.textContent || active[0])
             : 'Selection';
         searchEl.placeholder = `Search ${label}…`;
+    }
+    const cpInput = document.getElementById('cp-input');
+    const cpClear = document.getElementById('btn-cp-clear');
+    if (cpClear) cpClear.style.display = cpInput?.value ? 'flex' : 'none';
+    if (cpInput && !cpInput.value) {
+        const active = [...activeFilters];
+        const label = active.length === 0 ? 'All Games'
+            : active.length === 1 ? (document.querySelector(`.cp-chip[data-cp-filter="${active[0]}"]`)?.textContent || active[0])
+            : 'Selection';
+        cpInput.placeholder = `Search ${label}… or press Enter with a filter name`;
     }
 
     // Skip full mosaic rebuild if filter + game set is identical to last render

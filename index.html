@@ -24,7 +24,8 @@
     .win-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--text_main); transform: none; box-shadow: none; }
     .win-close:hover { background-color: #d32f2f; color: white; }
 
-    #app-container { display: flex; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
+    #app-container { display: flex; flex-direction: column; flex: 1; width: 100%; height: 100%; overflow: hidden; position: relative; }
+    #app-inner { display: flex; flex-direction: row; flex: 1; overflow: hidden; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
@@ -82,6 +83,55 @@
     #btn-gsearch-clear:hover { background: var(--accent); color: var(--bg); transform: translateY(-50%) scale(1.1); box-shadow: 0 0 10px var(--accent); }
     #gallery-search-count { font-size: 10px; font-weight: 900; color: var(--text_dim); letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; min-width: 64px; text-align: right; transition: color 0.2s; }
     #main-content { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; overflow: hidden; }
+
+    /* ── CLASSIC SIDEBAR ─────────────────────────────────────────────────────── */
+    #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
+
+    /* ── LAYOUT SWITCHING (JS adds layout-rail / layout-sidebar / layout-cp) ─── */
+    /* Default: icon-rail active, sidebar + cp-bar hidden */
+    #sidebar { display: none; }
+    #cp-bar, #cp-chips { display: none; }
+    #app-container.layout-sidebar #icon-rail,
+    #app-container.layout-sidebar #side-panel,
+    #app-container.layout-sidebar #gallery-search-wrap { display: none !important; }
+    #app-container.layout-sidebar #sidebar { display: flex !important; }
+    #app-container.layout-rail #sidebar { display: none !important; }
+    #app-container.layout-cp #icon-rail,
+    #app-container.layout-cp #side-panel,
+    #app-container.layout-cp #gallery-search-wrap { display: none !important; }
+    #app-container.layout-cp #sidebar { display: none !important; }
+    #app-container.layout-cp #cp-bar { display: flex !important; }
+    #app-container.layout-cp #cp-chips { display: flex !important; }
+
+    /* ── COMMAND BAR ──────────────────────────────────────────────────────────── */
+    #cp-bar { height: 52px; flex-shrink: 0; align-items: center; gap: 8px; padding: 0 14px; background: var(--bg_menu); border-bottom: 1px solid var(--border_solid); }
+    #cp-input-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+    #cp-input { width: 100%; box-sizing: border-box; padding: 10px 38px 10px 42px; background: rgba(0,0,0,0.35); border: 1.5px solid var(--border_solid); border-radius: 10px; color: var(--text_main); font-family: 'Raleway', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; transition: border-color 0.2s, box-shadow 0.2s; }
+    #cp-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--border), 0 4px 16px rgba(0,0,0,0.4); }
+    #cp-input::placeholder { color: var(--text_dim); font-weight: 400; font-style: italic; }
+    .cp-input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text_dim); pointer-events: none; transition: color 0.2s; }
+    #cp-input-wrap:focus-within .cp-input-icon { color: var(--accent); }
+    #btn-cp-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; border: none; background: rgba(255,255,255,0.08); color: var(--text_dim); cursor: pointer; display: none; align-items: center; justify-content: center; font-size: 10px; padding: 0; letter-spacing: 0; text-transform: none; transition: background 0.15s, color 0.15s; }
+    #btn-cp-clear:hover { background: var(--accent); color: var(--bg); box-shadow: none; transform: translateY(-50%); }
+    .cp-kbd { font-size: 9px; font-weight: 900; color: var(--text_dim); background: rgba(0,0,0,0.3); border: 1px solid var(--border_solid); border-radius: 4px; padding: 1px 5px; letter-spacing: 1px; position: absolute; right: 38px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.7; }
+    .cp-action-btn { width: 36px; height: 36px; border: 1px solid var(--border_solid); border-radius: 8px; background: transparent; color: var(--text_dim); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: color 0.15s, border-color 0.15s, background 0.15s; padding: 0; text-transform: none; letter-spacing: 0; }
+    .cp-action-btn:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,0,0,0.2); box-shadow: none; transform: none; }
+    .cp-action-btn.active { color: var(--accent); border-color: var(--accent); }
+    #cp-menu-wrap { position: relative; flex-shrink: 0; }
+    #cp-menu { position: absolute; right: 0; top: calc(100% + 8px); background: var(--bg_menu); border: 1px solid var(--border_solid); border-radius: 10px; min-width: 190px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 500; display: none; flex-direction: column; padding: 4px 0; }
+    #cp-menu.open { display: flex; }
+    .cp-menu-item { padding: 10px 16px; color: var(--text_sec); font-size: 11px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.1s, color 0.1s; border: none; background: transparent; width: 100%; text-align: left; border-radius: 0; }
+    .cp-menu-item:hover { background: rgba(255,255,255,0.06); color: var(--text_main); transform: none; box-shadow: none; }
+    .cp-menu-sep { height: 1px; background: var(--border_solid); margin: 3px 0; flex-shrink: 0; }
+    /* ── FILTER CHIP STRIP ────────────────────────────────────────────────────── */
+    #cp-chips { height: 40px; flex-shrink: 0; align-items: center; padding: 0 14px; gap: 5px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+    #cp-chips::-webkit-scrollbar { display: none; }
+    .cp-chip { flex-shrink: 0; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border_solid); background: transparent; color: var(--text_dim); font-family: 'Raleway', sans-serif; font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+    .cp-chip:hover { border-color: var(--accent); color: var(--accent); background: transparent; box-shadow: none; transform: none; }
+    .cp-chip.active { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 8px var(--border); }
+    .cp-chip-sep { width: 1px; height: 18px; background: var(--border_solid); flex-shrink: 0; margin: 0 3px; }
+    #btn-cp-cfg { flex-shrink: 0; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--text_dim); font-size: 10px; font-weight: 900; cursor: pointer; letter-spacing: 0; text-transform: none; transition: color 0.15s, border-color 0.15s; margin-left: auto; }
+    #btn-cp-cfg:hover { color: var(--accent); border-color: var(--accent); box-shadow: none; transform: none; }
 
     .row { display: flex; gap: 10px; }
     button { background-color: var(--bg_panel); color: var(--text_main); border: 1px solid var(--border_solid); padding: 10px 12px; font-family: 'Raleway', sans-serif; font-weight: 900; cursor: pointer; border-radius: 6px; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
@@ -227,6 +277,125 @@
   </div>
 
   <div id="app-container">
+
+    <!-- ── COMMAND BAR (layout-cp only) ─────────────────────────────────────── -->
+    <div id="cp-bar">
+      <div id="cp-input-wrap">
+        <svg class="cp-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="cp-input" type="text" placeholder="Search games, or press Enter with: steam · gog · favs · installed…" autocomplete="off" spellcheck="false">
+        <span class="cp-kbd">Ctrl+K</span>
+        <button id="btn-cp-clear" title="Clear">✕</button>
+      </div>
+      <button id="btn-cp-gallery" class="cp-action-btn active" title="Gallery View">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
+      </button>
+      <button id="btn-cp-list" class="cp-action-btn" title="List View">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
+      </button>
+      <button id="btn-cp-refresh" class="cp-action-btn" title="Refresh Library">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+      </button>
+      <button id="btn-cp-add" class="cp-action-btn" title="Add Game">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      </button>
+      <div id="cp-menu-wrap">
+        <button id="btn-cp-menu" class="cp-action-btn" title="More actions">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <div id="cp-menu">
+          <button class="cp-menu-item" id="cp-menu-connect">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Connect &amp; Sync
+          </button>
+          <button class="cp-menu-item" id="cp-menu-tools">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Tools
+          </button>
+          <div class="cp-menu-sep"></div>
+          <button class="cp-menu-item" id="cp-menu-crema" style="display:none;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+            Go Fullscreen (CREMA)
+          </button>
+          <button class="cp-menu-item" id="cp-menu-about">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 12 12 16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            About CNGM
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FILTER CHIP STRIP (layout-cp only) ───────────────────────────────── -->
+    <div id="cp-chips">
+      <button class="cp-chip active" data-cp-filter="all">All</button>
+      <button class="cp-chip" data-cp-filter="installed">Installed</button>
+      <button class="cp-chip" data-cp-filter="favs">Favs</button>
+      <button class="cp-chip" data-cp-filter="want">Want</button>
+      <div class="cp-chip-sep"></div>
+      <button class="cp-chip" data-cp-filter="steam">Steam</button>
+      <button class="cp-chip" data-cp-filter="epic">Epic</button>
+      <button class="cp-chip" data-cp-filter="gog">GOG</button>
+      <button class="cp-chip" data-cp-filter="flatpak">Flatpak</button>
+      <button class="cp-chip" data-cp-filter="pico8">PICO-8</button>
+      <button class="cp-chip" data-cp-filter="itch">itch.io</button>
+      <button class="cp-chip" data-cp-filter="physical">Physical</button>
+      <button class="cp-chip" data-cp-filter="others">Others</button>
+      <button class="cp-chip" data-cp-filter="emulation">Emulation</button>
+      <button class="cp-chip" data-cp-filter="apps">Apps</button>
+      <button id="btn-cp-cfg" title="Show / hide filters">+ / −</button>
+    </div>
+
+    <div id="app-inner">
+
+    <!-- ── CLASSIC SIDEBAR (layout-sidebar only) ────────────────────────────── -->
+    <div id="sidebar">
+      <div class="row">
+        <button id="btn-refresh-library-sb" title="Refresh library" style="width:36px; flex-shrink:0; align-self:stretch; padding:0; background:transparent; border:1px solid var(--border_solid); border-radius:6px; color:var(--text_dim); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.2s, border-color 0.2s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)';" onmouseout="this.style.color='var(--text_dim)';this.style.borderColor='var(--border_solid)';">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+        </button>
+        <button style="flex:1;" id="btn-view-list-sb" data-i18n="html.list_view">List</button>
+        <button style="flex:1;" id="btn-view-gallery-sb" data-i18n="html.gallery_view">Gallery</button>
+      </div>
+      <button id="btn-add-game-sb" class="primary" data-i18n="html.add_game">+ Add Game</button>
+      <fieldset>
+        <legend data-i18n="html.legend_search">Search &amp; Filter</legend>
+        <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
+      </fieldset>
+      <fieldset>
+        <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+          <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
+          <button id="btn-see-config-sb" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
+        </legend>
+        <div class="filter-grid" id="sidebar-filters">
+          <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
+          <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
+          <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
+          <button data-filter="want" data-i18n="html.filter_want">Want</button>
+          <button data-filter="steam">Steam</button>
+          <button data-filter="epic">Epic</button>
+          <button data-filter="gog">GOG</button>
+          <button data-filter="flatpak">Flatpak</button>
+          <button data-filter="pico8">PICO-8</button>
+          <button data-filter="itch">itch.io</button>
+          <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
+          <button data-filter="others" data-i18n="html.filter_others">Others</button>
+          <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
+          <button data-filter="apps" data-i18n="html.filter_apps">Apps</button>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend data-i18n="html.legend_menu">Menu</legend>
+        <div class="row">
+          <button id="btn-open-connect-sb" style="flex:1;" data-i18n="html.connect">Connect</button>
+          <button id="btn-open-tools-sb" style="flex:1;" data-i18n="html.tools">Tools</button>
+        </div>
+      </fieldset>
+      <button id="btn-launch-crema-sb" style="display:none; width:100%; flex-direction:column; align-items:center; gap:2px; line-height:1.2;"><span style="font-size:9px; font-weight:400; letter-spacing:1px; opacity:0.7; text-transform:uppercase;">Go Fullscreen With</span><span>CREMA</span></button>
+      <div id="btn-about-sb" style="text-align:center; padding:20px 0 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px; cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.75';" onmouseout="this.style.opacity='1';">
+        <span style="font-size:9px; font-weight:900; color:var(--text_dim); letter-spacing:3px; text-transform:uppercase;">Cafe Neurotico</span>
+        <span style="font-size:11px; font-weight:900; color:var(--accent); letter-spacing:2px; text-transform:uppercase;">Game Manager</span>
+      </div>
+    </div>
+
     <!-- ── ICON RAIL (48px) ──────────────────────────────────────────────────── -->
     <div id="icon-rail">
       <div id="rail-top">
@@ -251,24 +420,24 @@
         </button>
       </div>
       <div id="rail-bottom">
-        <button class="rail-btn active" id="btn-view-gallery" title="Gallery View" data-i18n="html.gallery_view">
+        <button class="rail-btn active" id="btn-view-gallery" title="Gallery View">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
         </button>
-        <button class="rail-btn" id="btn-view-list" title="List View" data-i18n="html.list_view">
+        <button class="rail-btn" id="btn-view-list" title="List View">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
         </button>
         <div class="rail-sep"></div>
-        <button class="rail-btn" id="btn-add-game" title="Add Game" data-i18n="html.add_game">
+        <button class="rail-btn" id="btn-add-game" title="Add Game">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
         </button>
         <button class="rail-btn" id="btn-refresh-library" title="Refresh Library">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
         </button>
         <div class="rail-sep"></div>
-        <button class="rail-btn" id="btn-open-connect" title="Connect" data-i18n="html.connect">
+        <button class="rail-btn" id="btn-open-connect" title="Connect">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
         </button>
-        <button class="rail-btn" id="btn-open-tools" title="Tools" data-i18n="html.tools">
+        <button class="rail-btn" id="btn-open-tools" title="Tools">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         </button>
         <button class="rail-btn" id="btn-launch-crema" title="Go Fullscreen With CREMA" style="display:none;">
@@ -582,7 +751,8 @@
         </div>
 
       </div>
-  </div>
+    </div><!-- /#app-inner -->
+  </div><!-- /#app-container -->
 
   <div id="modal-about" class="modal-overlay">
     <div class="modal-box" style="text-align: center;">
@@ -848,6 +1018,15 @@
 
       <!-- Scrollable cards -->
       <div id="tools-cards-container" style="flex: 1; overflow-y: auto; padding: 14px 20px; display: flex; flex-direction: column; gap: 12px;">
+
+        <div class="tool-card tools-section" data-search="layout sidebar rail command palette navigation icon panel view">
+          <div class="tool-card-title">Layout</div>
+          <div class="segmented-control" id="layout-segmented-control">
+            <button class="segmented-btn" data-val="rail">Icon Rail</button>
+            <button class="segmented-btn" data-val="sidebar">Classic Sidebar</button>
+            <button class="segmented-btn" data-val="cp">Command Bar</button>
+          </div>
+        </div>
 
         <div class="tool-card tools-section" data-search="appearance theme color scheme ui scale zoom size">
 
