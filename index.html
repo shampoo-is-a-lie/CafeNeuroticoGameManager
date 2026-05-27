@@ -54,6 +54,10 @@
     .btn-install:hover { background: #ff6d00; }
     .btn-install-primary { background: #e65100; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-family: inherit; font-weight: 900; font-size: 14px; cursor: pointer; letter-spacing: 1px; }
     .btn-install-primary:hover { background: #ff6d00; }
+    #btn-install-pick-steam { background: #1b2838; color: #66c0f4; border: 1px solid #66c0f4; border-radius: 6px; font-family: inherit; font-weight: 900; font-size: 13px; cursor: pointer; letter-spacing: 1px; transition: box-shadow 0.2s, background 0.2s; }
+    #btn-install-pick-steam:hover { background: #223344; box-shadow: 0 0 14px rgba(102,192,244,0.55); }
+    #btn-install-pick-grinder { background: rgba(230,81,0,0.15); color: #ff6d00; border: 1px solid #e65100; border-radius: 6px; font-family: inherit; font-weight: 900; font-size: 13px; cursor: pointer; letter-spacing: 1px; transition: box-shadow 0.2s, background 0.2s; }
+    #btn-install-pick-grinder:hover { background: rgba(230,81,0,0.28); box-shadow: 0 0 14px rgba(255,109,0,0.45); }
     .gallery-title { padding: 10px; font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text_sec); }
 
     #icon-rail { width: 48px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg_menu); border-right: 1px solid var(--border_solid); overflow: hidden; }
@@ -1331,8 +1335,8 @@
       <p id="install-picker-game" style="font-size:13px; font-weight:900; color:var(--text_main); margin:0 0 10px;"></p>
       <p style="font-size:11px; color:var(--text_dim); margin:0 0 18px; line-height:1.7;">This game is available on multiple stores. Choose which version to install:</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <button id="btn-install-pick-steam" class="primary" style="width:100%; padding:12px; letter-spacing:1px;">Steam — Opens Steam client</button>
-        <button id="btn-install-pick-grinder" style="width:100%; padding:12px; letter-spacing:1px; background:transparent; border:1px solid #e65100; color:#ff6d00;">GRINDER — GOG / Epic</button>
+        <button id="btn-install-pick-steam" style="width:100%; padding:12px;">Steam — Opens Steam client</button>
+        <button id="btn-install-pick-grinder" style="width:100%; padding:12px;">GRINDER — GOG / Epic</button>
         <button id="btn-install-pick-cancel" style="width:100%; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim);">Cancel</button>
       </div>
     </div>
