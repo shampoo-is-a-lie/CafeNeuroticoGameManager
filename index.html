@@ -151,36 +151,47 @@
     .split-nav-btn:hover svg { opacity:1; }
     .split-nav-btn.active { color:var(--accent); }
     .split-nav-btn.active svg { opacity:1; stroke:var(--accent); }
+    /* Search clear button */
+    #btn-split-search-clear { background:transparent; border:none; color:var(--text_dim); font-size:16px; line-height:1; padding:0 4px; cursor:pointer; flex-shrink:0; transition:0.12s; display:none; }
+    #btn-split-search-clear:hover { color:var(--text_main); }
     /* Right detail panel */
-    #split-right { flex:1; display:flex; flex-direction:column; overflow-y:auto; background:var(--bg); min-width:0; }
-    #split-empty { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text_dim); font-size:11px; font-weight:900; letter-spacing:3px; text-transform:uppercase; }
-    #split-detail { display:none; flex-direction:column; min-height:100%; }
-    #split-hero-wrap { position:relative; height:260px; flex-shrink:0; overflow:hidden; background:var(--bg_menu); }
+    #split-right { flex:1; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; background:var(--bg); min-width:0; }
+    /* Welcome screen */
+    #split-welcome { flex:1; display:none; align-items:center; justify-content:center; }
+    .split-welcome-inner { display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; padding:40px; }
+    .split-welcome-mono { font-size:72px; font-weight:900; line-height:1; letter-spacing:-4px; color:var(--accent); text-shadow:0 0 80px color-mix(in srgb,var(--accent) 35%,transparent); }
+    .split-welcome-title { font-size:14px; font-weight:900; color:var(--text_main); letter-spacing:7px; text-transform:uppercase; margin-top:8px; }
+    .split-welcome-sub { font-size:9px; font-weight:900; color:var(--text_dim); letter-spacing:6px; text-transform:uppercase; }
+    .split-welcome-hint { font-size:10px; color:var(--text_dim); letter-spacing:1.5px; margin-top:24px; opacity:0.45; font-style:italic; }
+    #split-empty { flex:1; display:flex; align-items:center; justify-content:center; color:var(--text_dim); font-size:10px; font-weight:900; letter-spacing:3px; text-transform:uppercase; }
+    #split-detail { display:none; flex-direction:column; min-height:100%; overflow-x:hidden; }
+    #split-hero-wrap { position:relative; height:240px; flex-shrink:0; overflow:hidden; background:var(--bg_menu); }
     #split-hero-bg { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.7; filter:blur(28px); transform:scale(1.15); }
     #split-hero-img { position:absolute; inset:0; background-size:cover; background-position:center 30%; opacity:0.55; }
     #split-hero-grad { position:absolute; inset:0; background:linear-gradient(to top, var(--bg) 0%, transparent 60%); }
-    /* Logo: big, centered in hero */
     #split-hero-logo { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); max-height:190px; max-width:78%; object-fit:contain; z-index:5; filter:drop-shadow(0 8px 20px rgba(0,0,0,0.95)); }
-    /* PLAY: bottom-right of hero, matches gamepage size */
-    #split-hero-play-wrap { position:absolute; bottom:20px; right:24px; z-index:10; }
-    #btn-split-play { font-size:18px; padding:14px 36px; border-radius:50px; letter-spacing:2px; box-shadow:0 8px 20px rgba(0,0,0,0.6); display:none; }
     #split-card-body { padding:0 28px 20px; display:flex; gap:22px; align-items:flex-start; }
-    #split-cover-wrap { flex-shrink:0; margin-top:-72px; position:relative; z-index:2; }
+    /* Cover column: image + action buttons stacked below */
+    #split-cover-wrap { flex-shrink:0; margin-top:-60px; position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; width:110px; }
     #split-cover-img { width:110px; height:165px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); display:block; }
     #split-cover-ph { width:110px; height:165px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); background:var(--bg_panel); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text_dim); text-align:center; padding:10px; font-weight:700; box-sizing:border-box; line-height:1.5; }
-    #split-info { flex:1; min-width:0; padding-top:20px; display:flex; flex-direction:column; gap:8px; }
-    #split-game-title { font-size:22px; font-weight:900; color:var(--text_main); line-height:1.15; }
+    #split-cover-actions { display:flex; flex-direction:column; gap:4px; }
+    .split-flag-btn { background:rgba(0,0,0,0.35); border:1px solid var(--border_solid); color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:900; font-size:9px; padding:6px 0; border-radius:5px; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; transition:0.15s; width:100%; text-align:center; }
+    .split-flag-btn:hover { border-color:var(--accent); color:var(--text_main); background:rgba(0,0,0,0.5); transform:none; box-shadow:none; }
+    .split-flag-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    /* Info column: year/title/meta/play */
+    #split-info { flex:1; min-width:0; padding-top:16px; display:flex; flex-direction:column; gap:8px; }
     #split-game-year { font-size:11px; font-weight:700; color:var(--accent); letter-spacing:2px; opacity:0.85; }
+    #split-game-title { font-size:22px; font-weight:900; color:var(--text_main); line-height:1.15; }
     #split-game-meta { font-size:10px; font-weight:700; color:var(--text_dim); letter-spacing:1px; text-transform:uppercase; line-height:1.8; display:flex; flex-wrap:wrap; gap:4px 8px; }
     .split-meta-chip { background:rgba(255,255,255,0.06); border:1px solid var(--border); padding:2px 8px; border-radius:12px; font-size:9px; font-weight:900; letter-spacing:0.8px; white-space:nowrap; }
-    #split-game-actions { display:flex; gap:7px; align-items:center; flex-wrap:wrap; padding-top:4px; }
-    .split-flag-btn { background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:900; font-size:9px; padding:6px 12px; border-radius:6px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:0.15s; }
-    .split-flag-btn:hover { border-color:var(--accent); color:var(--text_main); transform:none; box-shadow:none; }
-    .split-flag-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    /* PLAY inside info column, same gamepage pill style */
+    #btn-split-play { font-size:18px; padding:14px 36px; border-radius:50px; letter-spacing:2px; box-shadow:0 8px 20px rgba(0,0,0,0.6); display:none; align-self:flex-start; margin-top:4px; }
     /* Detail body below card */
-    #split-detail-lower { padding:0 28px 40px; display:flex; flex-direction:column; gap:20px; }
+    #split-detail-lower { padding:0 28px 40px; display:flex; flex-direction:column; gap:20px; overflow-x:hidden; max-width:100%; }
     #split-short-desc { font-size:14px; font-weight:900; color:var(--text_main); line-height:1.7; }
-    #split-game-desc { font-size:13px; color:var(--text_sec); line-height:1.85; }
+    #split-game-desc { font-size:13px; color:var(--text_sec); line-height:1.85; overflow-x:hidden; max-width:100%; }
+    #split-game-desc * { max-width:100% !important; box-sizing:border-box; }
     #split-ach-container { display:flex; flex-direction:column; gap:10px; }
     #split-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
     .split-stat-cell { background:var(--bg_menu); padding:10px 14px; display:flex; flex-direction:column; gap:3px; }
@@ -914,6 +925,7 @@
         <div id="split-left-header">
           <div id="split-search-row">
             <input type="text" id="split-search" placeholder="Search…" autocomplete="off" spellcheck="false">
+            <button id="btn-split-search-clear" title="Clear">✕</button>
             <button id="btn-split-filter-cfg" title="Configure visible filters">⚙</button>
           </div>
           <div id="split-filter-strip">
@@ -965,31 +977,37 @@
       <!-- Right: persistent detail card -->
       <div id="split-right">
         <div id="split-empty">← Select a game</div>
+        <div id="split-welcome">
+          <div class="split-welcome-inner">
+            <div class="split-welcome-mono">CN</div>
+            <div class="split-welcome-title">CAFE NEUROTICO</div>
+            <div class="split-welcome-sub">GAME MANAGER</div>
+            <div class="split-welcome-hint">← Select a game to explore</div>
+          </div>
+        </div>
         <div id="split-detail">
           <div id="split-hero-wrap">
             <div id="split-hero-bg"></div>
             <div id="split-hero-img"></div>
             <div id="split-hero-grad"></div>
             <img id="split-hero-logo" alt="">
-            <div id="split-hero-play-wrap">
-              <button id="btn-split-play" class="primary">▶ PLAY</button>
-            </div>
           </div>
           <div id="split-card-body">
             <div id="split-cover-wrap">
               <img id="split-cover-img" src="" alt="">
               <div id="split-cover-ph" style="display:none;"></div>
-            </div>
-            <div id="split-info">
-              <div id="split-game-year"></div>
-              <div id="split-game-title"></div>
-              <div id="split-game-meta"></div>
-              <div id="split-game-actions">
+              <div id="split-cover-actions">
                 <button id="btn-split-trailer" class="split-flag-btn" style="display:none;">▶ TRAILER</button>
                 <button id="btn-split-fav" class="split-flag-btn">★ FAV</button>
                 <button id="btn-split-want" class="split-flag-btn">⚑ WANT</button>
                 <button id="btn-split-edit" class="split-flag-btn">EDIT</button>
               </div>
+            </div>
+            <div id="split-info">
+              <div id="split-game-year"></div>
+              <div id="split-game-title"></div>
+              <div id="split-game-meta"></div>
+              <button id="btn-split-play" class="primary">▶ PLAY</button>
             </div>
           </div>
           <div id="split-detail-lower">

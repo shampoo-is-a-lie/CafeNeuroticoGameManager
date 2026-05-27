@@ -913,15 +913,10 @@ function renderSplitList(games) {
 
     if (_splitIdx >= 0 && _splitIdx < games.length) {
         selectSplitRow(_splitIdx, true);
-    } else if (games.length > 0) {
-        selectSplitRow(0, true);
     } else {
         _splitIdx = -1;
         _splitGame = null;
-        const empty = document.getElementById('split-empty');
-        const detail = document.getElementById('split-detail');
-        if (empty) empty.style.display = 'flex';
-        if (detail) detail.style.display = 'none';
+        showSplitRightPanel(games.length === 0 ? 'empty' : 'welcome');
     }
 }
 
@@ -938,12 +933,16 @@ function selectSplitRow(idx, skipScroll = false) {
     if (_splitGame) renderSplitDetail(_splitGame);
 }
 
+function showSplitRightPanel(which) {
+    document.getElementById('split-empty').style.display   = which === 'empty'   ? 'flex' : 'none';
+    document.getElementById('split-welcome').style.display = which === 'welcome' ? 'flex' : 'none';
+    document.getElementById('split-detail').style.display  = which === 'detail'  ? 'flex' : 'none';
+}
+
 function renderSplitDetail(game) {
-    const empty = document.getElementById('split-empty');
     const detail = document.getElementById('split-detail');
-    if (!empty || !detail) return;
-    empty.style.display = 'none';
-    detail.style.display = 'flex';
+    if (!detail) return;
+    showSplitRightPanel('detail');
 
     // Keep currentGameId in sync (needed for achievement modal + trailer search)
     currentGameId = game.id;
@@ -1165,6 +1164,16 @@ document.getElementById('split-search')?.addEventListener('input', () => {
         _splitHistoryMode = false;
         document.getElementById('btn-split-history')?.classList.remove('active');
     }
+    const clearBtn = document.getElementById('btn-split-search-clear');
+    if (clearBtn) clearBtn.style.display = document.getElementById('split-search').value ? 'inline' : 'none';
+    applyFilters();
+});
+
+document.getElementById('btn-split-search-clear')?.addEventListener('click', () => {
+    const inp = document.getElementById('split-search');
+    inp.value = '';
+    document.getElementById('btn-split-search-clear').style.display = 'none';
+    inp.focus();
     applyFilters();
 });
 
