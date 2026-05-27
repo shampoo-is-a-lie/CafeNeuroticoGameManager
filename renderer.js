@@ -1238,7 +1238,6 @@ document.getElementById('btn-split-search-clear')?.addEventListener('click', () 
 document.getElementById('btn-split-filter-cfg')?.addEventListener('click', () => openSeeConfig());
 
 // Split footer nav buttons
-document.getElementById('btn-split-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
 document.getElementById('btn-split-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
 document.getElementById('btn-split-tools')?.addEventListener('click', () => openToolsModal());
 document.getElementById('btn-split-crema')?.addEventListener('click', () => window.api.launchCrema());
@@ -3083,6 +3082,11 @@ document.getElementById('btn-sync-steam').addEventListener('click', async () => 
     btn.innerText = t('status.fetch_steam'); btn.disabled = false;
 });
 
+
+document.getElementById('btn-tools-add-game')?.addEventListener('click', () => {
+    closeTools();
+    document.getElementById('btn-add-game').click();
+});
 
 document.getElementById('btn-update-library').addEventListener('click', async () => {
     const btn = document.getElementById('btn-update-library');
