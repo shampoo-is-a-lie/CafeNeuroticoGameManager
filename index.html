@@ -1324,6 +1324,20 @@
     </div>
   </div>
 
+  <!-- Install store picker (multi-store games) -->
+  <div id="modal-install-picker" class="modal-overlay" style="z-index:25000;">
+    <div class="modal-box" style="max-width:400px;">
+      <h3 style="margin:0 0 6px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Choose Version</h3>
+      <p id="install-picker-game" style="font-size:13px; font-weight:900; color:var(--text_main); margin:0 0 10px;"></p>
+      <p style="font-size:11px; color:var(--text_dim); margin:0 0 18px; line-height:1.7;">This game is available on multiple stores. Choose which version to install:</p>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="btn-install-pick-steam" class="primary" style="width:100%; padding:12px; letter-spacing:1px;">Steam — Opens Steam client</button>
+        <button id="btn-install-pick-grinder" style="width:100%; padding:12px; letter-spacing:1px; background:transparent; border:1px solid #e65100; color:#ff6d00;">GRINDER — GOG / Epic</button>
+        <button id="btn-install-pick-cancel" style="width:100%; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-dialog" class="modal-overlay" style="z-index:30000;">
     <div class="modal-box" style="max-width: 420px; text-align: center;">
       <p id="modal-dialog-body" style="font-size: 13px; color: var(--text_sec); line-height: 1.7; margin: 0 0 22px; white-space: pre-line;"></p>
@@ -1482,12 +1496,18 @@
 
   <div id="modal-add-cmd" class="modal-overlay">
     <div class="modal-box" style="max-width: 520px;">
-      <h3 style="margin: 0 0 6px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px;" data-i18n="html.add_cmd_title">Add Launch Command</h3>
+      <h3 style="margin: 0 0 6px; color: var(--accent); text-transform: uppercase; letter-spacing: 2px;">Install Custom Game</h3>
       <p style="font-size: 11px; color: var(--text_dim); margin: 0 0 14px; line-height: 1.6;" data-i18n="html.add_cmd_hint">Enter the command used to launch this game. Examples:<br><code style="color:var(--text_sec);">/path/to/game.sh</code><br><code style="color:var(--text_sec);">retroarch -L snes9x_libretro.so /path/to/rom.sfc</code><br><code style="color:var(--text_sec);">flatpak run com.example.Game</code></p>
-      <input id="add-cmd-input" type="text" placeholder="launch command…" style="width: 100%; margin-bottom: 14px; font-family: monospace; font-size: 12px;">
+      <p style="font-size:10px; color:var(--accent); font-weight:900; letter-spacing:1px; margin:0 0 6px; text-transform:uppercase;">🐧 Linux Native</p>
+      <input id="add-cmd-input" type="text" placeholder="launch command…" style="width: 100%; margin-bottom: 10px; font-family: monospace; font-size: 12px;">
       <div style="display: flex; gap: 10px;">
         <button id="add-cmd-save" class="primary" style="flex: 1;" data-i18n="html.add_cmd_save">Save Command</button>
         <button id="add-cmd-cancel" style="flex: 1; background: transparent; border: 1px solid var(--border_solid); color: var(--text_sec);" data-i18n="html.add_cmd_cancel">Cancel</button>
+      </div>
+      <div style="border-top:1px solid var(--border_solid); margin-top:14px; padding-top:14px;">
+        <p style="font-size:10px; color:#ff6d00; font-weight:900; letter-spacing:1px; margin:0 0 6px; text-transform:uppercase;">🪟 Windows Game</p>
+        <p style="font-size:10px; color:var(--text_dim); margin:0 0 10px; line-height:1.6;">Install and run Windows games via Proton using GRINDER.</p>
+        <button id="add-cmd-grinder" style="width:100%; background:transparent; border:1px solid #e65100; color:#ff6d00; font-size:11px;">Open GRINDER</button>
       </div>
     </div>
   </div>

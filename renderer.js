@@ -1077,6 +1077,11 @@ function renderSplitDetail(game) {
             playBtn.style.display = 'none';
             playBtn.onclick = null;
         }
+    } else if (isManualCategory(game)) {
+        playBtn.textContent = '⬇ INSTALL';
+        playBtn.className = 'btn-install-primary';
+        playBtn.style.display = 'inline-flex';
+        playBtn.onclick = () => openAddCmdDialog(game.id, game.Game);
     } else {
         playBtn.style.display = 'none';
         playBtn.onclick = null;
