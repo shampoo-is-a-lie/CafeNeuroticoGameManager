@@ -378,6 +378,22 @@ document.getElementById('btn-min').addEventListener('click', () => window.api.mi
 document.getElementById('btn-max').addEventListener('click', () => window.api.maximizeApp());
 document.getElementById('btn-close').addEventListener('click', () => window.api.closeApp());
 
+// ── PICO-8 VISIBILITY ─────────────────────────────────────────────────────
+let _hidePico8 = false;
+function applyPico8Visibility(hide) {
+    _hidePico8 = hide;
+    window.api.setSetting('hide_pico8', hide ? '1' : '');
+    document.querySelectorAll('.pico8-vis-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.val === (hide ? 'hide' : 'show')));
+    applyFilters();
+}
+document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
+    btn.addEventListener('click', () => applyPico8Visibility(btn.dataset.val === 'hide')));
+(async () => {
+    const saved = await window.api.getSetting('hide_pico8');
+    if (saved === '1') applyPico8Visibility(true);
+})();
+
 // ── LAYOUT MODE ───────────────────────────────────────────────────────────
 function applyLayoutMode(mode) {
     const c = document.getElementById('app-container');
@@ -746,6 +762,9 @@ function applyFilters() {
 
     let filtered = allGames.filter(game => {
         const storeLower = (game.Store || '').toLowerCase();
+
+        // PICO-8 visibility
+        if (_hidePico8 && (storeLower.includes('pico-8') || storeLower.includes('pico8'))) return false;
 
         // Stores: OR — game must match at least one selected store (open if none selected)
         if (storeActive.length > 0) {
