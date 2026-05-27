@@ -175,7 +175,7 @@
     #split-cover-wrap { flex-shrink:0; margin-top:-60px; position:relative; z-index:2; display:flex; flex-direction:column; gap:6px; width:110px; }
     #split-cover-img { width:110px; height:165px; object-fit:cover; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); display:block; }
     #split-cover-ph { width:110px; height:165px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.8); border:2px solid rgba(255,255,255,0.1); background:var(--bg_panel); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text_dim); text-align:center; padding:10px; font-weight:700; box-sizing:border-box; line-height:1.5; }
-    #split-cover-actions { display:flex; flex-direction:row; gap:4px; flex-wrap:wrap; }
+    #split-cover-actions { display:flex; flex-direction:row; gap:4px; padding:0 28px 12px; }
     .split-flag-btn { background:rgba(0,0,0,0.35); border:1px solid var(--border_solid); color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:900; font-size:9px; padding:6px 8px; border-radius:5px; cursor:pointer; letter-spacing:0.8px; text-transform:uppercase; transition:0.15s; text-align:center; flex:1; }
     .split-flag-btn:hover { border-color:var(--accent); color:var(--text_main); background:rgba(0,0,0,0.5); transform:none; box-shadow:none; }
     .split-flag-btn.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
@@ -996,12 +996,6 @@
             <div id="split-cover-wrap">
               <img id="split-cover-img" src="" alt="">
               <div id="split-cover-ph" style="display:none;"></div>
-              <div id="split-cover-actions">
-                <button id="btn-split-trailer" class="split-flag-btn" style="display:none;">▶ TRAILER</button>
-                <button id="btn-split-fav" class="split-flag-btn">★ FAV</button>
-                <button id="btn-split-want" class="split-flag-btn">⚑ WANT</button>
-                <button id="btn-split-edit" class="split-flag-btn">EDIT</button>
-              </div>
             </div>
             <div id="split-info">
               <div id="split-game-year"></div>
@@ -1009,6 +1003,12 @@
               <div id="split-game-meta"></div>
               <button id="btn-split-play" class="primary">▶ PLAY</button>
             </div>
+          </div>
+          <div id="split-cover-actions">
+            <button id="btn-split-trailer" class="split-flag-btn" style="display:none;">▶ TRAILER</button>
+            <button id="btn-split-fav" class="split-flag-btn">★ FAV</button>
+            <button id="btn-split-want" class="split-flag-btn">⚑ WANT</button>
+            <button id="btn-split-edit" class="split-flag-btn">EDIT</button>
           </div>
           <div id="split-detail-lower">
             <div id="split-short-desc"></div>
