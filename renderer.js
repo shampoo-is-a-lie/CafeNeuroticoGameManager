@@ -174,10 +174,7 @@ window.addEventListener('focus', () => {
             const updated = allGames.find(g => g.id === currentGameId);
             if (updated) refreshGamepagePlayBtn(updated);
         }
-        if (onSplit && _splitGame) {
-            const updated = allGames.find(g => g.id === _splitGame.id);
-            if (updated) { _splitGame = updated; renderSplitDetail(updated); }
-        }
+        // Split pane: loadGames() already re-renders via applyFilters → renderSplitList → selectSplitRow
     }, 400);
 });
 let currentLaunchCmd = '';
@@ -1149,7 +1146,9 @@ function renderSplitDetail(game) {
     loadSplitAchievements(game);
 }
 
+let _splitAchToken = 0;
 async function loadSplitAchievements(game) {
+    const token = ++_splitAchToken;
     const container = document.getElementById('split-ach-container');
     container.innerHTML = '';
     const gogId    = _gogAppIdFromGame(game);
@@ -1159,7 +1158,9 @@ async function loadSplitAchievements(game) {
     if (steamRaw) tasks.push({ label: 'STEAM', fetch: async () => { const k = `steam_${steamRaw}`; let r = await window.api.getGameAchievements(k); if (!r.ok || !r.achievements.length) r = await window.api.fetchSteamAchievements(steamRaw); return r; } });
     if (!tasks.length) return;
     const results = await Promise.all(tasks.map(t => t.fetch()));
-    const multi = results.filter((r, i) => r.ok && r.achievements.length).length > 1;
+    if (token !== _splitAchToken) return; // a newer call superseded this one
+    container.innerHTML = '';             // clear again in case anything snuck in
+    const multi = results.filter(r => r.ok && r.achievements.length).length > 1;
     for (let i = 0; i < tasks.length; i++) {
         const res = results[i];
         if (!res.ok || !res.achievements.length) continue;
