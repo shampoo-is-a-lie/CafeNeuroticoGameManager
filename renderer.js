@@ -249,6 +249,8 @@ window.api.checkCrema().then(exists => {
         });
         const cpCrema = document.getElementById('cp-menu-crema');
         if (cpCrema) cpCrema.style.display = '';
+        const splitCrema = document.getElementById('btn-split-crema');
+        if (splitCrema) splitCrema.style.display = '';
     }
 });
 ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
@@ -920,7 +922,7 @@ function renderSplitList(games) {
     } else {
         _splitIdx = -1;
         _splitGame = null;
-        showSplitRightPanel(games.length === 0 ? 'empty' : 'welcome');
+        showSplitRightPanel('welcome');
     }
 }
 
