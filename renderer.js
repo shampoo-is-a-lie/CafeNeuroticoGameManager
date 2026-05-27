@@ -479,11 +479,21 @@ document.getElementById('btn-tools-manual').addEventListener('click', () => { do
 const _welcomeModal = document.getElementById('modal-welcome');
 
 function dismissWelcome() {
+    const picked = document.querySelector('.wlc-layout-btn.selected');
+    applyLayoutMode(picked ? picked.dataset.layout : 'sidebar');
     _welcomeModal.classList.remove('active');
     if (document.getElementById('chk-welcome-noshow').checked) {
         window.api.setSetting('welcome_shown', '1');
     }
 }
+
+// Step 7 layout picker
+document.querySelectorAll('.wlc-layout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.wlc-layout-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+    });
+});
 
 // Only these two buttons close the modal
 document.getElementById('btn-welcome-done').addEventListener('click', dismissWelcome);

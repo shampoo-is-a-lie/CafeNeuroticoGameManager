@@ -335,6 +335,11 @@
     #modal-welcome .tool-card-title     { font-size: 14px !important; }
     #modal-welcome p                    { font-size: 14px !important; }
     #modal-welcome code                 { font-size: 13px !important; }
+    .wlc-layout-btn { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:12px; border-radius:8px; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); cursor:pointer; font-family:inherit; text-align:left; transition:all 0.15s; line-height:1.4; }
+    .wlc-layout-btn:hover { border-color:var(--accent); color:var(--text_main); background:color-mix(in srgb,var(--accent) 8%,transparent); transform:none; box-shadow:none; }
+    .wlc-layout-btn.selected { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 15%,transparent); color:var(--text_main); box-shadow:0 0 10px color-mix(in srgb,var(--accent) 30%,transparent); }
+    .wlc-layout-btn strong { font-size:11px !important; font-weight:900; letter-spacing:0.5px; color:inherit; }
+    .wlc-layout-btn span   { font-size:10px !important; color:var(--text_dim); font-style:italic; line-height:1.4; }
 
     /* ── CONNECT MODAL: same 25% scale ────────────────────────────────────── */
     /* ── ABOUT MODAL: same 25% scale ───────────────────────────────────────── */
@@ -1073,6 +1078,30 @@
           <p style="margin: 0 0 10px; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Register CNGM, GRINDER and CREMA in your desktop launcher (GNOME, KDE&hellip;) with proper icons. Re-run if you ever move the folder.</p>
           <button id="btn-welcome-add-menu" style="width: 100%; background: transparent; border: 1px solid var(--accent); color: var(--accent);">Add to Application Menu</button>
           <div id="wlc-menu-status" style="font-size: 12px; font-weight: bold; min-height: 16px; text-align: center; margin-top: 4px;"></div>
+        </div>
+
+        <!-- STEP 7: LAYOUT -->
+        <div class="tool-card">
+          <div class="tool-card-title">Step 7 &mdash; Pick Your Layout</div>
+          <p style="margin: 0 0 12px; line-height: 1.6; color: var(--text_sec); font-size: 11px;">Choose how you want to navigate your library. You can change this anytime from the Tools menu. Skipping defaults to Classic Sidebar.</p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="wlc-layout-btn" data-layout="rail">
+              <strong>Minimal Sidebar</strong>
+              <span>Ghost Protocol. Icons only &mdash; zero noise, full signal. For operatives who already know the map.</span>
+            </button>
+            <button class="wlc-layout-btn selected" data-layout="sidebar">
+              <strong>Classic Sidebar</strong>
+              <span>The House Blend. Warm, labeled, always within reach. The regulars' favorite spot at the counter.</span>
+            </button>
+            <button class="wlc-layout-btn" data-layout="topnav">
+              <strong>Top Nav</strong>
+              <span>The Command Deck. Tabs up top, your whole library spread out below. Wide open. You run this place.</span>
+            </button>
+            <button class="wlc-layout-btn" data-layout="split">
+              <strong>Split Pane</strong>
+              <span>The Intel Station. Game list on the left, full briefing on the right. Built for agents who read the dossier.</span>
+            </button>
+          </div>
         </div>
 
         <!-- DON'T WORRY -->
