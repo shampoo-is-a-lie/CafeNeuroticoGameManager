@@ -1133,7 +1133,7 @@ function renderSplitDetail(game) {
     const lastPlayed = game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString() : null;
     if (lastPlayed) statCells.push(['Last Played', lastPlayed]);
     if (game.METACRITIC) statCells.push(['Metacritic', game.METACRITIC]);
-    if (game.HLTB_Main) statCells.push(['HowLongToBeat', game.HLTB_Main + 'h']);
+    if (game.HLTB_Main) statCells.push(['HowLongToBeat', game.HLTB_Main]);
     if (game.PUB) statCells.push(['Publisher', game.PUB]);
     if (game.Coop) statCells.push(['Co-op', game.Coop]);
     if (game.ProtonTier) statCells.push(['Proton', game.ProtonTier]);
