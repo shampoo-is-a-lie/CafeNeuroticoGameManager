@@ -476,7 +476,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -489,6 +489,13 @@ function applyLayoutMode(mode) {
         if (inp) { inp.value = ''; applyFilters(); }
         document.getElementById('cmd-bar')?.classList.remove('cmd-visible');
         document.getElementById('cmd-icon-bar')?.classList.remove('cmd-visible');
+    }
+    if (mode === 'datahero')  { renderDataHero(); }
+    if (mode === 'catalog')   { renderCatalog(); }
+    if (mode === 'newspaper') { renderNewspaper(); }
+    // Exit flat layouts: remove split-edit overlay if lingering
+    if (!['datahero','catalog','newspaper'].includes(mode)) {
+        document.getElementById('main-content')?.classList.remove('split-edit');
     }
 }
 document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(btn =>
@@ -520,6 +527,13 @@ document.getElementById('btn-refresh-library-sb')?.addEventListener('click', () 
     document.getElementById('btn-refresh-library').click());
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
+    const ac = document.getElementById('app-container');
+    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper'];
+    const flatActive = flatLayouts.find(l => ac.classList.contains(l));
+    if (flatActive) {
+        document.getElementById('main-content').classList.remove('split-edit');
+        return;
+    }
     applyFilters();
     switchView(lastGridView);
     document.getElementById(lastGridView).scrollTop = savedGridScrollTop;
@@ -1307,6 +1321,9 @@ function applyFilters() {
 
     renderTable(recentGames, regularGames);
     renderGallery(recentGames, regularGames);
+    renderDataHero();
+    renderCatalog();
+    renderNewspaper();
     if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
@@ -2002,6 +2019,250 @@ function getStoreLogo(store) {
     if (s.includes('other'))    return 'assets/logos/others.png';
     return null;
 }
+
+// ── FLAT LAYOUT HELPERS ──────────────────────────────────────────────────────
+function _openFlatGamepage(game) {
+    document.getElementById('main-content').classList.add('split-edit');
+    savedGridScrollTop = 0;
+    openGamepage(game);
+}
+
+function _flatFilter(query) {
+    if (!query) return allGames;
+    const q = query.toLowerCase();
+    return allGames.filter(g =>
+        (g.Game||'').toLowerCase().includes(q) ||
+        (g.GENRE||'').toLowerCase().includes(q) ||
+        (g.Store||'').toLowerCase().includes(q) ||
+        (g.DEV||'').toLowerCase().includes(q));
+}
+
+// ── DATA HERO ────────────────────────────────────────────────────────────────
+let _dhSelected = null;
+
+function _dhSelectGame(game) {
+    _dhSelected = game;
+    document.querySelectorAll('.dh-row').forEach(r =>
+        r.classList.toggle('active', Number(r.dataset.id) === game.id));
+
+    const heroSrc = game.HeroArt ? getSafePath(game.HeroArt)
+                  : game.CoverArt ? getSafePath(game.CoverArt) : '';
+    const img  = document.getElementById('dh-hero-img');
+    const grad = document.getElementById('dh-hero-grad');
+    const cont = document.getElementById('dh-hero-content');
+    const empty = document.getElementById('dh-hero-empty');
+
+    img.style.display  = heroSrc ? '' : 'none';
+    if (heroSrc) img.src = heroSrc;
+    grad.style.display = heroSrc ? '' : 'none';
+    cont.style.display = '';
+    empty.style.display = 'none';
+
+    document.getElementById('dh-hero-title').textContent = game.Game || '';
+
+    const meta = [];
+    if (game.GENRE)      meta.push({ t: game.GENRE });
+    if (game.HLTB_Main)  meta.push({ t: game.HLTB_Main + 'h', accent: true });
+    if (game.ProtonTier) meta.push({ t: game.ProtonTier });
+    if (game.METACRITIC) meta.push({ t: 'MC ' + game.METACRITIC, accent: true });
+    const storeLogo = getStoreLogo(game.Store);
+    const storeHtml = storeLogo
+        ? `<div class="dh-row-store" style="-webkit-mask-image:url('${storeLogo}'); width:15px; height:15px; background:rgba(255,255,255,0.6);"></div>` : '';
+    document.getElementById('dh-hero-meta').innerHTML = storeHtml +
+        meta.map((m, i) => (i > 0 || storeLogo ? '<div class="dh-meta-sep"></div>' : '') +
+            `<span class="dh-meta-item${m.accent ? '" style="color:var(--accent)' : ''}">${escHtml(m.t)}</span>`).join('');
+}
+
+function renderDataHero() {
+    const query = (document.getElementById('dh-search')?.value || '').trim();
+    const games = _flatFilter(query);
+    document.getElementById('dh-count').textContent = games.length + ' games';
+
+    const list = document.getElementById('dh-list');
+    list.innerHTML = '';
+    games.forEach(game => {
+        const storeLogo = getStoreLogo(game.Store);
+        const row = document.createElement('div');
+        row.className = 'dh-row' + ((_dhSelected?.id === game.id) ? ' active' : '');
+        row.dataset.id = game.id;
+        row.innerHTML =
+            (storeLogo ? `<div class="dh-row-store" style="-webkit-mask-image:url('${storeLogo}');"></div>` : '<div style="width:13px;"></div>') +
+            `<span class="dh-row-name">${escHtml(game.Game)}</span>` +
+            (game.GENRE ? `<span class="dh-row-genre">${escHtml(game.GENRE)}</span>` : '') +
+            (game.HLTB_Main ? `<span class="dh-row-hltb">${escHtml(game.HLTB_Main)}h</span>` : '');
+        row.addEventListener('click', () => _dhSelectGame(game));
+        list.appendChild(row);
+    });
+
+    // Re-select or default to first
+    if (_dhSelected && games.find(g => g.id === _dhSelected.id)) {
+        _dhSelectGame(_dhSelected);
+    } else if (games.length) {
+        _dhSelectGame(games[0]);
+    }
+}
+
+// Data Hero keyboard navigation
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('app-container').classList.contains('layout-datahero')) return;
+    if (document.activeElement?.tagName === 'INPUT') return;
+    const rows = [...document.querySelectorAll('.dh-row')];
+    if (!rows.length) return;
+    const cur = rows.findIndex(r => r.classList.contains('active'));
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = rows[Math.min(cur + 1, rows.length - 1)];
+        if (next) { const g = allGames.find(x => x.id === Number(next.dataset.id)); if (g) { _dhSelectGame(g); next.scrollIntoView({ block: 'nearest' }); } }
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const prev = rows[Math.max(cur - 1, 0)];
+        if (prev) { const g = allGames.find(x => x.id === Number(prev.dataset.id)); if (g) { _dhSelectGame(g); prev.scrollIntoView({ block: 'nearest' }); } }
+    } else if (e.key === 'Enter' && _dhSelected) {
+        _openFlatGamepage(_dhSelected);
+    }
+});
+
+// Data Hero search + buttons
+(function () {
+    let _t = null;
+    document.getElementById('dh-search')?.addEventListener('input', () => {
+        clearTimeout(_t); _t = setTimeout(renderDataHero, 120);
+    });
+    document.getElementById('btn-dh-open')?.addEventListener('click', () => { if (_dhSelected) _openFlatGamepage(_dhSelected); });
+    document.getElementById('btn-dh-edit')?.addEventListener('click', () => {
+        if (!_dhSelected) return;
+        document.getElementById('main-content').classList.add('split-edit');
+        openDetails(_dhSelected);
+    });
+})();
+
+// ── CATALOG ──────────────────────────────────────────────────────────────────
+let _catSort = { col: 'Game', dir: 'asc' };
+
+function _catSortGames(games) {
+    const { col, dir } = _catSort;
+    return [...games].sort((a, b) => {
+        let va = a[col] ?? '', vb = b[col] ?? '';
+        if (col === 'LastPlayed') { va = Number(va) || 0; vb = Number(vb) || 0; }
+        else if (col === 'HLTB_Main') { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+        else if (col === 'installed') { va = a.LaunchCommand ? 1 : 0; vb = b.LaunchCommand ? 1 : 0; }
+        else { va = String(va).toLowerCase(); vb = String(vb).toLowerCase(); }
+        if (va < vb) return dir === 'asc' ? -1 : 1;
+        if (va > vb) return dir === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function renderCatalog() {
+    const query = (document.getElementById('cat-search')?.value || '').trim();
+    const games = _catSortGames(_flatFilter(query));
+    document.getElementById('cat-count').textContent = games.length + ' games';
+
+    // Update sort headers
+    document.querySelectorAll('#cat-table th[data-cat-col]').forEach(th => {
+        th.classList.toggle('cat-sorted', th.dataset.catCol === _catSort.col);
+        th.classList.toggle('desc', th.dataset.catCol === _catSort.col && _catSort.dir === 'desc');
+    });
+
+    const tbody = document.getElementById('cat-tbody');
+    tbody.innerHTML = '';
+    games.forEach(game => {
+        const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+        const installed = !!(game.LaunchCommand);
+        const proton = game.ProtonTier || '';
+        const lp = game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString(undefined, { year:'2-digit', month:'short', day:'numeric' }) : '';
+        const tr = document.createElement('tr');
+        tr.dataset.id = game.id;
+        tr.innerHTML = `
+            <td class="cat-td-cover">${coverSrc ? `<img src="${coverSrc}" loading="lazy">` : ''}</td>
+            <td class="cat-td-name">${escHtml(game.Game || '')}</td>
+            <td>${escHtml(game.Store || '')}</td>
+            <td>${escHtml(game.GENRE || '')}</td>
+            <td>${escHtml(game.HLTB_Main || '')}</td>
+            <td class="cat-proton-${proton || 'none'}">${escHtml(proton)}</td>
+            <td class="cat-td-inst"><span class="cat-inst-dot ${installed ? 'on' : 'off'}"></span></td>
+            <td style="color:var(--text_dim); font-size:10px;">${lp}</td>`;
+        tr.addEventListener('click', () => _openFlatGamepage(game));
+        tbody.appendChild(tr);
+    });
+}
+
+// Catalog sort headers
+document.querySelectorAll('#cat-table th[data-cat-col]').forEach(th => {
+    th.addEventListener('click', () => {
+        const col = th.dataset.catCol;
+        if (_catSort.col === col) _catSort.dir = _catSort.dir === 'asc' ? 'desc' : 'asc';
+        else { _catSort.col = col; _catSort.dir = 'asc'; }
+        renderCatalog();
+    });
+});
+
+// Catalog search
+(function () {
+    let _t = null;
+    document.getElementById('cat-search')?.addEventListener('input', () => {
+        clearTimeout(_t); _t = setTimeout(renderCatalog, 120);
+    });
+})();
+
+// ── NEWSPAPER ────────────────────────────────────────────────────────────────
+let _npSelected = null;
+
+function _npSelectGame(game) {
+    _npSelected = game;
+    document.querySelectorAll('.np-entry').forEach(e =>
+        e.classList.toggle('active', Number(e.dataset.id) === game.id));
+
+    const heroSrc = game.HeroArt ? getSafePath(game.HeroArt)
+                  : game.CoverArt ? getSafePath(game.CoverArt) : '';
+    const panel = document.getElementById('np-panel');
+    panel.classList.add('open');
+
+    document.getElementById('np-panel-hero').src = heroSrc || '';
+    document.getElementById('np-panel-title').textContent = game.Game || '';
+    const parts = [game.GENRE, game.Store, game.HLTB_Main ? game.HLTB_Main + 'h' : '', game.ProtonTier]
+        .filter(Boolean).join(' · ');
+    document.getElementById('np-panel-meta').textContent = parts;
+}
+
+function renderNewspaper() {
+    const query = (document.getElementById('np-search')?.value || '').trim();
+    const games = _flatFilter(query);
+    document.getElementById('np-count').textContent = games.length + ' titles';
+
+    const cols = document.getElementById('np-columns');
+    cols.innerHTML = '';
+    games.forEach(game => {
+        const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+        const meta = [game.GENRE, game.Store, game.HLTB_Main ? game.HLTB_Main + 'h' : ''].filter(Boolean).join(' · ');
+        const entry = document.createElement('div');
+        entry.className = 'np-entry' + ((_npSelected?.id === game.id) ? ' active' : '');
+        entry.dataset.id = game.id;
+        entry.innerHTML =
+            (coverSrc ? `<img class="np-entry-cover" src="${coverSrc}" loading="lazy">` : '<div class="np-entry-cover-ph"></div>') +
+            `<div style="flex:1; min-width:0;"><span class="np-entry-name">${escHtml(game.Game || '')}</span><span class="np-entry-meta">${escHtml(meta)}</span></div>`;
+        entry.addEventListener('click', () => _npSelectGame(game));
+        cols.appendChild(entry);
+    });
+
+    if (_npSelected && games.find(g => g.id === _npSelected.id)) {
+        _npSelectGame(_npSelected);
+    }
+}
+
+// Newspaper panel buttons + search
+(function () {
+    let _t = null;
+    document.getElementById('np-search')?.addEventListener('input', () => {
+        clearTimeout(_t); _t = setTimeout(renderNewspaper, 120);
+    });
+    document.getElementById('btn-np-open')?.addEventListener('click', () => { if (_npSelected) _openFlatGamepage(_npSelected); });
+    document.getElementById('btn-np-close')?.addEventListener('click', () => {
+        document.getElementById('np-panel').classList.remove('open');
+        document.querySelectorAll('.np-entry').forEach(e => e.classList.remove('active'));
+        _npSelected = null;
+    });
+})();
 
 function renderGallery(recent, regular) {
     const grid = document.getElementById('gallery-grid');
