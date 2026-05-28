@@ -2729,3 +2729,76 @@ ipcMain.handle('get-game-playlists', (_, gameId) => {
     if (!db) return [];
     return db.prepare('SELECT playlist_id FROM playlist_games WHERE game_id=?').all(gameId).map(r => r.playlist_id);
 });
+
+// ── COMMAND BAR SHELL LAUNCHER ────────────────────────────────────────────────
+ipcMain.handle('run-shell-cmd', async (_, cmdStr) => {
+    const { execFileSync } = require('child_process');
+    const parts = cmdStr.trim().split(/\s+/);
+    const [cmd, ...args] = parts;
+
+    // Verify binary exists in PATH
+    let binPath;
+    try { binPath = execFileSync('which', [cmd], { encoding: 'utf8' }).trim(); }
+    catch { return { ok: false, msg: `not found: ${cmd}` }; }
+
+    // Known TUI apps that need a terminal emulator
+    const TUI = new Set([
+        'btop','htop','top','bpytop','glances',
+        'vim','nvim','nano','micro','emacs',
+        'ranger','mc','nnn','lf','vifm',
+        'ncdu','lazygit','tig',
+        'cmus','ncmpcpp','cava',
+        'mutt','neomutt','aerc',
+        'weechat','irssi',
+        'alsamixer','pulsemixer',
+        'neofetch','fastfetch','pfetch',
+        'tmux','screen','zellij',
+        'bash','zsh','fish','sh',
+    ]);
+
+    // Also flag anything with Terminal=true in its .desktop file
+    let needsTerm = TUI.has(cmd);
+    if (!needsTerm) {
+        try {
+            const desktopCheck = execFileSync('bash', ['-c',
+                `grep -rl "^Exec=.*\\b${cmd}\\b" /usr/share/applications/ 2>/dev/null | xargs grep -l "^Terminal=true" 2>/dev/null | head -1`
+            ], { encoding: 'utf8' }).trim();
+            if (desktopCheck) needsTerm = true;
+        } catch {}
+    }
+
+    if (needsTerm) {
+        // Detect available terminal emulator
+        const candidates = [
+            process.env.TERMINAL,
+            'xdg-terminal-exec',
+            'x-terminal-emulator',
+            'alacritty', 'kitty', 'foot',
+            'gnome-terminal', 'konsole',
+            'xfce4-terminal', 'xterm',
+        ].filter(Boolean);
+
+        let term = null;
+        for (const t of candidates) {
+            try { execFileSync('which', [t], { encoding: 'utf8' }); term = t; break; }
+            catch {}
+        }
+        if (!term) return { ok: false, msg: 'no terminal emulator found' };
+
+        const fullCmd = [cmd, ...args].join(' ');
+        // Keep terminal open after the command exits so TUIs that close naturally
+        // don't leave a ghost window — drop to an interactive shell instead.
+        const bashInvoc = ['bash', '-c', `${fullCmd}; exec bash`];
+        let termArgs;
+        if (term === 'gnome-terminal') termArgs = ['--', ...bashInvoc];
+        else if (term === 'xdg-terminal-exec') termArgs = bashInvoc;
+        else if (['kitty', 'foot'].includes(term)) termArgs = bashInvoc;
+        else termArgs = ['-e', ...bashInvoc]; // alacritty, xterm, konsole, xfce4-terminal, x-terminal-emulator
+
+        spawn(term, termArgs, { detached: true, stdio: 'ignore' }).unref();
+    } else {
+        spawn(binPath, args, { detached: true, stdio: 'ignore' }).unref();
+    }
+
+    return { ok: true };
+});

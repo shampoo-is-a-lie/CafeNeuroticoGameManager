@@ -1086,6 +1086,28 @@ document.getElementById('view-gallery').addEventListener('scroll', function () {
     inp.addEventListener('focus', () => { cur.style.display = 'none'; });
     inp.addEventListener('blur',  () => { if (!inp.value) cur.style.display = ''; });
     document.getElementById('cmd-bar')?.addEventListener('click', () => inp.focus());
+
+    // Enter — try to run as a shell command first, fall back to opening first visible game
+    inp.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter') return;
+        const val = inp.value.trim();
+        if (!val) return;
+        const result = await window.api.runShellCmd(val);
+        if (result.ok) {
+            inp.value = '';
+            cur.style.display = '';
+            applyFilters();
+        } else {
+            // Command not found — flash the prompt red, leave input as search query
+            const prompt = document.querySelector('.cmd-prompt');
+            if (prompt) {
+                prompt.classList.remove('cmd-error');
+                void prompt.offsetWidth; // force reflow to restart animation
+                prompt.classList.add('cmd-error');
+                prompt.addEventListener('animationend', () => prompt.classList.remove('cmd-error'), { once: true });
+            }
+        }
+    });
 })();
 
 // Command icon bar button wiring
