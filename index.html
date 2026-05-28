@@ -208,8 +208,10 @@
     #split-screenshots-row::-webkit-scrollbar-thumb { background:var(--border_solid); border-radius:2px; }
     .split-ss-thumb { height:80px; border-radius:6px; object-fit:cover; cursor:pointer; border:2px solid transparent; flex-shrink:0; transition:0.15s; opacity:0.7; }
     .split-ss-thumb:hover { opacity:1; border-color:var(--accent); transform:none; box-shadow:none; }
+    /* Top Nav: filter row wrapper (filters + cfg button) */
+    #topnav-filter-row { display:flex; align-items:center; flex:1; min-width:0; gap:2px; }
     /* Top Nav: filter tabs */
-    #topnav-filters { display:flex; align-items:center; gap:1px; overflow-x:auto; scrollbar-width:none; flex-shrink:1; min-width:0; }
+    #topnav-filters { display:flex; align-items:center; gap:1px; overflow-x:auto; scrollbar-width:none; flex:1; min-width:0; }
     #topnav-filters::-webkit-scrollbar { display:none; }
     .topnav-filter { background:transparent; border:none; color:var(--text_dim); font-family:'Raleway',sans-serif; font-weight:700; font-size:10px; padding:3px 10px; border-radius:4px; cursor:pointer; letter-spacing:1px; text-transform:uppercase; transition:0.15s; white-space:nowrap; height:28px; }
     .topnav-filter:hover { background:rgba(255,255,255,0.06); color:var(--text_main); transform:none; box-shadow:none; }
@@ -222,10 +224,14 @@
     #topnav-search::placeholder { color:var(--text_dim); font-style:italic; font-weight:400; }
     /* Top Nav: icon action buttons */
     .topnav-action { background:transparent; border:1px solid transparent; color:var(--text_dim); width:30px; height:30px; padding:0; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.15s; flex-shrink:0; }
-    .topnav-action:hover { background:var(--bg_panel); border-color:var(--border_solid); color:var(--accent); transform:none; box-shadow:none; }
+    .topnav-action:hover { background:color-mix(in srgb,var(--accent) 12%,transparent); border-color:var(--accent); color:var(--accent); transform:none; box-shadow:0 0 10px color-mix(in srgb,var(--accent) 35%,transparent); }
     .topnav-action.active { color:var(--text_main); }
     #btn-topnav-add { color:var(--accent); }
-    #btn-topnav-add:hover { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+    #btn-topnav-add:hover { background:var(--accent); color:var(--bg); border-color:var(--accent); box-shadow:0 0 14px color-mix(in srgb,var(--accent) 55%,transparent); }
+    /* Top Nav: filter scroll arrows */
+    .topnav-filter-arrow { display:none; align-items:center; justify-content:center; background:transparent; border:none; color:var(--text_dim); cursor:pointer; padding:0 5px; font-size:16px; flex-shrink:0; height:28px; line-height:1; transition:color 0.15s; }
+    .topnav-filter-arrow:hover { color:var(--accent); }
+    .topnav-filter-arrow.visible { display:flex; }
 
 
     .row { display: flex; gap: 10px; }
@@ -315,6 +321,7 @@
     .p8-opt-btn { font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 4px; letter-spacing: 1px; cursor: pointer; border: 1px solid var(--border_solid); background: transparent; color: var(--text_dim); white-space: nowrap; transition: all 0.15s; }
     .p8-opt-btn.on { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
     .btn-hero.active { background: var(--text_main); color: var(--bg); border-color: var(--text_main); box-shadow: 0 0 10px rgba(255,255,255,0.2); }
+    #btn-gamepage-fav.active svg, #btn-gamepage-want.active svg { fill: currentColor; }
 
     .screenshots-banner { position: relative; height: 160px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border_solid); box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: box-shadow 0.2s, border-color 0.2s; cursor: pointer; overflow: hidden; }
     .screenshots-banner:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-color: var(--accent); }
@@ -390,21 +397,28 @@
 
     <!-- ── TOP NAV BAR (layout-topnav only) ─────────────────────────────────── -->
     <div id="topnav">
-      <div id="topnav-filters">
-        <button class="topnav-filter active" data-filter="all">All</button>
-        <button class="topnav-filter" data-filter="installed">Installed</button>
-        <button class="topnav-filter" data-filter="favs">Favs</button>
-        <button class="topnav-filter" data-filter="want">Want</button>
-        <button class="topnav-filter" data-filter="steam">Steam</button>
-        <button class="topnav-filter" data-filter="epic">Epic</button>
-        <button class="topnav-filter" data-filter="gog">GOG</button>
-        <button class="topnav-filter" data-filter="flatpak">Flatpak</button>
-        <button class="topnav-filter" data-filter="pico8">PICO-8</button>
-        <button class="topnav-filter" data-filter="itch">itch.io</button>
-        <button class="topnav-filter" data-filter="physical">Physical</button>
-        <button class="topnav-filter" data-filter="others">Others</button>
-        <button class="topnav-filter" data-filter="emulation">Emulation</button>
-        <button class="topnav-filter" data-filter="apps">Apps</button>
+      <div id="topnav-filter-row">
+        <button id="topnav-filters-prev" class="topnav-filter-arrow" title="Scroll filters left">&#8249;</button>
+        <div id="topnav-filters">
+          <button class="topnav-filter active" data-filter="all">All</button>
+          <button class="topnav-filter" data-filter="installed">Installed</button>
+          <button class="topnav-filter" data-filter="favs">Favs</button>
+          <button class="topnav-filter" data-filter="want">Want</button>
+          <button class="topnav-filter" data-filter="steam">Steam</button>
+          <button class="topnav-filter" data-filter="epic">Epic</button>
+          <button class="topnav-filter" data-filter="gog">GOG</button>
+          <button class="topnav-filter" data-filter="flatpak">Flatpak</button>
+          <button class="topnav-filter" data-filter="pico8">PICO-8</button>
+          <button class="topnav-filter" data-filter="itch">itch.io</button>
+          <button class="topnav-filter" data-filter="physical">Physical</button>
+          <button class="topnav-filter" data-filter="others">Others</button>
+          <button class="topnav-filter" data-filter="emulation">Emulation</button>
+          <button class="topnav-filter" data-filter="apps">Apps</button>
+        </div>
+        <button id="topnav-filters-next" class="topnav-filter-arrow" title="Scroll filters right">&#8250;</button>
+        <button id="btn-topnav-cfg" class="topnav-action" title="Configure visible filters" style="flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </div>
       <div class="topnav-sep"></div>
       <input type="text" id="topnav-search" placeholder="Search…" autocomplete="off" spellcheck="false">
@@ -422,18 +436,23 @@
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
       </button>
       <button id="btn-topnav-add" class="topnav-action" title="Add game">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       </button>
       <button id="btn-topnav-connect" class="topnav-action" title="Connect services">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
       </button>
       <button id="btn-topnav-tools" class="topnav-action" title="Tools &amp; Settings">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
       </button>
-      <button id="btn-topnav-cfg" class="topnav-action" title="Configure visible filters">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
+      <button id="btn-topnav-playlists" class="topnav-action" title="Playlists">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </button>
-      <button id="btn-topnav-crema" class="topnav-action" title="Launch CREMA" style="display:none; width:auto; padding:0 8px; font-size:9px; font-weight:900; letter-spacing:1px; color:var(--text_dim);">CREMA</button>
+      <button id="btn-topnav-crema" class="topnav-action" title="Launch CREMA" style="display:none;">
+        <svg viewBox="0 0 24 24" width="17" height="17"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text x="12" y="13.5" text-anchor="middle" font-size="7" font-weight="bold" font-family="sans-serif" fill="currentColor" stroke="none">CR</text></svg>
+      </button>
+      <button id="btn-topnav-emulatte" class="topnav-action" title="Launch EmuLatte" style="display:none;">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+      </button>
     </div>
 
 
@@ -476,6 +495,13 @@
         </div>
       </fieldset>
       <fieldset>
+        <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+          <span style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">Playlists</span>
+          <button id="btn-create-playlist-sb" title="New playlist" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ New</button>
+        </legend>
+        <div id="sidebar-playlists-list" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+      </fieldset>
+      <fieldset>
         <legend data-i18n="html.legend_menu">Menu</legend>
         <div class="row">
           <button id="btn-open-connect-sb" style="flex:1;" data-i18n="html.connect">Connect</button>
@@ -511,6 +537,9 @@
         <button class="rail-btn" id="rail-panel-search" data-panel="search" title="Search">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </button>
+        <button class="rail-btn" id="rail-panel-playlists" data-panel="playlists" title="Playlists">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
       </div>
       <div id="rail-bottom">
         <button class="rail-btn active" id="btn-view-gallery" title="Gallery View">
@@ -545,6 +574,15 @@
 
     <!-- ── SIDE PANEL (collapsible 220px) ────────────────────────────────────── -->
     <div id="side-panel">
+      <div id="panel-sec-playlists" class="panel-section" style="display:none;">
+        <div class="panel-hdr">
+          <span class="panel-hdr-title">Playlists</span>
+          <button id="btn-create-playlist" title="New playlist" style="padding:2px 8px; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); border-radius:4px; cursor:pointer; font-family:inherit; font-size:10px; font-weight:900; letter-spacing:0; text-transform:none; transition:color 0.15s, border-color 0.15s;">+ New</button>
+        </div>
+        <div class="panel-content">
+          <div id="panel-playlists-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
+      </div>
       <div id="panel-sec-stores" class="panel-section" style="display:none;">
         <div class="panel-hdr">
           <span class="panel-hdr-title">Stores &amp; Categories</span>
@@ -671,13 +709,31 @@
                         <div id="gamepage-store-container" style="display: flex; gap: 10px; margin-top: 5px;"></div>
                     </div>
 
-                    <div style="display: flex; gap: 15px; align-items: center; flex-shrink: 0;">
-                        <button id="btn-gamepage-fav" class="btn-hero">+ FAV</button>
-                        <button id="btn-gamepage-want" class="btn-hero">WANT TO PLAY</button>
-                        <button id="btn-gamepage-grinder" class="btn-hero" style="display:none;">GRINDER</button>
-                        <button id="btn-gamepage-splore" class="btn-hero" style="display:none;">SPLORE</button>
-                        <button id="btn-gamepage-trailer" class="btn-hero" data-i18n="html.btn_watch">WATCH TRAILER</button>
-                        <button id="btn-gamepage-edit" class="btn-hero" data-i18n="html.btn_edit">EDIT DETAILS</button>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0;">
+                        <button id="btn-gamepage-fav" class="btn-hero btn-hero-sq" title="Favourite">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </button>
+                        <button id="btn-gamepage-want" class="btn-hero btn-hero-sq" title="Want to Play">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                        </button>
+                        <button id="btn-gamepage-playlist" class="btn-hero btn-hero-sq" title="Add to Playlist">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="13" y2="18"/><line x1="18" y1="17" x2="18" y2="23"/><line x1="15" y1="20" x2="21" y2="20"/></svg>
+                        </button>
+                        <button id="btn-gamepage-remove-playlist" class="btn-hero btn-hero-sq" title="Remove from current Playlist" style="display:none; border-color:#ef5350; color:#ef5350;">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="11" y2="18"/><line x1="15" y1="16" x2="21" y2="22"/><line x1="21" y1="16" x2="15" y2="22"/></svg>
+                        </button>
+                        <button id="btn-gamepage-grinder" class="btn-hero btn-hero-sq" title="Open in GRINDER" style="display:none;">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                        </button>
+                        <button id="btn-gamepage-splore" class="btn-hero btn-hero-sq" title="SPLORE" style="display:none;">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1" fill="currentColor" stroke="none"/></svg>
+                        </button>
+                        <button id="btn-gamepage-trailer" class="btn-hero btn-hero-sq" title="Watch Trailer">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                        </button>
+                        <button id="btn-gamepage-edit" class="btn-hero btn-hero-sq" title="Edit Details">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -894,6 +950,10 @@
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             History
           </button>
+          <button class="split-nav-btn" id="btn-split-playlists" title="Playlists">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Playlists
+          </button>
           <button class="split-nav-btn" id="btn-split-crema" title="Launch CREMA" style="display:none;">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3 4-4"/></svg>
             CREMA
@@ -940,6 +1000,12 @@
                   </button>
                   <button id="btn-split-want" class="split-action-btn" title="Want to Play">
                     <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                  <button id="btn-split-playlist-add" class="split-action-btn" title="Add to Playlist">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="13" y2="18"/><line x1="18" y1="17" x2="18" y2="23"/><line x1="15" y1="20" x2="21" y2="20"/></svg>
+                  </button>
+                  <button id="btn-split-remove-playlist" class="split-action-btn" title="Remove from Playlist" style="display:none; border-color:rgba(239,83,80,0.5); color:#ef5350;">
+                    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="11" y2="18"/><line x1="15" y1="16" x2="21" y2="22"/><line x1="21" y1="16" x2="15" y2="22"/></svg>
                   </button>
                   <button id="btn-split-edit" class="split-action-btn" title="Edit Details">
                     <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -1379,6 +1445,80 @@
         <button id="modal-dialog-cancel" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Cancel</button>
         <button id="modal-dialog-ok" style="flex:1;"></button>
       </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: CREATE PLAYLIST ──────────────────────────────────────────────── -->
+  <div id="modal-create-playlist" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <h3 style="margin:0 0 16px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">New Playlist</h3>
+      <input type="text" id="new-playlist-name" placeholder="Playlist name…" style="width:100%; margin-bottom:12px; box-sizing:border-box;">
+      <div style="display:flex; gap:8px;">
+        <button id="btn-create-playlist-confirm" class="primary" style="flex:1;">Create</button>
+        <button id="btn-create-playlist-cancel" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: EDIT PLAYLIST ────────────────────────────────────────────────── -->
+  <div id="modal-edit-playlist" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <h3 style="margin:0 0 16px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Edit Playlist</h3>
+      <input type="hidden" id="edit-playlist-id">
+      <input type="text" id="edit-playlist-name" style="width:100%; margin-bottom:12px; box-sizing:border-box;">
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button id="btn-edit-playlist-save" class="primary" style="flex:1;">Save</button>
+        <button id="btn-edit-playlist-cancel" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Cancel</button>
+      </div>
+      <button id="btn-edit-playlist-delete" style="width:100%; background:rgba(239,83,80,0.15); border:1px solid #ef5350; color:#ef5350; border-radius:6px;">Delete Playlist</button>
+    </div>
+  </div>
+
+  <!-- ── MODAL: ADD TO PLAYLIST ──────────────────────────────────────────────── -->
+  <div id="modal-add-to-playlist" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <h3 style="margin:0 0 4px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Add to Playlist</h3>
+      <p id="modal-playlist-picker-game" style="margin:0 0 14px; font-size:12px; font-weight:900; color:var(--text_main);"></p>
+      <div id="playlist-picker-list" style="display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto;"></div>
+      <button id="btn-playlist-picker-close" style="width:100%; margin-top:12px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Close</button>
+    </div>
+  </div>
+
+  <!-- ── MODAL: PLAYLISTS NAV (topnav / split) ──────────────────────────────── -->
+  <div id="modal-playlists-nav" class="modal-overlay">
+    <div class="modal-box" style="max-width:360px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <h3 style="margin:0; color:var(--accent); text-transform:uppercase; letter-spacing:2px; font-size:13px;">Playlists</h3>
+        <button id="btn-playlists-nav-new" style="padding:3px 10px; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); border-radius:4px; cursor:pointer; font-family:inherit; font-size:10px; font-weight:900; letter-spacing:0; text-transform:none; transition:color 0.15s, border-color 0.15s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)';" onmouseout="this.style.color='var(--text_dim)';this.style.borderColor='var(--border_solid)';">+ New</button>
+      </div>
+      <div id="modal-playlists-nav-list" style="display:flex; flex-direction:column; gap:6px; min-height:36px;"></div>
+      <button id="btn-playlists-nav-close" style="width:100%; margin-top:14px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); border-radius:6px; padding:8px;">Close</button>
+    </div>
+  </div>
+
+  <!-- ── MODAL: MANAGE PLAYLIST GAMES ──────────────────────────────────────── -->
+  <div id="modal-manage-playlist-games" class="modal-overlay">
+    <div class="modal-box" style="max-width:480px;">
+      <h3 style="margin:0 0 12px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; font-size:13px;">Manage Playlist</h3>
+      <div style="display:flex; gap:6px; margin-bottom:16px;">
+        <input type="text" id="manage-playlist-rename-input" style="flex:1; box-sizing:border-box;" placeholder="Playlist name…">
+        <button id="btn-manage-playlist-rename" style="padding:0 14px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); border-radius:6px; cursor:pointer; font-family:inherit; font-weight:900; font-size:11px; white-space:nowrap; letter-spacing:0.5px; transition:border-color 0.15s, color 0.15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)';" onmouseout="this.style.borderColor='var(--border_solid)';this.style.color='var(--text_sec)';">Rename</button>
+      </div>
+      <div id="manage-playlist-games-list" style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;"></div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button id="btn-manage-playlist-games-close" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); border-radius:6px; padding:8px; cursor:pointer; font-family:inherit; font-weight:900; font-size:12px; letter-spacing:0.5px;">Close</button>
+        <button id="btn-manage-playlist-delete" style="flex:1; background:rgba(239,83,80,0.12); border:1px solid #ef5350; color:#ef5350; border-radius:6px; padding:8px; cursor:pointer; font-family:inherit; font-weight:900; font-size:12px; letter-spacing:1px; text-transform:uppercase; transition:background 0.15s;" onmouseover="this.style.background='rgba(239,83,80,0.26)';" onmouseout="this.style.background='rgba(239,83,80,0.12)';">Delete Playlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: REMOVE FROM PLAYLIST ──────────────────────────────────────── -->
+  <div id="modal-remove-from-playlist" class="modal-overlay">
+    <div class="modal-box" style="max-width:380px;">
+      <h3 style="margin:0 0 4px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Remove from Playlist</h3>
+      <p id="remove-from-pl-game" style="margin:0 0 14px; font-size:12px; font-weight:900; color:var(--text_main);"></p>
+      <div id="remove-from-pl-list" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
+      <button id="btn-remove-from-pl-close" style="width:100%; margin-top:12px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); border-radius:6px; padding:8px; cursor:pointer; font-family:inherit; font-weight:900; font-size:12px; letter-spacing:0.5px;">Close</button>
     </div>
   </div>
 

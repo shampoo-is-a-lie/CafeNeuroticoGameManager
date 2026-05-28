@@ -115,6 +115,16 @@ contextBridge.exposeInMainWorld('api', {
                                 syncGrinderInstalled: (ids) => ipcRenderer.invoke('sync-grinder-installed', ids),
                                 syncAllGrinderGames: (games, p) => ipcRenderer.invoke('sync-all-grinder-games', games, p),
 
+                                // --- PLAYLISTS ---
+                                getPlaylists:           ()           => ipcRenderer.invoke('get-playlists'),
+                                addPlaylist:            (name)       => ipcRenderer.invoke('add-playlist', name),
+                                updatePlaylist:         (id, name)   => ipcRenderer.invoke('update-playlist', id, name),
+                                deletePlaylist:         (id)         => ipcRenderer.invoke('delete-playlist', id),
+                                getPlaylistGames:       (plId)       => ipcRenderer.invoke('get-playlist-games', plId),
+                                addGameToPlaylist:      (plId, gId)  => ipcRenderer.invoke('add-game-to-playlist', plId, gId),
+                                removeGameFromPlaylist: (plId, gId)  => ipcRenderer.invoke('remove-game-from-playlist', plId, gId),
+                                getGamePlaylists:       (gId)        => ipcRenderer.invoke('get-game-playlists', gId),
+
                                 // --- MANUAL ---
                                 openManual: () => ipcRenderer.send('open-manual'),
 

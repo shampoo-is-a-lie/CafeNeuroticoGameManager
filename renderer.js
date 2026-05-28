@@ -1,4 +1,7 @@
 let allGames = [];
+let allPlaylists        = [];
+let currentPlaylistId   = null;
+let currentPlaylistGames = null;
 let currentGameId = null;
 
 function isManualCategory(game) {
@@ -303,10 +306,33 @@ window.api.checkEmuLatte().then(exists => {
     if (exists) {
         const splitEmu = document.getElementById('btn-split-emulatte');
         if (splitEmu) splitEmu.style.display = '';
+        const topnavEmu = document.getElementById('btn-topnav-emulatte');
+        if (topnavEmu) topnavEmu.style.display = '';
     }
 });
 ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', () => window.api.launchCrema()));
+document.getElementById('btn-topnav-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
+
+// Top nav filter scroll arrows
+function updateTopnavFilterArrows() {
+    const el = document.getElementById('topnav-filters');
+    if (!el) return;
+    const prev = document.getElementById('topnav-filters-prev');
+    const next = document.getElementById('topnav-filters-next');
+    if (!prev || !next) return;
+    prev.classList.toggle('visible', el.scrollLeft > 2);
+    next.classList.toggle('visible', el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+}
+document.getElementById('topnav-filters')?.addEventListener('scroll', updateTopnavFilterArrows);
+document.getElementById('topnav-filters-prev')?.addEventListener('click', () => {
+    document.getElementById('topnav-filters')?.scrollBy({ left: -140, behavior: 'smooth' });
+});
+document.getElementById('topnav-filters-next')?.addEventListener('click', () => {
+    document.getElementById('topnav-filters')?.scrollBy({ left: 140, behavior: 'smooth' });
+});
+new ResizeObserver(updateTopnavFilterArrows).observe(document.getElementById('topnav-filters') || document.body);
+setTimeout(updateTopnavFilterArrows, 200);
 
 // Local variable to hold our gaming history limit preference
 let recentGamesCount = 0;
@@ -494,6 +520,118 @@ document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
     const game = allGames.find(g => g.id === currentGameId);
     if(game) openDetails(game);
 });
+
+// --- PLAYLIST BUTTON (gamepage) ---
+document.getElementById('btn-gamepage-playlist')?.addEventListener('click', async () => {
+    const game = allGames.find(g => g.id === currentGameId)
+               || (currentPlaylistGames || []).find(g => g.id === currentGameId);
+    if (!game) return;
+    document.getElementById('modal-playlist-picker-game').textContent = game.Game;
+    const gamePlaylistIds = await window.api.getGamePlaylists(currentGameId);
+    const list = document.getElementById('playlist-picker-list');
+    if (!allPlaylists.length) {
+        list.innerHTML = `<p style="text-align:center; padding:16px; color:var(--text_dim); font-size:12px;">No playlists yet — create one first.</p>`;
+    } else {
+        list.innerHTML = allPlaylists.map(p => {
+            const inList = gamePlaylistIds.includes(p.id);
+            return `<button class="btn-pl-toggle" data-playlist-id="${p.id}" data-in="${inList ? '1' : '0'}"
+                style="padding:10px 12px; background:${inList ? 'var(--accent)' : 'var(--bg_menu)'}; color:${inList ? 'var(--bg)' : 'var(--text_sec)'}; border:1px solid var(--border_solid); border-radius:6px; text-align:left; cursor:pointer; font-family:inherit; font-size:12px; font-weight:900; transition:background 0.15s; width:100%;">
+                ${inList ? '✓ ' : ''}${escHtml(p.name)}</button>`;
+        }).join('');
+        list.querySelectorAll('.btn-pl-toggle').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const plId   = Number(btn.dataset.playlistId);
+                const inList = btn.dataset.in === '1';
+                if (inList) {
+                    await window.api.removeGameFromPlaylist(plId, currentGameId);
+                } else {
+                    await window.api.addGameToPlaylist(plId, currentGameId);
+                }
+                btn.dataset.in = inList ? '0' : '1';
+                btn.style.background = inList ? 'var(--bg_menu)' : 'var(--accent)';
+                btn.style.color      = inList ? 'var(--text_sec)' : 'var(--bg)';
+                btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId).name;
+                if (currentPlaylistId !== null) {
+                    currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
+                }
+            });
+        });
+    }
+    document.getElementById('modal-add-to-playlist').classList.add('active');
+});
+document.getElementById('btn-playlist-picker-close')?.addEventListener('click', () =>
+    document.getElementById('modal-add-to-playlist').classList.remove('active'));
+
+// --- PLAYLIST MODALS ---
+['btn-create-playlist', 'btn-create-playlist-sb'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', openCreatePlaylistModal));
+
+document.getElementById('btn-create-playlist-cancel')?.addEventListener('click', () =>
+    document.getElementById('modal-create-playlist').classList.remove('active'));
+
+document.getElementById('btn-create-playlist-confirm')?.addEventListener('click', async () => {
+    const name = document.getElementById('new-playlist-name').value.trim();
+    if (!name) { document.getElementById('new-playlist-name').focus(); return; }
+    await window.api.addPlaylist(name);
+    document.getElementById('modal-create-playlist').classList.remove('active');
+    await loadPlaylists();
+});
+document.getElementById('new-playlist-name')?.addEventListener('keydown', async e => {
+    if (e.key !== 'Enter') return;
+    const name = e.target.value.trim();
+    if (!name) return;
+    await window.api.addPlaylist(name);
+    document.getElementById('modal-create-playlist').classList.remove('active');
+    await loadPlaylists();
+});
+
+document.getElementById('btn-edit-playlist-cancel')?.addEventListener('click', () =>
+    document.getElementById('modal-edit-playlist').classList.remove('active'));
+
+document.getElementById('btn-edit-playlist-save')?.addEventListener('click', async () => {
+    const id   = Number(document.getElementById('edit-playlist-id').value);
+    const name = document.getElementById('edit-playlist-name').value.trim();
+    if (!name) { document.getElementById('edit-playlist-name').focus(); return; }
+    await window.api.updatePlaylist(id, name);
+    document.getElementById('modal-edit-playlist').classList.remove('active');
+    await loadPlaylists();
+});
+
+document.getElementById('btn-edit-playlist-delete')?.addEventListener('click', async () => {
+    const id = Number(document.getElementById('edit-playlist-id').value);
+    const pl = allPlaylists.find(p => p.id === id);
+    const confirmed = await showConfirm(`Delete playlist "${pl?.name}"? This cannot be undone.`);
+    if (!confirmed) return;
+    await window.api.deletePlaylist(id);
+    document.getElementById('modal-edit-playlist').classList.remove('active');
+    if (currentPlaylistId === id) {
+        currentPlaylistId = null;
+        currentPlaylistGames = null;
+        applyFilters();
+    }
+    await loadPlaylists();
+});
+
+// --- PLAYLISTS NAV MODAL (topnav / split) ---
+['btn-topnav-playlists', 'btn-split-playlists'].forEach(id =>
+    document.getElementById(id)?.addEventListener('click', () => {
+        renderPlaylistPanels();
+        document.getElementById('modal-playlists-nav').classList.add('active');
+    }));
+document.getElementById('btn-playlists-nav-close')?.addEventListener('click', () =>
+    document.getElementById('modal-playlists-nav').classList.remove('active'));
+document.getElementById('btn-playlists-nav-new')?.addEventListener('click', () => {
+    document.getElementById('modal-playlists-nav').classList.remove('active');
+    openCreatePlaylistModal();
+});
+
+// --- MANAGE PLAYLIST GAMES MODAL ---
+document.getElementById('btn-manage-playlist-games-close')?.addEventListener('click', () =>
+    document.getElementById('modal-manage-playlist-games').classList.remove('active'));
+
+// --- REMOVE FROM PLAYLIST MODAL ---
+document.getElementById('btn-remove-from-pl-close')?.addEventListener('click', () =>
+    document.getElementById('modal-remove-from-playlist').classList.remove('active'));
 
 // --- ABOUT BUTTON LOGIC ---
 ['btn-about', 'btn-about-sb'].forEach(id =>
@@ -687,6 +825,170 @@ function closePanel() {
     document.querySelectorAll('.rail-btn[data-panel]').forEach(btn => btn.classList.remove('active'));
 }
 
+// ── PLAYLISTS ─────────────────────────────────────────────────────────────────
+async function loadPlaylists() {
+    allPlaylists = await window.api.getPlaylists();
+    renderPlaylistPanels();
+}
+
+function renderPlaylistPanels() {
+    _renderPlaylistList('panel-playlists-list', 'rail');
+    _renderPlaylistList('sidebar-playlists-list', 'sidebar');
+    _renderPlaylistList('modal-playlists-nav-list', 'nav');
+}
+
+function _renderPlaylistList(containerId, mode) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (!allPlaylists.length) {
+        container.innerHTML = `<p style="font-size:11px; color:var(--text_dim); margin:4px 0; text-align:center;">No playlists yet.</p>`;
+        return;
+    }
+    const manageBtnHtml = (id) => `<button class="btn-playlist-manage" data-playlist-id="${id}" title="View / remove games"
+        style="width:24px; height:24px; padding:0; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); border-radius:4px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.15s, border-color 0.15s;">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>`;
+    container.innerHTML = allPlaylists.map(p => {
+        const isActive = currentPlaylistId === p.id;
+        return `<div style="display:flex; align-items:center; gap:4px;">
+            <button class="btn-playlist-filter" data-playlist-id="${p.id}"
+                style="flex:1; text-align:left; font-size:11px; padding:8px 10px; background:${isActive ? 'var(--accent)' : 'var(--bg_menu)'}; border:1px solid ${isActive ? 'var(--accent)' : 'var(--border_solid)'}; color:${isActive ? 'var(--bg)' : 'var(--text_sec)'}; border-radius:6px; cursor:pointer; font-family:inherit; font-weight:900; transition:background 0.15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${escHtml(p.name)}
+            </button>
+            ${manageBtnHtml(p.id)}
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.btn-playlist-filter').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('modal-playlists-nav')?.classList.remove('active');
+            setPlaylistFilter(Number(btn.dataset.playlistId));
+        });
+    });
+    container.querySelectorAll('.btn-playlist-manage').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const pl = allPlaylists.find(p => p.id === Number(btn.dataset.playlistId));
+            if (pl) openManagePlaylistGames(pl);
+        });
+    });
+}
+
+async function setPlaylistFilter(playlistId) {
+    activeFilters.clear();
+    syncFilterActiveStates();
+    currentPlaylistId = playlistId;
+    currentPlaylistGames = await window.api.getPlaylistGames(playlistId);
+    renderPlaylistPanels();
+    applyFilters();
+    closePanel();
+    const active = document.querySelector('.view.active');
+    if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) switchView(lastGridView);
+}
+
+function openCreatePlaylistModal() {
+    document.getElementById('new-playlist-name').value = '';
+    document.getElementById('modal-create-playlist').classList.add('active');
+    setTimeout(() => document.getElementById('new-playlist-name').focus(), 80);
+}
+
+function openEditPlaylistModal(pl) {
+    document.getElementById('edit-playlist-id').value   = pl.id;
+    document.getElementById('edit-playlist-name').value = pl.name;
+    document.getElementById('modal-edit-playlist').classList.add('active');
+}
+
+async function openManagePlaylistGames(pl) {
+    const renameInput = document.getElementById('manage-playlist-rename-input');
+    renameInput.value = pl.name;
+
+    document.getElementById('btn-manage-playlist-rename').onclick = async () => {
+        const newName = renameInput.value.trim();
+        if (!newName || newName === pl.name) return;
+        await window.api.updatePlaylist(pl.id, newName);
+        pl = { ...pl, name: newName };
+        await loadPlaylists();
+    };
+
+    document.getElementById('btn-manage-playlist-delete').onclick = async () => {
+        const confirmed = await showConfirm(`Delete playlist "${pl.name}"? This cannot be undone.`);
+        if (!confirmed) return;
+        await window.api.deletePlaylist(pl.id);
+        document.getElementById('modal-manage-playlist-games').classList.remove('active');
+        if (currentPlaylistId === pl.id) {
+            currentPlaylistId = null;
+            currentPlaylistGames = null;
+            applyFilters();
+        }
+        await loadPlaylists();
+    };
+
+    const games = await window.api.getPlaylistGames(pl.id);
+    const list = document.getElementById('manage-playlist-games-list');
+    if (!games.length) {
+        list.innerHTML = `<p style="font-size:11px; color:var(--text_dim); text-align:center; margin:16px 0;">No games in this playlist.</p>`;
+    } else {
+        list.innerHTML = games.map(g =>
+            `<div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--bg_menu); border-radius:6px; border:1px solid var(--border);">
+                <span style="flex:1; font-size:12px; font-weight:700; color:var(--text_sec); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(g.Game)}</span>
+                <button class="btn-remove-from-pl" data-game-id="${g.id}" data-playlist-id="${pl.id}"
+                    style="padding:2px 8px; background:rgba(239,83,80,0.12); border:1px solid #ef5350; color:#ef5350; border-radius:4px; cursor:pointer; font-size:10px; font-weight:900; font-family:inherit; flex-shrink:0; transition:background 0.15s;" onmouseover="this.style.background='rgba(239,83,80,0.28)';" onmouseout="this.style.background='rgba(239,83,80,0.12)';">Remove</button>
+            </div>`
+        ).join('');
+        list.querySelectorAll('.btn-remove-from-pl').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const plId = Number(btn.dataset.playlistId);
+                const gId  = Number(btn.dataset.gameId);
+                await window.api.removeGameFromPlaylist(plId, gId);
+                if (currentPlaylistId === plId) {
+                    currentPlaylistGames = await window.api.getPlaylistGames(plId);
+                    applyFilters();
+                }
+                openManagePlaylistGames(pl);
+            });
+        });
+    }
+    document.getElementById('modal-manage-playlist-games').classList.add('active');
+}
+
+function openRemoveFromPlaylistModal(game, playlistIds) {
+    document.getElementById('remove-from-pl-game').textContent = game.Game;
+    const matchedPlaylists = allPlaylists.filter(p => playlistIds.includes(p.id));
+    const list = document.getElementById('remove-from-pl-list');
+    if (!matchedPlaylists.length) {
+        list.innerHTML = `<p style="font-size:11px; color:var(--text_dim); text-align:center; margin:12px 0;">Not in any playlist.</p>`;
+    } else {
+        list.innerHTML = matchedPlaylists.map(p =>
+            `<div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--bg_menu); border-radius:6px; border:1px solid var(--border);">
+                <span style="flex:1; font-size:12px; font-weight:700; color:var(--text_sec);">${escHtml(p.name)}</span>
+                <button class="btn-do-remove-from-pl" data-playlist-id="${p.id}"
+                    style="padding:2px 8px; background:rgba(239,83,80,0.12); border:1px solid #ef5350; color:#ef5350; border-radius:4px; cursor:pointer; font-size:10px; font-weight:900; font-family:inherit; flex-shrink:0; transition:background 0.15s;" onmouseover="this.style.background='rgba(239,83,80,0.28)';" onmouseout="this.style.background='rgba(239,83,80,0.12)';">Remove</button>
+            </div>`
+        ).join('');
+        list.querySelectorAll('.btn-do-remove-from-pl').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const plId = Number(btn.dataset.playlistId);
+                await window.api.removeGameFromPlaylist(plId, game.id);
+                if (currentPlaylistId === plId) {
+                    currentPlaylistGames = await window.api.getPlaylistGames(plId);
+                    applyFilters();
+                }
+                const newIds = await window.api.getGamePlaylists(game.id);
+                if (newIds.length === 0) {
+                    document.getElementById('modal-remove-from-playlist').classList.remove('active');
+                    document.getElementById('btn-gamepage-remove-playlist').style.display = 'none';
+                    document.getElementById('btn-split-remove-playlist').style.display = 'none';
+                } else {
+                    openRemoveFromPlaylistModal(game, newIds);
+                }
+            });
+        });
+    }
+    document.getElementById('modal-remove-from-playlist').classList.add('active');
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 function syncFilterActiveStates() {
     document.querySelectorAll('.rail-btn[data-rail]').forEach(btn => {
         const f = btn.dataset.rail;
@@ -758,6 +1060,12 @@ document.getElementById('btn-gsearch-clear').addEventListener('click', () => {
 });
 
 async function activateFilter(filter) {
+    // Leaving playlist mode when a store/qualifier filter is activated
+    if (currentPlaylistId !== null) {
+        currentPlaylistId = null;
+        currentPlaylistGames = null;
+        renderPlaylistPanels();
+    }
     if (filter === 'all') {
         activeFilters.clear();
     } else if (_hidePico8 && filter === 'pico8') {
@@ -817,10 +1125,14 @@ document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
 
 function applyFilters() {
     const query = (document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
+
+    // Playlist mode: filter within the playlist's game set
+    const baseGames = currentPlaylistGames !== null ? currentPlaylistGames : allGames;
+
     const storeActive     = [...activeFilters].filter(f => STORE_FILTERS.has(f));
     const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
 
-    let filtered = allGames.filter(game => {
+    let filtered = baseGames.filter(game => {
         const storeLower = (game.Store || '').toLowerCase();
 
         // PICO-8 visibility: hide unless pico8 filter is active or user explicitly searches for it
@@ -1158,6 +1470,58 @@ function renderSplitDetail(game) {
         mc.classList.add('split-edit');
         openDetails(game);
     };
+
+    // Playlist add button — reuses the existing add-to-playlist modal
+    const splitPlaylistAddBtn = document.getElementById('btn-split-playlist-add');
+    splitPlaylistAddBtn.onclick = async () => {
+        document.getElementById('modal-playlist-picker-game').textContent = game.Game;
+        const gamePlaylistIds = await window.api.getGamePlaylists(game.id);
+        const pickerList = document.getElementById('playlist-picker-list');
+        if (!allPlaylists.length) {
+            pickerList.innerHTML = `<p style="text-align:center; padding:16px; color:var(--text_dim); font-size:12px;">No playlists yet — create one first.</p>`;
+        } else {
+            pickerList.innerHTML = allPlaylists.map(p => {
+                const inList = gamePlaylistIds.includes(p.id);
+                return `<button class="btn-pl-toggle-split" data-playlist-id="${p.id}" data-in="${inList ? '1' : '0'}"
+                    style="padding:10px 12px; background:${inList ? 'var(--accent)' : 'var(--bg_menu)'}; color:${inList ? 'var(--bg)' : 'var(--text_sec)'}; border:1px solid var(--border_solid); border-radius:6px; text-align:left; cursor:pointer; font-family:inherit; font-size:12px; font-weight:900; transition:background 0.15s; width:100%;">
+                    ${inList ? '✓ ' : ''}${escHtml(p.name)}</button>`;
+            }).join('');
+            pickerList.querySelectorAll('.btn-pl-toggle-split').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const plId = Number(btn.dataset.playlistId);
+                    const inList = btn.dataset.in === '1';
+                    if (inList) { await window.api.removeGameFromPlaylist(plId, game.id); }
+                    else { await window.api.addGameToPlaylist(plId, game.id); }
+                    btn.dataset.in = inList ? '0' : '1';
+                    btn.style.background = inList ? 'var(--bg_menu)' : 'var(--accent)';
+                    btn.style.color = inList ? 'var(--text_sec)' : 'var(--bg)';
+                    btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId).name;
+                    if (currentPlaylistId !== null) {
+                        currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
+                        applyFilters();
+                    }
+                    const newIds = await window.api.getGamePlaylists(game.id);
+                    const splitRemoveBtn = document.getElementById('btn-split-remove-playlist');
+                    splitRemoveBtn.style.display = newIds.length > 0 ? 'flex' : 'none';
+                });
+            });
+        }
+        document.getElementById('modal-add-to-playlist').classList.add('active');
+    };
+
+    // Playlist remove button — visible if the game is in any playlist
+    const splitRemovePlaylistBtn = document.getElementById('btn-split-remove-playlist');
+    splitRemovePlaylistBtn.style.display = 'none';
+    splitRemovePlaylistBtn.onclick = null;
+    window.api.getGamePlaylists(game.id).then(ids => {
+        if (ids.length > 0) {
+            splitRemovePlaylistBtn.style.display = 'flex';
+            splitRemovePlaylistBtn.onclick = async () => {
+                const currentIds = await window.api.getGamePlaylists(game.id);
+                openRemoveFromPlaylistModal(game, currentIds);
+            };
+        }
+    });
 
     // Short description (bold) + full Steam HTML description
     const shortDescEl = document.getElementById('split-short-desc');
@@ -1885,6 +2249,7 @@ function openGamepage(game) {
 
     const favBtn = document.getElementById('btn-gamepage-fav');
     const wantBtn = document.getElementById('btn-gamepage-want');
+    const removeFromPlaylistBtn = document.getElementById('btn-gamepage-remove-playlist');
 
     // Hero Art — always reset to none first so the previous game's image
     // is cleared immediately, before the new URL starts loading.
@@ -1924,15 +2289,25 @@ function openGamepage(game) {
         });
     }
 
-    // Live Toggle Logic for Favs / Wants
+    // Live Toggle Logic for Favs / Wants (icon buttons — active class drives fill via CSS)
     const updateTogglesUI = () => {
         favBtn.classList.toggle('active', game.FAV === 'YES');
-        favBtn.innerText = game.FAV === 'YES' ? t('fav.on') : t('fav.off');
-
         wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
-        wantBtn.innerText = game.WANT_TO_PLAY === 'YES' ? t('want.on') : t('want.off');
     };
     updateTogglesUI();
+
+    // Remove-from-playlist button — visible whenever the game belongs to at least one playlist
+    removeFromPlaylistBtn.style.display = 'none';
+    removeFromPlaylistBtn.onclick = null;
+    window.api.getGamePlaylists(game.id).then(ids => {
+        if (ids.length > 0) {
+            removeFromPlaylistBtn.style.display = 'flex';
+            removeFromPlaylistBtn.onclick = async () => {
+                const currentIds = await window.api.getGamePlaylists(game.id);
+                openRemoveFromPlaylistModal(game, currentIds);
+            };
+        }
+    });
 
     favBtn.onclick = async () => {
         game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
@@ -3489,7 +3864,7 @@ function updateHeroMosaic(filtered) {
         searchEl.placeholder = `Search ${label}…`;
     }
     // Skip full mosaic rebuild if filter + game set is identical to last render
-    const mosaicKey = `${[...activeFilters].join(',') || 'all'}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
+    const mosaicKey = `${currentPlaylistId ? 'pl:' + currentPlaylistId : ([...activeFilters].join(',') || 'all')}:${filtered.length}:${filtered[0]?.id ?? ''}:${filtered[filtered.length - 1]?.id ?? ''}`;
     if (mosaicKey === _lastMosaicKey) return;
     _lastMosaicKey = mosaicKey;
 
@@ -3510,7 +3885,11 @@ function updateHeroMosaic(filtered) {
     };
     const active = [...activeFilters];
     let displayText, displayIcon;
-    if (active.length === 0) {
+    if (currentPlaylistId !== null) {
+        const pl = allPlaylists.find(p => p.id === currentPlaylistId);
+        displayText = pl ? pl.name.toUpperCase() : 'PLAYLIST';
+        displayIcon = 'all_games';
+    } else if (active.length === 0) {
         displayText = t('filter.all'); displayIcon = 'all_games';
     } else if (active.length === 1) {
         const cat = filterMap[active[0]] || { text: active[0].toUpperCase(), icon: active[0] };
@@ -3720,6 +4099,7 @@ function renderThemesInCategory(category) {
 window.api.getSetting('cngm_theme').then(saved => {
     applyTheme(saved && THEMES[saved] ? saved : activeTheme);
     window.api.signalReady();
+    loadPlaylists();
     return window.api.getSetting('welcome_shown');
 }).then(shown => {
     if (!shown) _welcomeModal.classList.add('active');

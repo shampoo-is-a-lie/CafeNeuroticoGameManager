@@ -225,6 +225,8 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN LaunchCommands TEXT DEFAULT NULL").run(); } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
+        db.prepare(`CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)`).run();
+        db.prepare(`CREATE TABLE IF NOT EXISTS playlist_games (playlist_id INTEGER NOT NULL, game_id INTEGER NOT NULL, sort_order INTEGER DEFAULT 0, PRIMARY KEY (playlist_id, game_id), FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE, FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE)`).run();
     } catch (err) {
         console.error("Could not connect to database:", err);
     }
@@ -2591,4 +2593,47 @@ ipcMain.handle('import-csv', async () => {
         }
     }
     return { success: false };
+});
+
+// ── PLAYLISTS ─────────────────────────────────────────────────────────────────
+ipcMain.handle('get-playlists', () => {
+    if (!db) return [];
+    return db.prepare('SELECT * FROM playlists ORDER BY name').all();
+});
+ipcMain.handle('add-playlist', (_, name) => {
+    if (!db) return null;
+    return db.prepare('INSERT INTO playlists (name) VALUES (?)').run(name.trim()).lastInsertRowid;
+});
+ipcMain.handle('update-playlist', (_, id, name) => {
+    if (!db) return false;
+    db.prepare('UPDATE playlists SET name=? WHERE id=?').run(name.trim(), id);
+    return true;
+});
+ipcMain.handle('delete-playlist', (_, id) => {
+    if (!db) return false;
+    db.prepare('DELETE FROM playlist_games WHERE playlist_id=?').run(id);
+    db.prepare('DELETE FROM playlists WHERE id=?').run(id);
+    return true;
+});
+ipcMain.handle('get-playlist-games', (_, playlistId) => {
+    if (!db) return [];
+    return db.prepare('SELECT g.* FROM playlist_games pg JOIN games g ON g.id=pg.game_id WHERE pg.playlist_id=? ORDER BY pg.sort_order, g.Game').all(playlistId);
+});
+ipcMain.handle('add-game-to-playlist', (_, playlistId, gameId) => {
+    if (!db) return { ok: false };
+    const max = db.prepare('SELECT MAX(sort_order) AS m FROM playlist_games WHERE playlist_id=?').get(playlistId);
+    const order = (max?.m ?? -1) + 1;
+    try {
+        db.prepare('INSERT INTO playlist_games (playlist_id, game_id, sort_order) VALUES (?, ?, ?)').run(playlistId, gameId, order);
+        return { ok: true };
+    } catch { return { ok: false, error: 'Already in playlist' }; }
+});
+ipcMain.handle('remove-game-from-playlist', (_, playlistId, gameId) => {
+    if (!db) return false;
+    db.prepare('DELETE FROM playlist_games WHERE playlist_id=? AND game_id=?').run(playlistId, gameId);
+    return true;
+});
+ipcMain.handle('get-game-playlists', (_, gameId) => {
+    if (!db) return [];
+    return db.prepare('SELECT playlist_id FROM playlist_games WHERE game_id=?').all(gameId).map(r => r.playlist_id);
 });
