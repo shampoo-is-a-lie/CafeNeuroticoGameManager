@@ -2417,6 +2417,98 @@ ipcMain.handle('auto-fetch', async (event, gameId, gameName, specificAppId) => {
     } catch (err) { return { success: false, message: `Scraping error: ${err.message}` }; }
 });
 
+// Text-only variant — same as auto-fetch but skips all image downloads
+ipcMain.handle('auto-fetch-text', async (event, gameId, gameName, specificAppId) => {
+    try {
+        let appId = specificAppId;
+
+        if (!appId) {
+            try {
+                const sr = await fetch(`https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&l=english&cc=US`);
+                const sd = await sr.json();
+                if (sd.items?.length > 0) {
+                    const match = sd.items.find(item => titleSimilarity(item.name || '', gameName) >= 0.4);
+                    if (match) appId = match.id;
+                }
+            } catch(e) {}
+        }
+
+        let steamSuccess = false, appData = null;
+        let desc = "", htmlDesc = "", dev = "", pub = "", released = "", meta = "";
+        let genre = "", coop = "None", players = "", tags = "";
+        let hltbResult = "", protonResult = "", steamTrailerUrl = "";
+
+        if (appId) {
+            try {
+                const dr = await fetch(`https://store.steampowered.com/api/appdetails?appids=${appId}`);
+                const dd = await dr.json();
+                if (dd[appId]?.success) {
+                    steamSuccess = true;
+                    appData = dd[appId].data;
+                    desc     = appData.short_description || "";
+                    htmlDesc = appData.detailed_description || "";
+                    dev      = appData.developers?.join(', ') || "";
+                    pub      = appData.publishers?.join(', ') || "";
+                    released = appData.release_date?.date?.slice(-4) || "";
+                    meta     = appData.metacritic ? String(appData.metacritic.score) : "";
+                    genre    = appData.genres?.map(g => g.description).join(', ') || "";
+                    const cats = appData.categories?.map(c => c.description) || [];
+                    if (cats.includes("Online Co-op") && cats.includes("Shared/Split Screen Co-op")) coop = "Local & Online";
+                    else if (cats.includes("Online Co-op")) coop = "Online";
+                    else if (cats.includes("Shared/Split Screen Co-op")) coop = "Local";
+                    else if (cats.includes("Co-op")) coop = "Online/Local";
+                    players = [cats.includes("Single-player") && "Single-player", cats.includes("Multi-player") && "Multi-player"].filter(Boolean).join(', ');
+                    tags    = cats.slice(0, 5).join(", ");
+                    try {
+                        let hr = await searchHltb(gameName);
+                        if (!hr.length) hr = await searchHltb(gameName.replace(/[:\-].*/, '').replace(/[™®©]/g, '').trim());
+                        if (hr.length > 0 && hr[0].comp_main > 0) hltbResult = `${Math.round(hr[0].comp_main / 3600)} Hours`;
+                    } catch(e) {}
+                    try {
+                        const pr = await fetch(`https://www.protondb.com/api/v1/reports/summaries/${appId}.json`);
+                        if (pr.ok) { const pd = await pr.json(); if (pd.tier) protonResult = pd.tier.toUpperCase(); }
+                    } catch(e) {}
+                    const movie = appData.movies?.[0];
+                    if (movie) steamTrailerUrl = movie.mp4?.max || movie.webm?.max || movie.webm?.['480'] || "";
+                }
+            } catch(e) {}
+        }
+
+        let similarGames = "", franchise = "", igdbTrailerId = "";
+        const igdb = await igdbSearch(gameName, appId);
+        if (igdb) {
+            if (igdb.similar_games?.length) similarGames = igdb.similar_games.map(g => g.name).slice(0, 6).join(', ');
+            franchise = igdb.franchises?.[0]?.name || igdb.collection?.name || "";
+            igdbTrailerId = igdb.videos?.[0]?.video_id || "";
+            if (!desc   && igdb.summary)             desc    = igdb.summary;
+            if (!dev    && igdb.involved_companies)   dev     = igdb.involved_companies.filter(c => c.developer).map(c => c.company.name).join(', ');
+            if (!pub    && igdb.involved_companies)   pub     = igdb.involved_companies.filter(c => c.publisher).map(c => c.company.name).join(', ');
+            if (!genre  && igdb.genres)               genre   = [...(igdb.genres?.map(g => g.name) || []), ...(igdb.themes?.map(t => t.name) || [])].slice(0, 3).join(', ');
+            if (!released && igdb.first_release_date) released = new Date(igdb.first_release_date * 1000).getFullYear().toString();
+            if (!meta   && igdb.aggregated_rating)    meta    = Math.round(igdb.aggregated_rating).toString();
+            if (!appId) {
+                const steamExt = igdb.external_games?.find(e => e.category === 1);
+                if (steamExt?.uid) {
+                    appId = String(steamExt.uid).replace(/\.0+$/, '');
+                    try {
+                        const pr = await fetch(`https://www.protondb.com/api/v1/reports/summaries/${appId}.json`);
+                        if (pr.ok) { const pd = await pr.json(); if (pd.tier) protonResult = pd.tier.toUpperCase(); }
+                    } catch(e) {}
+                }
+            }
+        }
+
+        if (!steamSuccess && !igdb) return { success: false, message: "No data found on Steam or IGDB." };
+
+        const descI18n = await fetchDescI18n(appId, desc);
+        db.prepare(`UPDATE games SET Description=?, SteamDesc=?, Description_i18n=?, DEV=?, PUB=?, RELEASED=?, METACRITIC=?, GENRE=?, SteamAppID=?, Coop=?, NumPlayers=?, Tags=?, HLTB_Main=?, ProtonTier=?, SteamTrailer=?, SimilarGames=?, Franchise=?, IGDBTrailer=? WHERE id=?`)
+        .run(desc, htmlDesc, descI18n, dev, pub, released, meta, genre, appId || "", coop, players, tags, hltbResult, protonResult, steamTrailerUrl, similarGames, franchise, igdbTrailerId, gameId);
+
+        const sources = [steamSuccess && 'Steam', igdb && 'IGDB'].filter(Boolean).join(' + ');
+        return { success: true, message: `Text metadata fetched via ${sources}!` };
+    } catch (err) { return { success: false, message: `Scraping error: ${err.message}` }; }
+});
+
 ipcMain.handle('download-csv-template', async () => {
     const win = BrowserWindow.getFocusedWindow();
     const { filePath } = await dialog.showSaveDialog(win, {

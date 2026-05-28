@@ -850,7 +850,10 @@
               </div>
 
               <fieldset style="display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; margin-bottom: 0;">
-                <legend data-i18n="html.legend_metadata">Metadata & Launch</legend>
+                <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+                  <span data-i18n="html.legend_metadata" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">Metadata &amp; Launch</span>
+                  <button id="btn-fetch-text-meta" style="font-size:10px; font-weight:900; padding:4px 10px; border-radius:5px; border:1px solid var(--border_solid); background:var(--bg_menu); color:var(--text_dim); cursor:pointer; font-family:Raleway,sans-serif; letter-spacing:0.5px; white-space:nowrap; transition:color 0.15s, border-color 0.15s;" title="Scrape text metadata only — preserves existing artwork">🔍 SCRAPE TEXT</button>
+                </legend>
                 <div class="row" style="margin-top: 5px; margin-bottom: 5px; padding-bottom: 12px; border-bottom: 1px solid var(--border_solid); flex-shrink: 0;">
                   <label style="color: var(--accent); font-weight: bold; cursor: pointer;"><input type="checkbox" id="edit-fav"> <span data-i18n="html.chk_fav">★ Favorite</span></label>
                   <label style="margin-left: 20px; color: var(--text_main); font-weight: bold; cursor: pointer;"><input type="checkbox" id="edit-want"> <span data-i18n="html.chk_want">⚑ Want to Play</span></label>

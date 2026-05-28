@@ -2992,28 +2992,44 @@ document.getElementById('btn-delete-game').addEventListener('click', async () =>
     }
 });
 
+let _fetchMode = 'full'; // 'full' | 'text'
+
+function _fetchBtn() {
+    return document.getElementById(_fetchMode === 'text' ? 'btn-fetch-text-meta' : 'btn-auto-fetch');
+}
+
 function triggerAutoFetchSearch(gameId, gameName) {
-    const btn = document.getElementById('btn-auto-fetch');
+    const btn = _fetchBtn();
     btn.innerText = t('status.searching'); btn.disabled = true;
 
     window.api.searchSteam(gameName).then(results => {
         if (results.length === 0) {
             document.getElementById('modal-refine-search').classList.add('active');
             document.getElementById('refine-search-input').value = gameName;
-            btn.innerText = t('status.auto_fetch'); btn.disabled = false; return;
+            btn.innerText = _fetchMode === 'text' ? '🔍 SCRAPE TEXT' : t('status.auto_fetch');
+            btn.disabled = false; return;
         }
         if (results.length === 1) {
             btn.innerText = t('status.fetching_auto');
             executeAutoFetch(gameId, gameName, results[0].id);
         } else {
             openSteamResultsModal(gameId, gameName, results);
-            btn.innerText = t('status.auto_fetch'); btn.disabled = false;
+            btn.innerText = _fetchMode === 'text' ? '🔍 SCRAPE TEXT' : t('status.auto_fetch');
+            btn.disabled = false;
         }
     });
 }
 
 document.getElementById('btn-auto-fetch').addEventListener('click', () => {
     if (!currentGameId) return;
+    _fetchMode = 'full';
+    const gameName = document.getElementById('edit-name').value.trim();
+    triggerAutoFetchSearch(currentGameId, gameName);
+});
+
+document.getElementById('btn-fetch-text-meta')?.addEventListener('click', () => {
+    if (!currentGameId) return;
+    _fetchMode = 'text';
     const gameName = document.getElementById('edit-name').value.trim();
     triggerAutoFetchSearch(currentGameId, gameName);
 });
@@ -3046,15 +3062,20 @@ function openSteamResultsModal(gameId, gameName, results) {
 document.getElementById('btn-close-steam-results').addEventListener('click', () => { document.getElementById('modal-steam-results').classList.remove('active'); });
 
 async function executeAutoFetch(gameId, gameName, appId) {
-    const btn = document.getElementById('btn-auto-fetch');
-    const result = await window.api.autoFetch(gameId, gameName, appId);
+    const isText = _fetchMode === 'text';
+    const btn = _fetchBtn();
+    const result = isText
+        ? await window.api.autoFetchText(gameId, gameName, appId)
+        : await window.api.autoFetch(gameId, gameName, appId);
     await showAlert(result.message);
     if (result.success) {
         await loadGames();
         const updatedGame = allGames.find(g => g.id === gameId);
         if (updatedGame) openDetails(updatedGame);
     }
-    btn.innerText = t('status.auto_fetch'); btn.disabled = false;
+    btn.textContent = isText ? '🔍 SCRAPE TEXT' : t('status.auto_fetch');
+    btn.disabled = false;
+    _fetchMode = 'full';
 }
 
 // --- EXTERNAL FETCHERS (HLTB/ProtonDB/Youtube) ---

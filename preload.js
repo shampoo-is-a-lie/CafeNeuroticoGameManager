@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('api', {
                                 onHeroicWatchStatus: (cb) => ipcRenderer.on('heroic-watch-status', (e, d) => cb(d)),
                                 syncSteam: (steamId, apiKey) => ipcRenderer.invoke('sync-steam', steamId, apiKey),
                                 autoFetch: (id, name, appId) => ipcRenderer.invoke('auto-fetch', id, name, appId),
+                                autoFetchText: (id, name, appId) => ipcRenderer.invoke('auto-fetch-text', id, name, appId),
                                 searchSteam: (name) => ipcRenderer.invoke('search-steam', name),
                                 launchGame: (cmd) => ipcRenderer.send('launch-game', cmd),
                                 syncGog: () => ipcRenderer.invoke('sync-gog'),
