@@ -97,7 +97,9 @@
     #main-content { flex: 1; display: flex; flex-direction: column; background-color: transparent; position: relative; overflow: hidden; }
 
     /* ── CLASSIC SIDEBAR ─────────────────────────────────────────────────────── */
-    #sidebar { width: 280px; flex-shrink: 0; padding: 15px; display: flex; flex-direction: column; gap: 15px; border-right: 2px solid var(--border); overflow-y: auto; overflow-x: hidden; background-color: rgba(0,0,0,0.2); }
+    #sidebar { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; border-right: 2px solid var(--border); overflow: hidden; background-color: rgba(0,0,0,0.2); }
+    #sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 15px; padding: 15px 15px 8px; }
+    #sidebar-footer { flex-shrink: 0; border-top: 1px solid var(--border); padding: 0 15px; }
 
     /* ── LAYOUT SWITCHING (JS adds layout-rail / layout-sidebar / layout-topnav / layout-split) ─── */
     /* Default: icon-rail active, sidebar hidden */
@@ -475,78 +477,82 @@
 
     <!-- ── CLASSIC SIDEBAR (layout-sidebar only) ────────────────────────────── -->
     <div id="sidebar">
-      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin:0 -6px; padding:0 6px;">
-        <button class="split-nav-btn" id="btn-view-gallery-sb" title="Gallery view">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
-          Gallery
-        </button>
-        <button class="split-nav-btn" id="btn-view-list-sb" title="List view">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
-          List
-        </button>
-        <button class="split-nav-btn" id="btn-refresh-library-sb" title="Refresh library">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
-          Refresh
-        </button>
+      <div id="sidebar-scroll">
+        <fieldset>
+          <legend data-i18n="html.legend_search">Search &amp; Filter</legend>
+          <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
+        </fieldset>
+        <fieldset>
+          <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+            <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
+            <button id="btn-see-config-sb" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
+          </legend>
+          <div class="filter-grid" id="sidebar-filters">
+            <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
+            <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
+            <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
+            <button data-filter="want" data-i18n="html.filter_want">Want</button>
+            <button data-filter="steam">Steam</button>
+            <button data-filter="epic">Epic</button>
+            <button data-filter="gog">GOG</button>
+            <button data-filter="flatpak">Flatpak</button>
+            <button data-filter="pico8">PICO-8</button>
+            <button data-filter="itch">itch.io</button>
+            <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
+            <button data-filter="others" data-i18n="html.filter_others">Others</button>
+            <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
+            <button data-filter="apps" data-i18n="html.filter_apps">Apps</button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
+            <span style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">Playlists</span>
+            <button id="btn-create-playlist-sb" title="New playlist" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ New</button>
+          </legend>
+          <div id="sidebar-playlists-list" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+        </fieldset>
       </div>
-      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; margin:-6px -6px 0; padding:4px 6px 0;">
-        <button class="split-nav-btn" id="btn-add-game-sb" title="Add Game">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          Add Game
-        </button>
-        <button class="split-nav-btn" id="btn-open-connect-sb" title="Connect">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          Connect
-        </button>
-        <button class="split-nav-btn" id="btn-open-tools-sb" title="Tools">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          Tools
-        </button>
-        <button class="split-nav-btn" id="btn-launch-crema-sb" title="Go Fullscreen With CREMA" style="display:none;">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3 4-4"/></svg>
-          CREMA
-        </button>
-        <button class="split-nav-btn" id="btn-launch-emulatte-sb" title="Launch EmuLatte" style="display:none;">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h4M8 8v4"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="10" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></svg>
-          EmuLatte
-        </button>
-      </div>
-      <fieldset>
-        <legend data-i18n="html.legend_search">Search &amp; Filter</legend>
-        <input type="text" id="search-bar" placeholder="SEARCH ALL INFO...">
-      </fieldset>
-      <fieldset>
-        <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
-          <span data-i18n="html.legend_see" style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">See</span>
-          <button id="btn-see-config-sb" title="Configure visible filters" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ / -</button>
-        </legend>
-        <div class="filter-grid" id="sidebar-filters">
-          <button class="active" data-filter="all" data-i18n="html.filter_all">All Games</button>
-          <button data-filter="installed" data-i18n="html.filter_installed">Installed</button>
-          <button data-filter="favs" data-i18n="html.filter_favs">Favs</button>
-          <button data-filter="want" data-i18n="html.filter_want">Want</button>
-          <button data-filter="steam">Steam</button>
-          <button data-filter="epic">Epic</button>
-          <button data-filter="gog">GOG</button>
-          <button data-filter="flatpak">Flatpak</button>
-          <button data-filter="pico8">PICO-8</button>
-          <button data-filter="itch">itch.io</button>
-          <button data-filter="physical" data-i18n="html.filter_physical">Physical</button>
-          <button data-filter="others" data-i18n="html.filter_others">Others</button>
-          <button data-filter="emulation" data-i18n="html.filter_emulation">Emulation</button>
-          <button data-filter="apps" data-i18n="html.filter_apps">Apps</button>
+      <div id="sidebar-footer">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;">
+          <button class="split-nav-btn" id="btn-view-gallery-sb" title="Gallery view">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="9"/><rect x="3" y="15" width="7" height="6"/><rect x="14" y="15" width="7" height="6"/></svg>
+            Gallery
+          </button>
+          <button class="split-nav-btn" id="btn-view-list-sb" title="List view">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg>
+            List
+          </button>
+          <button class="split-nav-btn" id="btn-refresh-library-sb" title="Refresh library">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.56"/></svg>
+            Refresh
+          </button>
         </div>
-      </fieldset>
-      <fieldset>
-        <legend style="display:flex; align-items:center; justify-content:space-between; width:calc(100% - 4px); margin:0 2px; background:transparent; padding:0; box-shadow:none;">
-          <span style="font-weight:900; padding:4px 12px; color:var(--bg); background:var(--accent); border-radius:6px; font-size:11px; letter-spacing:2px; text-transform:uppercase; box-shadow:0 2px 5px rgba(0,0,0,0.3);">Playlists</span>
-          <button id="btn-create-playlist-sb" title="New playlist" style="padding:4px 8px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.3); transition:opacity 0.2s; font-family:inherit; font-weight:400; font-size:11px; color:var(--bg); letter-spacing:1px;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">+ New</button>
-        </legend>
-        <div id="sidebar-playlists-list" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
-      </fieldset>
-      <div id="btn-about-sb" style="text-align:center; padding:20px 0 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px; cursor:pointer; transition:opacity 0.2s;" onmouseover="this.style.opacity='0.75';" onmouseout="this.style.opacity='1';">
-        <span style="font-size:9px; font-weight:900; color:var(--text_dim); letter-spacing:3px; text-transform:uppercase;">Cafe Neurotico</span>
-        <span style="font-size:11px; font-weight:900; color:var(--accent); letter-spacing:2px; text-transform:uppercase;">Game Manager</span>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px;">
+          <button class="split-nav-btn" id="btn-add-game-sb" title="Add Game">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add Game
+          </button>
+          <button class="split-nav-btn" id="btn-open-connect-sb" title="Connect">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Connect
+          </button>
+          <button class="split-nav-btn" id="btn-open-tools-sb" title="Tools">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            Tools
+          </button>
+          <button class="split-nav-btn" id="btn-about-sb" title="About CNGM">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            About
+          </button>
+          <button class="split-nav-btn" id="btn-launch-crema-sb" title="Go Fullscreen With CREMA" style="display:none;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8l3 3 4-4"/></svg>
+            CREMA
+          </button>
+          <button class="split-nav-btn" id="btn-launch-emulatte-sb" title="Launch EmuLatte" style="display:none;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h4M8 8v4"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="18" cy="10" r="1" fill="currentColor"/><circle cx="18" cy="14" r="1" fill="currentColor"/></svg>
+            EmuLatte
+          </button>
+        </div>
       </div>
     </div>
 
