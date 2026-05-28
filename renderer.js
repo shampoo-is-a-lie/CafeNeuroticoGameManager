@@ -1330,7 +1330,7 @@ function renderSplitList(games) {
             <span class="split-inst-dot ${isInstalled ? 'on' : 'off'}"></span>
             <span class="split-row-title">${game.Game}</span>
             <span class="split-store-tag">${storeLabel(game.Store)}</span>
-            <div class="split-row-actions${isFav || isWant ? ' has-active' : ''}">
+            <div class="split-row-actions">
                 <button class="btn-split-row-fav${isFav ? ' active' : ''}" title="Favourite">${_srStarSvg}</button>
                 <button class="btn-split-row-want${isWant ? ' active' : ''}" title="Want to play">${_srBkSvg}</button>
                 <button class="btn-split-row-playlist" title="Add to Playlist">${_srPlSvg}</button>
@@ -1345,7 +1345,6 @@ function renderSplitList(games) {
             game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
             const btn = e.currentTarget;
             btn.classList.toggle('active', game.FAV === 'YES');
-            actions.classList.toggle('has-active', game.FAV === 'YES' || game.WANT_TO_PLAY === 'YES');
             window.api.setGameFlag(String(game.id), 'FAV', game.FAV);
         });
         actions.querySelector('.btn-split-row-want').addEventListener('click', (e) => {
@@ -1353,7 +1352,6 @@ function renderSplitList(games) {
             game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
             const btn = e.currentTarget;
             btn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
-            actions.classList.toggle('has-active', game.FAV === 'YES' || game.WANT_TO_PLAY === 'YES');
             window.api.setGameFlag(String(game.id), 'WANT_TO_PLAY', game.WANT_TO_PLAY);
         });
         actions.querySelector('.btn-split-row-playlist').addEventListener('click', (e) => {
@@ -1918,7 +1916,7 @@ function renderGallery(recent, regular) {
         const _starSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
         const _bkSvg  = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
         const _plSvg  = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><line x1="19" y1="3" x2="19" y2="9"/><line x1="22" y1="6" x2="16" y2="6"/></svg>`;
-        const flagsHtml = `<div class="gallery-flag-btns${isFav || isWant ? ' has-active' : ''}"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">${_starSvg}</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">${_bkSvg}</button><button class="btn-gallery-playlist" data-playlist="${game.id}" title="Add to Playlist">${_plSvg}</button></div>`;
+        const flagsHtml = `<div class="gallery-flag-btns"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">${_starSvg}</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">${_bkSvg}</button><button class="btn-gallery-playlist" data-playlist="${game.id}" title="Add to Playlist">${_plSvg}</button></div>`;
         let actionBtn = '';
         if (isInstalled) {
             actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
@@ -2001,8 +1999,6 @@ _grid.addEventListener('click', (e) => {
         if (!game) return;
         game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
         favBtn.classList.toggle('active', game.FAV === 'YES');
-        const flagBtnsF = favBtn.closest('.gallery-flag-btns');
-        flagBtnsF.classList.toggle('has-active', game.FAV === 'YES' || flagBtnsF.querySelector('.btn-gallery-want')?.classList.contains('active'));
         favBtn.style.animation = 'none'; void favBtn.offsetWidth;
         favBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
         setTimeout(() => { favBtn.style.animation = ''; }, 350);
@@ -2018,8 +2014,6 @@ _grid.addEventListener('click', (e) => {
         if (!game) return;
         game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
         wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
-        const flagBtns = wantBtn.closest('.gallery-flag-btns');
-        flagBtns.classList.toggle('has-active', game.WANT_TO_PLAY === 'YES' || flagBtns.querySelector('.btn-gallery-fav')?.classList.contains('active'));
         wantBtn.style.animation = 'none'; void wantBtn.offsetWidth;
         wantBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
         setTimeout(() => { wantBtn.style.animation = ''; }, 350);
@@ -3339,7 +3333,8 @@ async function openSeeConfig() {
             [
                 document.querySelector(`#panel-stores-grid [data-filter="${filter}"]`),
                 document.querySelector(`#sidebar-filters [data-filter="${filter}"]`),
-                    document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
+                document.querySelector(`#topnav-filters .topnav-filter[data-filter="${filter}"]`),
+                document.querySelector(`#split-filter-strip .split-ftab[data-filter="${filter}"]`),
             ].forEach(el => { if (el) el.style.display = next ? '' : 'none'; });
         });
         grid.appendChild(btn);

@@ -42,7 +42,7 @@
     .install-dot.is-installed { background: #66bb6a; }
     .install-dot.not-installed { background: #ff9800; }
     .gallery-flag-btns { position: absolute; top: 7px; right: 7px; display: flex; flex-direction: column; gap: 4px; z-index: 3; opacity: 0; transition: opacity 0.15s; }
-    .gallery-item:hover .gallery-flag-btns, .gallery-flag-btns.has-active { opacity: 1; }
+    .gallery-item:hover .gallery-flag-btns { opacity: 1; }
     .btn-gallery-fav, .btn-gallery-want { width: 26px; height: 26px; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.35); transition: color 0.15s, background 0.15s; line-height: 1; padding: 0; }
     .btn-gallery-fav:hover { background: rgba(0,0,0,0.75); color: #ffeb3b; }
     .btn-gallery-want:hover { background: rgba(0,0,0,0.75); color: #ff9800; }
@@ -148,7 +148,7 @@
     .split-row.selected .split-row-title { color:var(--text_main); }
     .split-store-tag { font-size:8px; font-weight:900; padding:2px 5px; border-radius:3px; background:rgba(255,255,255,0.07); color:var(--text_dim); flex-shrink:0; letter-spacing:0.5px; text-transform:uppercase; white-space:nowrap; }
     .split-row-actions { position:absolute; right:6px; top:50%; transform:translateY(-50%); display:flex; gap:3px; align-items:center; opacity:0; transition:opacity 0.15s; padding:0 2px; background:linear-gradient(to left, var(--bg_menu) 75%, transparent); pointer-events:none; }
-    .split-row:hover .split-row-actions, .split-row-actions.has-active { opacity:1; pointer-events:auto; }
+    .split-row:hover .split-row-actions { opacity:1; pointer-events:auto; }
     .btn-split-row-fav, .btn-split-row-want, .btn-split-row-playlist { width:20px; height:20px; border-radius:50%; border:none; background:rgba(255,255,255,0.06); cursor:pointer; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.25); padding:0; transition:all 0.12s; flex-shrink:0; }
     .btn-split-row-fav:hover, .btn-split-row-fav.active { color:#ffeb3b; background:rgba(255,235,59,0.1); }
     .btn-split-row-want:hover, .btn-split-row-want.active { color:#ff9800; background:rgba(255,152,0,0.1); }
