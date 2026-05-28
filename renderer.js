@@ -476,13 +476,13 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-command');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
     localStorage.setItem('cngm_layout_mode', mode);
     window.api.setSetting('layout_mode', mode);
-    if (mode === 'command') {
+    if (mode === 'commander') {
         switchView('view-gallery');
     } else {
         const inp = document.getElementById('cmd-search-input');
@@ -1051,7 +1051,7 @@ function switchView(viewId) {
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-list'));
 
     // Command layout: show/hide floating overlays
-    const isCmd = document.getElementById('app-container').classList.contains('layout-command');
+    const isCmd = document.getElementById('app-container').classList.contains('layout-commander');
     const showCmd = isCmd && viewId === 'view-gallery';
     document.getElementById('cmd-bar')?.classList.toggle('cmd-visible', showCmd);
     document.getElementById('cmd-icon-bar')?.classList.toggle('cmd-visible', showCmd);
@@ -1069,7 +1069,7 @@ function updateCmdBarTop(scrollTop) {
 }
 
 document.getElementById('view-gallery').addEventListener('scroll', function () {
-    if (document.getElementById('app-container').classList.contains('layout-command')) {
+    if (document.getElementById('app-container').classList.contains('layout-commander')) {
         updateCmdBarTop(this.scrollTop);
     }
 });
@@ -1807,7 +1807,7 @@ document.addEventListener('keydown', e => {
             if (gallery?.classList.contains('active')) {
                 e.preventDefault();
                 gallery.scrollTo({ top: 0, behavior: 'smooth' });
-                if (document.getElementById('app-container').classList.contains('layout-command')) {
+                if (document.getElementById('app-container').classList.contains('layout-commander')) {
                     updateCmdBarTop(0);
                 }
                 return;

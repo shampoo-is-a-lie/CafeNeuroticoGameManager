@@ -130,11 +130,11 @@
     /* specificity beats the hide rule above, so split-edit overlay wins */
     #app-container.layout-split #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
     /* ── COMMAND LAYOUT ─────────────────────────────────────────────────────── */
-    #app-container.layout-command #icon-rail,
-    #app-container.layout-command #side-panel,
-    #app-container.layout-command #sidebar,
-    #app-container.layout-command #topnav,
-    #app-container.layout-command #gallery-search-wrap { display:none !important; }
+    #app-container.layout-commander #icon-rail,
+    #app-container.layout-commander #side-panel,
+    #app-container.layout-commander #sidebar,
+    #app-container.layout-commander #topnav,
+    #app-container.layout-commander #gallery-search-wrap { display:none !important; }
     /* Command bar — floating terminal search */
     #cmd-bar { position:fixed; left:50%; transform:translateX(-50%); z-index:500; display:none; align-items:center; gap:10px; background:rgba(6,6,6,0.84); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.13); border-radius:10px; padding:11px 20px; min-width:440px; max-width:660px; box-shadow:0 14px 44px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.04); cursor:text; }
     #cmd-bar.cmd-visible { display:flex; }
@@ -1437,7 +1437,7 @@
             <button class="segmented-btn" data-val="sidebar">Classic Sidebar</button>
             <button class="segmented-btn" data-val="topnav">Top Nav</button>
             <button class="segmented-btn" data-val="split">Split Pane</button>
-            <button class="segmented-btn" data-val="command">Command</button>
+            <button class="segmented-btn" data-val="commander">Commander</button>
           </div>
         </div>
 
