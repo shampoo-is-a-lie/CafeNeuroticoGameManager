@@ -476,7 +476,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-mosaic', 'layout-poster');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -493,8 +493,10 @@ function applyLayoutMode(mode) {
     if (mode === 'datahero')  { renderDataHero(); }
     if (mode === 'catalog')   { renderCatalog(); }
     if (mode === 'newspaper') { renderNewspaper(); }
+    if (mode === 'mosaic')    { renderMosaic(); }
+    if (mode === 'poster')    { renderPoster(); }
     // Exit flat layouts: remove split-edit overlay if lingering
-    if (!['datahero','catalog','newspaper'].includes(mode)) {
+    if (!['datahero','catalog','newspaper','mosaic','poster'].includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
 }
@@ -528,7 +530,7 @@ document.getElementById('btn-refresh-library-sb')?.addEventListener('click', () 
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
     const ac = document.getElementById('app-container');
-    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper'];
+    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-mosaic', 'layout-poster'];
     const flatActive = flatLayouts.find(l => ac.classList.contains(l));
     if (flatActive) {
         document.getElementById('main-content').classList.remove('split-edit');
@@ -1324,6 +1326,8 @@ function applyFilters() {
     renderDataHero();
     renderCatalog();
     renderNewspaper();
+    renderMosaic();
+    renderPoster();
     if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
@@ -2266,6 +2270,94 @@ function renderNewspaper() {
     document.getElementById('btn-dh-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-cat-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-np-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-mosaic-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-poster-tools')?.addEventListener('click', () => openToolsModal());
+})();
+
+function renderMosaic() {
+    if (!document.getElementById('app-container').classList.contains('layout-mosaic')) return;
+    const query = (document.getElementById('mosaic-search')?.value || '').trim();
+    const games = _flatFilter(query);
+    document.getElementById('mosaic-count').textContent = games.length + ' games';
+    const grid = document.getElementById('mosaic-grid');
+    grid.innerHTML = '';
+    const now = Math.floor(Date.now() / 1000);
+    const recentCutoff = now - 30 * 86400;
+    games.forEach(game => {
+        const isBig = game.is_favourite == 1 || (game.LastPlayed && game.LastPlayed > recentCutoff);
+        const tile = document.createElement('div');
+        tile.className = 'mosaic-tile' + (isBig ? ' big' : '');
+        const src = game.CoverArt ? getSafePath(game.CoverArt)
+                  : game.HeroArt  ? getSafePath(game.HeroArt) : '';
+        if (src) {
+            const img = document.createElement('img');
+            img.src = src; img.alt = '';
+            tile.appendChild(img);
+        } else {
+            const ph = document.createElement('div');
+            ph.className = 'mosaic-tile-ph';
+            tile.appendChild(ph);
+        }
+        const ov = document.createElement('div');
+        ov.className = 'mosaic-overlay';
+        const nm = document.createElement('span');
+        nm.className = 'mosaic-overlay-name';
+        nm.textContent = game.Game || '';
+        ov.appendChild(nm);
+        tile.appendChild(ov);
+        tile.addEventListener('click', () => _openFlatGamepage(game));
+        grid.appendChild(tile);
+    });
+}
+
+(function () {
+    let _mt = null;
+    document.getElementById('mosaic-search')?.addEventListener('input', () => {
+        clearTimeout(_mt); _mt = setTimeout(renderMosaic, 120);
+    });
+})();
+
+function renderPoster() {
+    if (!document.getElementById('app-container').classList.contains('layout-poster')) return;
+    const query = (document.getElementById('poster-search')?.value || '').trim();
+    const games = _flatFilter(query);
+    const grid = document.getElementById('poster-grid');
+    grid.innerHTML = '';
+    games.forEach(game => {
+        const tile = document.createElement('div');
+        tile.className = 'poster-tile';
+        const src = game.CoverArt ? getSafePath(game.CoverArt)
+                  : game.HeroArt  ? getSafePath(game.HeroArt) : '';
+        if (src) {
+            const img = document.createElement('img');
+            img.src = src; img.alt = '';
+            tile.appendChild(img);
+        } else {
+            const ph = document.createElement('div');
+            ph.className = 'poster-tile-ph';
+            tile.appendChild(ph);
+        }
+        const strip = document.createElement('div');
+        strip.className = 'poster-strip';
+        const nm = document.createElement('span');
+        nm.className = 'poster-strip-name';
+        nm.textContent = game.Game || '';
+        const meta = document.createElement('span');
+        meta.className = 'poster-strip-meta';
+        meta.textContent = [game.Store, game.GENRE].filter(Boolean).join(' · ');
+        strip.appendChild(nm);
+        strip.appendChild(meta);
+        tile.appendChild(strip);
+        tile.addEventListener('click', () => _openFlatGamepage(game));
+        grid.appendChild(tile);
+    });
+}
+
+(function () {
+    let _pt = null;
+    document.getElementById('poster-search')?.addEventListener('input', () => {
+        clearTimeout(_pt); _pt = setTimeout(renderPoster, 120);
+    });
 })();
 
 function renderGallery(recent, regular) {
