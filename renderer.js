@@ -521,13 +521,10 @@ document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
     if(game) openDetails(game);
 });
 
-// --- PLAYLIST BUTTON (gamepage) ---
-document.getElementById('btn-gamepage-playlist')?.addEventListener('click', async () => {
-    const game = allGames.find(g => g.id === currentGameId)
-               || (currentPlaylistGames || []).find(g => g.id === currentGameId);
-    if (!game) return;
+// --- SHARED PLAYLIST PICKER ---
+async function openPlaylistPickerForGame(game) {
     document.getElementById('modal-playlist-picker-game').textContent = game.Game;
-    const gamePlaylistIds = await window.api.getGamePlaylists(currentGameId);
+    const gamePlaylistIds = await window.api.getGamePlaylists(game.id);
     const list = document.getElementById('playlist-picker-list');
     if (!allPlaylists.length) {
         list.innerHTML = `<p style="text-align:center; padding:16px; color:var(--text_dim); font-size:12px;">No playlists yet — create one first.</p>`;
@@ -542,22 +539,27 @@ document.getElementById('btn-gamepage-playlist')?.addEventListener('click', asyn
             btn.addEventListener('click', async () => {
                 const plId   = Number(btn.dataset.playlistId);
                 const inList = btn.dataset.in === '1';
-                if (inList) {
-                    await window.api.removeGameFromPlaylist(plId, currentGameId);
-                } else {
-                    await window.api.addGameToPlaylist(plId, currentGameId);
-                }
+                if (inList) { await window.api.removeGameFromPlaylist(plId, game.id); }
+                else { await window.api.addGameToPlaylist(plId, game.id); }
                 btn.dataset.in = inList ? '0' : '1';
                 btn.style.background = inList ? 'var(--bg_menu)' : 'var(--accent)';
                 btn.style.color      = inList ? 'var(--text_sec)' : 'var(--bg)';
-                btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId).name;
+                btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId)?.name;
                 if (currentPlaylistId !== null) {
                     currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
+                    applyFilters();
                 }
             });
         });
     }
     document.getElementById('modal-add-to-playlist').classList.add('active');
+}
+
+// --- PLAYLIST BUTTON (gamepage) ---
+document.getElementById('btn-gamepage-playlist')?.addEventListener('click', async () => {
+    const game = allGames.find(g => g.id === currentGameId)
+               || (currentPlaylistGames || []).find(g => g.id === currentGameId);
+    if (game) openPlaylistPickerForGame(game);
 });
 document.getElementById('btn-playlist-picker-close')?.addEventListener('click', () =>
     document.getElementById('modal-add-to-playlist').classList.remove('active'));
@@ -1244,10 +1246,14 @@ function renderTable(recent, regular) {
         } else {
             actionCell = `<span style="color:#555; font-size:12px;">${t('game.no_cmd')}</span>`;
         }
+        const _lStarSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        const _lBkSvg  = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+        const _lPlSvg  = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><line x1="19" y1="3" x2="19" y2="9"/><line x1="22" y1="6" x2="16" y2="6"/></svg>`;
         tr.innerHTML = `
         <td>${actionCell}</td>
-        <td style="color: #ffeb3b;">${game.FAV === 'YES' ? '★' : ''}</td>
-        <td style="color: #ff9800;">${game.WANT_TO_PLAY === 'YES' ? '⚑' : ''}</td>
+        <td><button class="btn-list-fav${game.FAV === 'YES' ? ' active' : ''}" data-list-fav="${game.id}" title="Favourite">${_lStarSvg}</button></td>
+        <td><button class="btn-list-want${game.WANT_TO_PLAY === 'YES' ? ' active' : ''}" data-list-want="${game.id}" title="Want to play">${_lBkSvg}</button></td>
+        <td><button class="btn-list-playlist" data-list-playlist="${game.id}" title="Add to Playlist">${_lPlSvg}</button></td>
         <td style="font-weight: bold;">${game.Game}</td>
         <td>${displayStore}</td>
         <td>${game.GENRE || ''}</td>
@@ -1259,12 +1265,12 @@ function renderTable(recent, regular) {
 
     if (recent && recent.length > 0) {
         const trLabel = document.createElement('tr');
-        trLabel.innerHTML = `<td colspan="7" style="background: var(--bg_menu); color: var(--accent); font-weight: 900; letter-spacing: 2px; text-align: center;">${t('recent.header')}</td>`;
+        trLabel.innerHTML = `<td colspan="8" style="background: var(--bg_menu); color: var(--accent); font-weight: 900; letter-spacing: 2px; text-align: center;">${t('recent.header')}</td>`;
         tbody.appendChild(trLabel);
         recent.forEach(appendRow);
 
         const trAll = document.createElement('tr');
-        trAll.innerHTML = `<td colspan="7" style="background: var(--bg_menu); color: var(--text_sec); font-weight: 900; letter-spacing: 2px; text-align: center;">${t('filter.all')}</td>`;
+        trAll.innerHTML = `<td colspan="8" style="background: var(--bg_menu); color: var(--text_sec); font-weight: 900; letter-spacing: 2px; text-align: center;">${t('filter.all')}</td>`;
         tbody.appendChild(trAll);
     }
     regular.forEach(appendRow);
@@ -1309,16 +1315,51 @@ function renderSplitList(games) {
         return s.toUpperCase().slice(0, 8);
     };
 
+    const _srStarSvg = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    const _srBkSvg  = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+    const _srPlSvg  = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><line x1="19" y1="3" x2="19" y2="9"/><line x1="22" y1="6" x2="16" y2="6"/></svg>`;
+
     games.forEach((game, idx) => {
         const isInstalled = game.Installed == null || game.Installed == 1;
+        const isFav  = game.FAV === 'YES';
+        const isWant = game.WANT_TO_PLAY === 'YES';
         const row = document.createElement('div');
         row.className = 'split-row' + (idx === _splitIdx ? ' selected' : '');
         row.dataset.idx = idx;
         row.innerHTML = `
             <span class="split-inst-dot ${isInstalled ? 'on' : 'off'}"></span>
             <span class="split-row-title">${game.Game}</span>
-            <span class="split-store-tag">${storeLabel(game.Store)}</span>`;
-        row.addEventListener('click', () => selectSplitRow(idx));
+            <span class="split-store-tag">${storeLabel(game.Store)}</span>
+            <div class="split-row-actions${isFav || isWant ? ' has-active' : ''}">
+                <button class="btn-split-row-fav${isFav ? ' active' : ''}" title="Favourite">${_srStarSvg}</button>
+                <button class="btn-split-row-want${isWant ? ' active' : ''}" title="Want to play">${_srBkSvg}</button>
+                <button class="btn-split-row-playlist" title="Add to Playlist">${_srPlSvg}</button>
+            </div>`;
+        row.addEventListener('click', (e) => {
+            if (e.target.closest('.split-row-actions')) return;
+            selectSplitRow(idx);
+        });
+        const actions = row.querySelector('.split-row-actions');
+        actions.querySelector('.btn-split-row-fav').addEventListener('click', (e) => {
+            e.stopPropagation();
+            game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
+            const btn = e.currentTarget;
+            btn.classList.toggle('active', game.FAV === 'YES');
+            actions.classList.toggle('has-active', game.FAV === 'YES' || game.WANT_TO_PLAY === 'YES');
+            window.api.setGameFlag(String(game.id), 'FAV', game.FAV);
+        });
+        actions.querySelector('.btn-split-row-want').addEventListener('click', (e) => {
+            e.stopPropagation();
+            game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+            const btn = e.currentTarget;
+            btn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
+            actions.classList.toggle('has-active', game.FAV === 'YES' || game.WANT_TO_PLAY === 'YES');
+            window.api.setGameFlag(String(game.id), 'WANT_TO_PLAY', game.WANT_TO_PLAY);
+        });
+        actions.querySelector('.btn-split-row-playlist').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openPlaylistPickerForGame(game);
+        });
         body.appendChild(row);
     });
 
@@ -1473,41 +1514,7 @@ function renderSplitDetail(game) {
 
     // Playlist add button — reuses the existing add-to-playlist modal
     const splitPlaylistAddBtn = document.getElementById('btn-split-playlist-add');
-    splitPlaylistAddBtn.onclick = async () => {
-        document.getElementById('modal-playlist-picker-game').textContent = game.Game;
-        const gamePlaylistIds = await window.api.getGamePlaylists(game.id);
-        const pickerList = document.getElementById('playlist-picker-list');
-        if (!allPlaylists.length) {
-            pickerList.innerHTML = `<p style="text-align:center; padding:16px; color:var(--text_dim); font-size:12px;">No playlists yet — create one first.</p>`;
-        } else {
-            pickerList.innerHTML = allPlaylists.map(p => {
-                const inList = gamePlaylistIds.includes(p.id);
-                return `<button class="btn-pl-toggle-split" data-playlist-id="${p.id}" data-in="${inList ? '1' : '0'}"
-                    style="padding:10px 12px; background:${inList ? 'var(--accent)' : 'var(--bg_menu)'}; color:${inList ? 'var(--bg)' : 'var(--text_sec)'}; border:1px solid var(--border_solid); border-radius:6px; text-align:left; cursor:pointer; font-family:inherit; font-size:12px; font-weight:900; transition:background 0.15s; width:100%;">
-                    ${inList ? '✓ ' : ''}${escHtml(p.name)}</button>`;
-            }).join('');
-            pickerList.querySelectorAll('.btn-pl-toggle-split').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const plId = Number(btn.dataset.playlistId);
-                    const inList = btn.dataset.in === '1';
-                    if (inList) { await window.api.removeGameFromPlaylist(plId, game.id); }
-                    else { await window.api.addGameToPlaylist(plId, game.id); }
-                    btn.dataset.in = inList ? '0' : '1';
-                    btn.style.background = inList ? 'var(--bg_menu)' : 'var(--accent)';
-                    btn.style.color = inList ? 'var(--text_sec)' : 'var(--bg)';
-                    btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId).name;
-                    if (currentPlaylistId !== null) {
-                        currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
-                        applyFilters();
-                    }
-                    const newIds = await window.api.getGamePlaylists(game.id);
-                    const splitRemoveBtn = document.getElementById('btn-split-remove-playlist');
-                    splitRemoveBtn.style.display = newIds.length > 0 ? 'flex' : 'none';
-                });
-            });
-        }
-        document.getElementById('modal-add-to-playlist').classList.add('active');
-    };
+    splitPlaylistAddBtn.onclick = () => openPlaylistPickerForGame(game);
 
     // Playlist remove button — visible if the game is in any playlist
     const splitRemovePlaylistBtn = document.getElementById('btn-split-remove-playlist');
@@ -1723,7 +1730,7 @@ document.addEventListener('keydown', e => {
 
 // ── Table event delegation (set up once) ──────────────────────────────────────
 const _tbody = document.getElementById('list-tbody');
-_tbody.addEventListener('click', (e) => {
+_tbody.addEventListener('click', async (e) => {
     const play = e.target.closest('.btn-play');
     if (play) { e.stopPropagation(); verifyAndLaunch(play.dataset.id, play.dataset.cmd); return; }
     const install = e.target.closest('.btn-install');
@@ -1739,6 +1746,37 @@ _tbody.addEventListener('click', (e) => {
         } else {
             window.api.openInstallUrl(install.dataset.url);
         }
+        return;
+    }
+    const favBtn = e.target.closest('.btn-list-fav');
+    if (favBtn) {
+        e.stopPropagation();
+        const id = favBtn.dataset.listFav;
+        const game = allGames.find(g => String(g.id) === id);
+        if (!game) return;
+        game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
+        favBtn.classList.toggle('active', game.FAV === 'YES');
+        window.api.setGameFlag(id, 'FAV', game.FAV);
+        return;
+    }
+    const wantBtn = e.target.closest('.btn-list-want');
+    if (wantBtn) {
+        e.stopPropagation();
+        const id = wantBtn.dataset.listWant;
+        const game = allGames.find(g => String(g.id) === id);
+        if (!game) return;
+        game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+        wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
+        window.api.setGameFlag(id, 'WANT_TO_PLAY', game.WANT_TO_PLAY);
+        return;
+    }
+    const plBtn = e.target.closest('.btn-list-playlist');
+    if (plBtn) {
+        e.stopPropagation();
+        const id = plBtn.dataset.listPlaylist;
+        const game = allGames.find(g => String(g.id) === id);
+        if (game) openPlaylistPickerForGame(game);
+        return;
     }
 });
 _tbody.addEventListener('dblclick', (e) => {
@@ -1877,7 +1915,10 @@ function renderGallery(recent, regular) {
         const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
         const isFav  = game.FAV === 'YES';
         const isWant = game.WANT_TO_PLAY === 'YES';
-        const flagsHtml = `<div class="gallery-flag-btns${isFav || isWant ? ' has-active' : ''}"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">★</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">⚑</button></div>`;
+        const _starSvg = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        const _bkSvg  = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>`;
+        const _plSvg  = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/><line x1="19" y1="3" x2="19" y2="9"/><line x1="22" y1="6" x2="16" y2="6"/></svg>`;
+        const flagsHtml = `<div class="gallery-flag-btns${isFav || isWant ? ' has-active' : ''}"><button class="btn-gallery-fav${isFav ? ' active' : ''}" data-fav="${game.id}" title="Favourite">${_starSvg}</button><button class="btn-gallery-want${isWant ? ' active' : ''}" data-want="${game.id}" title="Want to play">${_bkSvg}</button><button class="btn-gallery-playlist" data-playlist="${game.id}" title="Add to Playlist">${_plSvg}</button></div>`;
         let actionBtn = '';
         if (isInstalled) {
             actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
@@ -1960,7 +2001,8 @@ _grid.addEventListener('click', (e) => {
         if (!game) return;
         game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
         favBtn.classList.toggle('active', game.FAV === 'YES');
-        favBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.FAV === 'YES' || favBtn.nextElementSibling?.classList.contains('active'));
+        const flagBtnsF = favBtn.closest('.gallery-flag-btns');
+        flagBtnsF.classList.toggle('has-active', game.FAV === 'YES' || flagBtnsF.querySelector('.btn-gallery-want')?.classList.contains('active'));
         favBtn.style.animation = 'none'; void favBtn.offsetWidth;
         favBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
         setTimeout(() => { favBtn.style.animation = ''; }, 350);
@@ -1976,11 +2018,21 @@ _grid.addEventListener('click', (e) => {
         if (!game) return;
         game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
         wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
-        wantBtn.closest('.gallery-flag-btns').classList.toggle('has-active', game.WANT_TO_PLAY === 'YES' || wantBtn.previousElementSibling?.classList.contains('active'));
+        const flagBtns = wantBtn.closest('.gallery-flag-btns');
+        flagBtns.classList.toggle('has-active', game.WANT_TO_PLAY === 'YES' || flagBtns.querySelector('.btn-gallery-fav')?.classList.contains('active'));
         wantBtn.style.animation = 'none'; void wantBtn.offsetWidth;
         wantBtn.style.animation = 'gallery-flag-glow 0.35s ease-out';
         setTimeout(() => { wantBtn.style.animation = ''; }, 350);
         window.api.setGameFlag(id, 'WANT_TO_PLAY', game.WANT_TO_PLAY);
+        return;
+    }
+
+    const plBtn = e.target.closest('.btn-gallery-playlist');
+    if (plBtn) {
+        e.stopPropagation();
+        const id = plBtn.dataset.playlist;
+        const game = allGames.find(g => String(g.id) === id);
+        if (game) openPlaylistPickerForGame(game);
         return;
     }
 });
