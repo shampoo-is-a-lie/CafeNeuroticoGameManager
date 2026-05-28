@@ -1089,6 +1089,7 @@ document.getElementById('view-gallery').addEventListener('scroll', function () {
 })();
 
 // Command icon bar button wiring
+document.getElementById('btn-cmd-home')?.addEventListener('click', () => activateFilter('all'));
 document.getElementById('btn-cmd-refresh')?.addEventListener('click', () => document.getElementById('btn-refresh-library').click());
 document.getElementById('btn-cmd-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
 document.getElementById('btn-cmd-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
