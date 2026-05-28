@@ -1079,9 +1079,11 @@ document.getElementById('view-gallery').addEventListener('scroll', function () {
     const inp = document.getElementById('cmd-search-input');
     const cur = document.getElementById('cmd-cursor');
     if (!inp || !cur) return;
+    let _cmdFilterTimer = null;
     inp.addEventListener('input', () => {
         cur.style.display = inp.value ? 'none' : '';
-        applyFilters();
+        clearTimeout(_cmdFilterTimer);
+        _cmdFilterTimer = setTimeout(applyFilters, 120);
     });
     inp.addEventListener('focus', () => { cur.style.display = 'none'; });
     inp.addEventListener('blur',  () => { if (!inp.value) cur.style.display = ''; });
