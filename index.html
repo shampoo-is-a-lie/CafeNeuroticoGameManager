@@ -178,6 +178,7 @@
     .fl-btn-primary:hover { opacity:0.82; }
     .fl-btn-ghost { background:transparent; color:var(--text_dim); border:1px solid var(--border_solid); }
     .fl-btn-ghost:hover { color:var(--text_main); border-color:var(--text_sec); }
+    .fl-icon-btn { padding:5px 7px; line-height:0; }
 
     /* ── DATA HERO ──────────────────────────────────────────────────────────── */
     #dh-list-panel { width:35%; flex-shrink:0; border-right:1px solid var(--border_solid); display:flex; flex-direction:column; overflow:hidden; background:var(--bg_menu); }
@@ -1236,6 +1237,7 @@
         <div class="flat-toolbar">
           <input class="flat-input" id="dh-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="flex:1;">
           <span class="flat-count" id="dh-count"></span>
+          <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-dh-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
         <div id="dh-list"></div>
       </div>
@@ -1258,7 +1260,8 @@
     <div id="catalog-shell">
       <div class="flat-toolbar">
         <input class="flat-input" id="cat-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="width:200px;">
-        <span class="flat-count" id="cat-count"></span>
+        <span class="flat-count" id="cat-count" style="flex:1;"></span>
+        <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-cat-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
       <div id="cat-table-wrap">
         <table id="cat-table">
@@ -1285,6 +1288,7 @@
         <span id="np-masthead">Your Library</span>
         <input class="flat-input" id="np-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="width:180px; margin-left:8px;">
         <span class="flat-count" id="np-count" style="margin-left:auto;"></span>
+        <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-np-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
       <div id="np-area">
         <div id="np-columns"></div>

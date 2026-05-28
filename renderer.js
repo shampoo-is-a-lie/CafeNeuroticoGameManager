@@ -2262,6 +2262,10 @@ function renderNewspaper() {
         document.querySelectorAll('.np-entry').forEach(e => e.classList.remove('active'));
         _npSelected = null;
     });
+
+    document.getElementById('btn-dh-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-cat-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-np-tools')?.addEventListener('click', () => openToolsModal());
 })();
 
 function renderGallery(recent, regular) {
