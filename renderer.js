@@ -1798,6 +1798,23 @@ document.getElementById('btn-split-history')?.addEventListener('click', () => {
 
 // Split keyboard navigation
 document.addEventListener('keydown', e => {
+    // Home key: scroll gallery to top from any layout
+    if (e.key === 'Home' && !e.altKey && !e.ctrlKey && !e.metaKey) {
+        const active = document.activeElement;
+        const inTextInput = active && ['INPUT','TEXTAREA'].includes(active.tagName);
+        if (!inTextInput) {
+            const gallery = document.getElementById('view-gallery');
+            if (gallery?.classList.contains('active')) {
+                e.preventDefault();
+                gallery.scrollTo({ top: 0, behavior: 'smooth' });
+                if (document.getElementById('app-container').classList.contains('layout-command')) {
+                    updateCmdBarTop(0);
+                }
+                return;
+            }
+        }
+    }
+
     if (e.key === 'Escape' && document.getElementById('split-cover-zoom')?.classList.contains('active')) {
         document.getElementById('split-cover-zoom').classList.remove('active');
         return;
