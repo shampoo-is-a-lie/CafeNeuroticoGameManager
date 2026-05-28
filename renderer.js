@@ -476,7 +476,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-magazine');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -489,6 +489,12 @@ function applyLayoutMode(mode) {
         if (inp) { inp.value = ''; applyFilters(); }
         document.getElementById('cmd-bar')?.classList.remove('cmd-visible');
         document.getElementById('cmd-icon-bar')?.classList.remove('cmd-visible');
+    }
+    if (mode === 'magazine') {
+        switchView('view-magazine');
+    } else {
+        const msi = document.getElementById('mag-search');
+        if (msi) msi.value = '';
     }
 }
 document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(btn =>
@@ -1043,7 +1049,8 @@ function switchView(viewId) {
     if (viewId !== 'view-gamepage') clearInterval(ssBannerKbInterval);
     if (viewId !== 'view-gallery') clearInterval(heroKbInterval);
     if (viewId !== 'view-details') clearInterval(detailScreenshotInterval);
-    if (viewId === 'view-gallery' || viewId === 'view-list') lastGridView = viewId;
+    if (viewId === 'view-gallery' || viewId === 'view-list' || viewId === 'view-magazine') lastGridView = viewId;
+    if (viewId === 'view-magazine') { renderMagazine(); }
 
     ['btn-view-gallery', 'btn-view-gallery-sb'].forEach(id =>
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-gallery'));
@@ -1307,6 +1314,7 @@ function applyFilters() {
 
     renderTable(recentGames, regularGames);
     renderGallery(recentGames, regularGames);
+    renderMagazine();
     if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
@@ -2002,6 +2010,113 @@ function getStoreLogo(store) {
     if (s.includes('other'))    return 'assets/logos/others.png';
     return null;
 }
+
+// ── MAGAZINE LAYOUT ───────────────────────────────────────────────────────────
+function renderMagazine() {
+    if (!document.getElementById('view-magazine')?.classList.contains('active')) return;
+    const query = (document.getElementById('mag-search')?.value || '').toLowerCase().trim();
+
+    const games = query
+        ? allGames.filter(g => (g.Game||'').toLowerCase().includes(query) ||
+                               (g.GENRE||'').toLowerCase().includes(query) ||
+                               (g.Store||'').toLowerCase().includes(query) ||
+                               (g.DEV||'').toLowerCase().includes(query))
+        : allGames;
+
+    // ── Featured selection (recent + fav, up to 4, only when not searching)
+    let featured = [], rest = games;
+    if (!query) {
+        const byRecency = [...allGames]
+            .filter(g => g.LastPlayed && g.LastPlayed > 0)
+            .sort((a, b) => b.LastPlayed - a.LastPlayed);
+        const byFav = allGames.filter(g => g.FAV === 'YES');
+        const seen = new Set();
+        const candidates = [...byRecency, ...byFav].filter(g => { if (seen.has(g.id)) return false; seen.add(g.id); return true; });
+        featured = candidates.slice(0, 4);
+        const featuredIds = new Set(featured.map(g => g.id));
+        rest = games.filter(g => !featuredIds.has(g.id));
+    }
+
+    const featuredSection = document.getElementById('mag-featured-section');
+    const librarySection  = document.getElementById('mag-library-section');
+    const featuredGrid    = document.getElementById('mag-featured-grid');
+    const compactGrid     = document.getElementById('mag-compact-grid');
+    const featuredLabel   = document.getElementById('mag-featured-label');
+    const libraryLabel    = document.getElementById('mag-library-label');
+
+    // Hide featured when searching
+    featuredSection.style.display = query ? 'none' : '';
+
+    // ── Build featured cards
+    featuredGrid.innerHTML = '';
+    featured.forEach((game, i) => {
+        const heroSrc = game.HeroArt ? getSafePath(game.HeroArt) : (game.CoverArt ? getSafePath(game.CoverArt) : '');
+        const storeLogo = getStoreLogo(game.Store);
+        const storeBadgeHtml = storeLogo
+            ? `<div class="mag-card-store-badge" style="-webkit-mask-image:url('${storeLogo}');"></div>` : '';
+        const genreTag   = game.GENRE    ? `<span class="mag-meta-tag">${escHtml(game.GENRE)}</span>` : '';
+        const hltbTag    = game.HLTB_Main ? `<span class="mag-meta-tag accent">${escHtml(game.HLTB_Main)}h</span>` : '';
+        const protonTag  = game.ProtonTier ? `<span class="mag-meta-tag">${escHtml(game.ProtonTier)}</span>` : '';
+        const metaTag    = game.METACRITIC ? `<span class="mag-meta-tag accent">MC ${escHtml(String(game.METACRITIC))}</span>` : '';
+
+        const card = document.createElement('div');
+        const isLg = i === 0 && featured.length >= 3;
+        card.className = `mag-card ${isLg ? 'mag-card-lg' : 'mag-card-sm'}`;
+        card.innerHTML = `
+            ${heroSrc ? `<img class="mag-card-hero" src="${heroSrc}" loading="lazy">` : ''}
+            <div class="mag-card-overlay"></div>
+            <div class="mag-card-content">
+                <div class="mag-card-title">${escHtml(game.Game)}</div>
+                <div class="mag-card-meta">
+                    ${storeBadgeHtml}${genreTag}${hltbTag}${protonTag}${metaTag}
+                </div>
+            </div>`;
+        card.addEventListener('click', () => openGamepage(game));
+        featuredGrid.appendChild(card);
+    });
+
+    // ── Update section labels
+    if (query) {
+        libraryLabel.textContent = `Results for "${query}" — ${games.length} game${games.length !== 1 ? 's' : ''}`;
+    } else {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        featuredLabel.textContent = featured.some(g => g.LastPlayed) ? 'Recently Played & Favourites' : 'Favourites';
+        libraryLabel.textContent = `Library — ${rest.length} titles`;
+    }
+
+    // ── Build compact grid
+    compactGrid.innerHTML = '';
+    rest.forEach(game => {
+        const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+        const tile = document.createElement('div');
+        tile.className = 'mag-tile';
+        tile.innerHTML = coverSrc
+            ? `<img src="${coverSrc}" loading="lazy" alt="${escHtml(game.Game)}"><div class="mag-tile-label">${escHtml(game.Game)}</div>`
+            : `<div class="mag-tile-no-cover">${escHtml(game.Game)}</div>`;
+        tile.addEventListener('click', () => openGamepage(game));
+        compactGrid.appendChild(tile);
+    });
+}
+
+// Magazine search wiring
+(function () {
+    const inp = document.getElementById('mag-search');
+    const clr = document.getElementById('btn-mag-clear');
+    if (!inp) return;
+    let _t = null;
+    inp.addEventListener('input', () => {
+        clr.style.display = inp.value ? '' : 'none';
+        clearTimeout(_t);
+        _t = setTimeout(renderMagazine, 120);
+    });
+    clr?.addEventListener('click', () => {
+        inp.value = '';
+        clr.style.display = 'none';
+        renderMagazine();
+        inp.focus();
+    });
+})();
 
 function renderGallery(recent, regular) {
     const grid = document.getElementById('gallery-grid');
