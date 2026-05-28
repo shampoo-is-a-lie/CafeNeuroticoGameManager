@@ -308,11 +308,14 @@ window.api.checkEmuLatte().then(exists => {
         if (splitEmu) splitEmu.style.display = '';
         const topnavEmu = document.getElementById('btn-topnav-emulatte');
         if (topnavEmu) topnavEmu.style.display = '';
+        const sbEmu = document.getElementById('btn-launch-emulatte-sb');
+        if (sbEmu) sbEmu.style.display = 'flex';
     }
 });
 ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
     document.getElementById(id)?.addEventListener('click', () => window.api.launchCrema()));
 document.getElementById('btn-topnav-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
+document.getElementById('btn-launch-emulatte-sb')?.addEventListener('click', () => window.api.launchEmuLatte());
 
 // Top nav filter scroll arrows
 function updateTopnavFilterArrows() {
