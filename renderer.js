@@ -299,6 +299,8 @@ window.api.checkCrema().then(exists => {
         });
         const splitCrema = document.getElementById('btn-split-crema');
         if (splitCrema) splitCrema.style.display = '';
+        const cmdCrema = document.getElementById('btn-cmd-crema');
+        if (cmdCrema) cmdCrema.style.display = 'flex';
     }
 });
 
@@ -310,6 +312,8 @@ window.api.checkEmuLatte().then(exists => {
         if (topnavEmu) topnavEmu.style.display = '';
         const sbEmu = document.getElementById('btn-launch-emulatte-sb');
         if (sbEmu) sbEmu.style.display = 'flex';
+        const cmdEmu = document.getElementById('btn-cmd-emulatte');
+        if (cmdEmu) cmdEmu.style.display = 'flex';
     }
 });
 ['btn-launch-crema', 'btn-launch-crema-sb'].forEach(id =>
@@ -472,12 +476,20 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-command');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
     localStorage.setItem('cngm_layout_mode', mode);
     window.api.setSetting('layout_mode', mode);
+    if (mode === 'command') {
+        switchView('view-gallery');
+    } else {
+        const inp = document.getElementById('cmd-search-input');
+        if (inp) { inp.value = ''; applyFilters(); }
+        document.getElementById('cmd-bar')?.classList.remove('cmd-visible');
+        document.getElementById('cmd-icon-bar')?.classList.remove('cmd-visible');
+    }
 }
 document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(btn =>
     btn.addEventListener('click', () => applyLayoutMode(btn.dataset.val)));
@@ -1037,7 +1049,58 @@ function switchView(viewId) {
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-gallery'));
     ['btn-view-list', 'btn-view-list-sb'].forEach(id =>
         document.getElementById(id)?.classList.toggle('active', viewId === 'view-list'));
+
+    // Command layout: show/hide floating overlays
+    const isCmd = document.getElementById('app-container').classList.contains('layout-command');
+    const showCmd = isCmd && viewId === 'view-gallery';
+    document.getElementById('cmd-bar')?.classList.toggle('cmd-visible', showCmd);
+    document.getElementById('cmd-icon-bar')?.classList.toggle('cmd-visible', showCmd);
+    if (showCmd) updateCmdBarTop(0);
 }
+
+// ── COMMAND LAYOUT ───────────────────────────────────────────────────────────
+function updateCmdBarTop(scrollTop) {
+    const bar = document.getElementById('cmd-bar');
+    if (!bar) return;
+    const TITLE_H = 35, VIEW_PAD = 20, HERO_H = 350;
+    const barH = bar.offsetHeight || 44;
+    const atRest = TITLE_H + VIEW_PAD + HERO_H / 2 - barH / 2;
+    bar.style.top = Math.max(TITLE_H + 10, atRest - scrollTop) + 'px';
+}
+
+document.getElementById('view-gallery').addEventListener('scroll', function () {
+    if (document.getElementById('app-container').classList.contains('layout-command')) {
+        updateCmdBarTop(this.scrollTop);
+    }
+});
+
+// Command search input wired to applyFilters; cursor hides when input is focused/has text
+(function () {
+    const inp = document.getElementById('cmd-search-input');
+    const cur = document.getElementById('cmd-cursor');
+    if (!inp || !cur) return;
+    inp.addEventListener('input', () => {
+        cur.style.display = inp.value ? 'none' : '';
+        applyFilters();
+    });
+    inp.addEventListener('focus', () => { cur.style.display = 'none'; });
+    inp.addEventListener('blur',  () => { if (!inp.value) cur.style.display = ''; });
+    document.getElementById('cmd-bar')?.addEventListener('click', () => inp.focus());
+})();
+
+// Command icon bar button wiring
+document.getElementById('btn-cmd-refresh')?.addEventListener('click', () => document.getElementById('btn-refresh-library').click());
+document.getElementById('btn-cmd-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
+document.getElementById('btn-cmd-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
+document.getElementById('btn-cmd-tools')?.addEventListener('click', () => document.getElementById('btn-open-tools').click());
+document.getElementById('btn-cmd-about')?.addEventListener('click', () => {
+    (document.getElementById('btn-about') || document.getElementById('btn-about-sb'))?.click();
+});
+document.getElementById('btn-cmd-playlists')?.addEventListener('click', () => {
+    (document.getElementById('btn-topnav-playlists') || document.getElementById('btn-split-playlists'))?.click();
+});
+document.getElementById('btn-cmd-crema')?.addEventListener('click', () => window.api.launchCrema());
+document.getElementById('btn-cmd-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
 
 // Debounced loadGames — collapses rapid successive calls (e.g. from two parallel .then() chains)
 // into a single DB fetch 80ms after the last call, invisible to the user.
@@ -1129,7 +1192,7 @@ document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
     document.getElementById('btn-add-game').click());
 
 function applyFilters() {
-    const query = (document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
+    const query = (document.getElementById('cmd-search-input')?.value || document.getElementById('gallery-search')?.value || document.getElementById('search-bar')?.value || document.getElementById('topnav-search')?.value || document.getElementById('split-search')?.value || '').toLowerCase();
 
     // Playlist mode: filter within the playlist's game set
     const baseGames = currentPlaylistGames !== null ? currentPlaylistGames : allGames;
