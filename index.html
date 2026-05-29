@@ -270,12 +270,12 @@
     .mosaic-overlay-name { font-size:10px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; letter-spacing:0.3px; }
 
     /* ── POSTER WALL ─────────────────────────────────────────────────────────── */
-    #poster-shell { position:relative; }
+    #poster-shell { position:relative; flex-direction:column; }
     #poster-float { position:absolute; top:10px; right:12px; z-index:10; display:flex; gap:6px; align-items:center; }
     #poster-search { background:rgba(6,6,6,0.78); border:1px solid rgba(255,255,255,0.14); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 10px; border-radius:0; backdrop-filter:blur(10px); width:180px; }
     #poster-search:focus { outline:none; border-color:var(--accent); }
     #poster-search::placeholder { color:rgba(255,255,255,0.28); font-style:italic; }
-    #poster-grid { width:100%; height:100%; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); align-content:start; gap:0; }
+    #poster-grid { flex:1; min-height:0; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); align-content:start; gap:0; }
     .poster-tile { position:relative; overflow:hidden; cursor:pointer; background:#0d0d0d; }
     .poster-tile::before { content:''; display:block; padding-top:150%; }
     .poster-tile img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.22s ease; }
