@@ -128,7 +128,7 @@
     #app-container.layout-split #gallery-search-wrap,
     #app-container.layout-split #main-content { display:none !important; }
     /* specificity beats the hide rule above, so split-edit overlay wins */
-    #app-container.layout-split #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
+    #app-container.layout-split #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
     /* ── COMMAND LAYOUT ─────────────────────────────────────────────────────── */
     #app-container.layout-commander #icon-rail,
     #app-container.layout-commander #side-panel,
@@ -164,7 +164,7 @@
     #app-container.layout-datahero      #main-content, #app-container.layout-catalog       #main-content,
     #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content { display:none !important; }
     #app-container.layout-datahero      #main-content.split-edit, #app-container.layout-catalog       #main-content.split-edit,
-    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
+    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
     #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell { display:none; flex:1; overflow:hidden; }
     #app-container.layout-datahero      #datahero-shell   { display:flex !important; }
     #app-container.layout-catalog       #catalog-shell    { display:flex !important; }
@@ -256,6 +256,22 @@
     /* ── STREAMING ROWS ──────────────────────────────────────────────────────── */
     #streamrows-shell { flex-direction:column; }
     #sr-content { flex:1; overflow-y:auto; min-height:0; padding:16px 0 24px; }
+
+    /* ── FLAT DETAIL OVERLAY ─────────────────────────────────────────────────── */
+    #flat-detail-overlay { display:none; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; flex-direction:column; background:#080808; }
+    #flat-detail-overlay.open { display:flex; }
+    #fdo-bg { position:absolute; inset:0; background-size:cover; background-position:center; background-repeat:no-repeat; }
+    #fdo-grad { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.22) 100%); }
+    #fdo-bar { position:relative; z-index:1; display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.07); background:rgba(0,0,0,0.5); flex-shrink:0; }
+    #fdo-store-tag { font-size:9px; font-weight:900; letter-spacing:2px; color:var(--text_dim); text-transform:uppercase; margin-left:4px; }
+    #fdo-spacer { flex:1; }
+    #fdo-content { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:flex-end; padding:32px 44px 40px; overflow-y:auto; min-height:0; }
+    #fdo-title { font-size:38px; font-weight:900; color:#fff; line-height:1.05; margin-bottom:13px; text-shadow:0 2px 14px rgba(0,0,0,0.95); }
+    #fdo-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+    .fdo-meta-pill { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.5); }
+    .fdo-meta-pill.accent { color:var(--accent); }
+    .fdo-meta-sep { width:1px; height:10px; background:rgba(255,255,255,0.18); flex-shrink:0; }
+    #fdo-desc { font-size:12px; color:rgba(255,255,255,0.45); line-height:1.75; max-width:700px; max-height:130px; overflow:hidden; }
     .sr-row { margin-bottom:30px; }
     .sr-row-label { font-size:9px; font-weight:900; letter-spacing:2px; color:var(--text_dim); text-transform:uppercase; padding:0 18px 10px; display:flex; align-items:center; gap:10px; }
     .sr-row-label span:first-child { flex:1; }
@@ -1345,6 +1361,25 @@
 
     </div><!-- /#app-inner -->
   </div><!-- /#app-container -->
+
+  <!-- ── FLAT DETAIL OVERLAY — shown when clicking a game from any flat layout ─ -->
+  <div id="flat-detail-overlay">
+    <div id="fdo-bg"></div>
+    <div id="fdo-grad"></div>
+    <div id="fdo-bar">
+      <button id="btn-fdo-back" class="fl-btn fl-btn-ghost">← BACK</button>
+      <span id="fdo-store-tag"></span>
+      <div id="fdo-spacer"></div>
+      <button id="btn-fdo-gamepage" class="fl-btn fl-btn-ghost">FULL PAGE</button>
+      <button id="btn-fdo-edit" class="fl-btn fl-btn-ghost">EDIT</button>
+      <button id="btn-fdo-launch" class="fl-btn fl-btn-primary">▶ PLAY</button>
+    </div>
+    <div id="fdo-content">
+      <div id="fdo-title"></div>
+      <div id="fdo-meta"></div>
+      <div id="fdo-desc"></div>
+    </div>
+  </div>
 
   <div id="modal-about" class="modal-overlay">
     <div class="modal-box" style="text-align: center;">

@@ -2016,10 +2016,75 @@ function getStoreLogo(store) {
 }
 
 // ── FLAT LAYOUT HELPERS ──────────────────────────────────────────────────────
-function _openFlatGamepage(game) {
+let _flatDetailGame = null;
+
+function openFlatDetail(game) {
+    _flatDetailGame = game;
+    const ov = document.getElementById('flat-detail-overlay');
+
+    const src = game.HeroArt ? getSafePath(game.HeroArt) : game.CoverArt ? getSafePath(game.CoverArt) : '';
+    document.getElementById('fdo-bg').style.backgroundImage = src ? `url("${src}")` : 'none';
+
+    document.getElementById('fdo-store-tag').textContent = (game.Store || '').toUpperCase();
+    document.getElementById('fdo-title').textContent = game.Game || '';
+
+    const meta = document.getElementById('fdo-meta');
+    meta.innerHTML = '';
+    const pills = [];
+    if (game.GENRE)      pills.push({ t: game.GENRE });
+    if (game.HLTB_Main)  pills.push({ t: game.HLTB_Main + 'h', accent: true });
+    if (game.ProtonTier) pills.push({ t: game.ProtonTier });
+    if (game.METACRITIC) pills.push({ t: 'MC ' + game.METACRITIC, accent: true });
+    if (game.RELEASED)   pills.push({ t: game.RELEASED });
+    pills.forEach((p, i) => {
+        if (i > 0) { const sep = document.createElement('div'); sep.className = 'fdo-meta-sep'; meta.appendChild(sep); }
+        const span = document.createElement('span');
+        span.className = 'fdo-meta-pill' + (p.accent ? ' accent' : '');
+        span.textContent = p.t;
+        meta.appendChild(span);
+    });
+
+    const desc = getLocalizedDescription(game) || '';
+    document.getElementById('fdo-desc').textContent = desc;
+
+    document.getElementById('btn-fdo-launch').style.display = game.LaunchCommand ? '' : 'none';
+
+    ov.classList.add('open');
+}
+
+function closeFlatDetail() {
+    document.getElementById('flat-detail-overlay').classList.remove('open');
+    _flatDetailGame = null;
+}
+
+document.getElementById('btn-fdo-back').addEventListener('click', closeFlatDetail);
+
+document.getElementById('btn-fdo-gamepage').addEventListener('click', () => {
+    if (!_flatDetailGame) return;
+    const game = _flatDetailGame;
+    closeFlatDetail();
+    _splitEditActive = true;
+    document.getElementById('main-content').classList.add('split-edit');
+    openGamepage(game);
+});
+
+document.getElementById('btn-fdo-edit').addEventListener('click', () => {
+    if (!_flatDetailGame) return;
+    const game = _flatDetailGame;
+    closeFlatDetail();
     _splitEditActive = true;
     document.getElementById('main-content').classList.add('split-edit');
     openDetails(game);
+});
+
+document.getElementById('btn-fdo-launch').addEventListener('click', () => {
+    if (!_flatDetailGame) return;
+    verifyAndLaunch(_flatDetailGame.id, _flatDetailGame.LaunchCommand);
+    window.api.updateLastPlayed(_flatDetailGame.id);
+});
+
+function _openFlatGamepage(game) {
+    openFlatDetail(game);
 }
 
 function _flatFilter(query) {
