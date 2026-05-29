@@ -487,10 +487,10 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac', 'layout-xp', 'layout-kde');
     c.classList.add('layout-' + mode);
     // Mirror themed layout classes onto body so CSS variables reach modals outside #app-container
-    const _themedModes = ['mac'];
+    const _themedModes = ['mac', 'xp', 'kde'];
     _themedModes.forEach(m => document.body.classList.remove('layout-' + m));
     if (_themedModes.includes(mode)) document.body.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
@@ -517,7 +517,9 @@ function applyLayoutMode(mode) {
     if (mode === 'vi')        { renderVi(); }
     if (mode === 'adventure') { renderAdventure(); }
     if (mode === 'mac')       { renderMac(); }
-    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac'];
+    if (mode === 'xp')        { renderXP(); }
+    if (mode === 'kde')       { renderKDE(); }
+    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac','xp','kde'];
     if (!allFlatModes.includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
@@ -1165,6 +1167,13 @@ document.getElementById('btn-cmd-playlists')?.addEventListener('click', () => {
 document.getElementById('btn-cmd-crema')?.addEventListener('click', () => window.api.launchCrema());
 document.getElementById('btn-cmd-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
 
+// Debounced applyFilters — collapses rapid successive calls (search keystrokes) into one render.
+let _afTimer = null;
+function _debouncedApplyFilters() {
+    clearTimeout(_afTimer);
+    _afTimer = setTimeout(applyFilters, 80);
+}
+
 // Debounced loadGames — collapses rapid successive calls (e.g. from two parallel .then() chains)
 // into a single DB fetch 80ms after the last call, invisible to the user.
 let _lgTimer = null;
@@ -1182,7 +1191,7 @@ function loadGames() {
 }
 
 // Gallery search
-document.getElementById('gallery-search').addEventListener('input', applyFilters);
+document.getElementById('gallery-search').addEventListener('input', _debouncedApplyFilters);
 document.getElementById('btn-gsearch-clear').addEventListener('click', () => {
     document.getElementById('gallery-search').value = '';
     document.getElementById('btn-gsearch-clear').style.display = 'none';
@@ -1249,7 +1258,7 @@ document.querySelectorAll('#sidebar-filters button[data-filter]').forEach(btn =>
     btn.addEventListener('click', () => activateFilter(btn.dataset.filter));
 });
 // Sidebar search bar
-document.getElementById('search-bar')?.addEventListener('input', applyFilters);
+document.getElementById('search-bar')?.addEventListener('input', _debouncedApplyFilters);
 // Sidebar add-game delegate
 document.getElementById('btn-add-game-sb')?.addEventListener('click', () =>
     document.getElementById('btn-add-game').click());
@@ -1357,11 +1366,20 @@ function applyFilters() {
     renderVi();
     renderAdventure();
     renderMac();
+    renderXP();
+    renderKDE();
     if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
 
+const _FLAT_MODES = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac','xp','kde'];
+function _inFlatLayout() {
+    const cl = document.getElementById('app-container').classList;
+    return _FLAT_MODES.some(m => cl.contains('layout-' + m));
+}
+
 function renderTable(recent, regular) {
+    if (_inFlatLayout()) return;
     const tbody = document.getElementById('list-tbody');
     tbody.innerHTML = '';
 
@@ -1795,7 +1813,7 @@ document.getElementById('split-search')?.addEventListener('input', () => {
     }
     const clearBtn = document.getElementById('btn-split-search-clear');
     if (clearBtn) clearBtn.style.display = document.getElementById('split-search').value ? 'inline' : 'none';
-    applyFilters();
+    _debouncedApplyFilters();
 });
 
 document.getElementById('btn-split-search-clear')?.addEventListener('click', () => {
@@ -2560,6 +2578,525 @@ function _macUpdatePlaylistMenu() {
     });
 })();
 
+// ── WINDOWS XP ────────────────────────────────────────────────────────────
+let _xpFilter = 'all';
+let _xpSearch = '';
+let _xpIdx    = -1;
+
+const _xpFilterLabels = {
+    all:'All Games', installed:'Installed', favs:'Favorites', want:'Want to Play',
+    steam:'Steam', gog:'GOG', epic:'Epic', flatpak:'Flatpak',
+    pico8:'PICO-8', itch:'itch.io', physical:'Physical', others:'Others', emulation:'Emulation'
+};
+
+function _xpGetGames() {
+    const picoBypass = _xpFilter === 'pico8';
+    let src = _flatFilter(_xpSearch, picoBypass);
+    const s = g => (g.Store || '').toLowerCase();
+    switch (_xpFilter) {
+        case 'installed': src = src.filter(g => g.Installed == 1); break;
+        case 'favs':      src = src.filter(g => g.FAV === 'YES'); break;
+        case 'want':      src = src.filter(g => g.WANT_TO_PLAY === 'YES'); break;
+        case 'steam':     src = src.filter(g => s(g).includes('steam')); break;
+        case 'gog':       src = src.filter(g => s(g).includes('gog')); break;
+        case 'epic':      src = src.filter(g => s(g).includes('epic')); break;
+        case 'flatpak':   src = src.filter(g => s(g).includes('flatpak')); break;
+        case 'pico8':     src = src.filter(g => s(g).includes('pico-8') || s(g).includes('pico8')); break;
+        case 'itch':      src = src.filter(g => s(g).includes('itch') || (g.LaunchCommand||'').startsWith('itch://')); break;
+        case 'physical':  src = src.filter(g => s(g).includes('physical')); break;
+        case 'others':    src = src.filter(g => s(g).includes('others')); break;
+        case 'emulation': src = src.filter(g => s(g).includes('emulation')); break;
+    }
+    return src;
+}
+
+function _xpStoreIcon(store) {
+    const s = (store || '').toLowerCase();
+    if (s.includes('steam'))    return '💙';
+    if (s.includes('gog'))      return '🌐';
+    if (s.includes('epic'))     return '⬛';
+    if (s.includes('flatpak'))  return '📦';
+    if (s.includes('pico'))     return '🎮';
+    if (s.includes('itch'))     return '🎲';
+    if (s.includes('physical')) return '💿';
+    if (s.includes('emulation'))return '🕹️';
+    return '📁';
+}
+
+function _xpUpdatePreview(games) {
+    const g = games[_xpIdx];
+    document.getElementById('xp-preview-name').textContent  = g ? (g.Game || '') : '';
+    document.getElementById('xp-preview-store').textContent = g ? (g.Store || '') : '';
+    document.getElementById('xp-preview-genre').textContent = g ? (g.GENRE || '') : '';
+    const img  = document.getElementById('xp-preview-cover');
+    const noArt = document.getElementById('xp-preview-noart');
+    if (g && g.CoverArt) {
+        img.src = getSafePath(g.CoverArt);
+        img.style.display = 'block';
+        noArt.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        noArt.style.display = 'flex';
+    }
+}
+
+function renderXP() {
+    if (!document.getElementById('app-container').classList.contains('layout-xp')) return;
+    const games = _xpGetGames();
+    if (_xpIdx >= games.length) _xpIdx = games.length - 1;
+
+    const list = document.getElementById('xp-file-list');
+    list.innerHTML = games.map((g, i) => {
+        const sel = i === _xpIdx;
+        return `<div class="xp-row${sel ? ' xp-selected' : ''}" data-idx="${i}">
+            <div class="xp-row-icon">${_xpStoreIcon(g.Store)}</div>
+            <div class="xp-row-name">${escHtml(g.Game || '')}</div>
+            <div class="xp-row-store">${escHtml(g.Store || '')}</div>
+            <div class="xp-row-genre">${escHtml(g.GENRE || '')}</div>
+            <div class="xp-row-year">${escHtml(g.RELEASED || '')}</div>
+        </div>`;
+    }).join('');
+
+    const label = _xpFilterLabels[_xpFilter] || 'All Games';
+    document.getElementById('xp-status-count').textContent = `${games.length} object${games.length !== 1 ? 's' : ''}`;
+    document.getElementById('xp-address-text').textContent = `My Game Library \\ ${label}`;
+
+    document.querySelectorAll('.xp-filter-link').forEach(a =>
+        a.classList.toggle('xp-filter-active', a.dataset.xpfilter === _xpFilter));
+
+    _xpUpdatePreview(games);
+
+    list.querySelectorAll('.xp-row').forEach(row => {
+        row.addEventListener('click', () => {
+            _xpIdx = Number(row.dataset.idx);
+            renderXP();
+        });
+        row.addEventListener('dblclick', () => {
+            _xpIdx = Number(row.dataset.idx);
+            openXpGamepage(games[_xpIdx]);
+        });
+    });
+
+    list.querySelector('.xp-selected')?.scrollIntoView({ block:'nearest' });
+}
+
+function openXpGamepage(game) {
+    if (!game) return;
+    document.getElementById('xpgp-title-text').textContent = `${game.Game || 'Game'} Properties`;
+    document.getElementById('xpgp-game-name').textContent  = game.Game || '';
+    const img = document.getElementById('xpgp-cover-img');
+    const ph  = document.getElementById('xpgp-cover-ph');
+    if (game.CoverArt) { img.src = getSafePath(game.CoverArt); img.style.display='block'; ph.style.display='none'; }
+    else               { img.style.display='none'; ph.style.display='flex'; }
+    document.getElementById('xp-info-store').textContent  = game.Store    || '—';
+    document.getElementById('xp-info-genre').textContent  = game.GENRE    || '—';
+    document.getElementById('xp-info-dev').textContent    = game.DEV      || '—';
+    document.getElementById('xp-info-year').textContent   = game.RELEASED || '—';
+    document.getElementById('xp-info-proton').textContent = game.PROTONDB || '—';
+    document.getElementById('xp-info-hltb').textContent   = game.HLTB ? `${game.HLTB}h` : '—';
+    document.getElementById('xpgp-desc').textContent      = game.Description || '';
+    document.getElementById('xp-det-meta').textContent    = game.METACRITIC || '—';
+    document.getElementById('xp-det-pub').textContent     = game.PUB        || '—';
+    document.getElementById('xp-det-coop').textContent    = game.COOP       || '—';
+    document.getElementById('xp-det-players').textContent = game.PLAYERS    || '—';
+    document.getElementById('xp-det-tags').textContent    = game.TAGS       || '—';
+    document.getElementById('xp-det-installed').textContent = game.Installed == 1 ? 'Yes' : 'No';
+    document.getElementById('xp-det-fav').textContent     = game.FAV === 'YES'          ? '★ Yes' : 'No';
+    document.getElementById('xp-det-want').textContent    = game.WANT_TO_PLAY === 'YES' ? '⚑ Yes' : 'No';
+    document.querySelectorAll('.xpgp-tab').forEach(t  => t.classList.remove('active'));
+    document.querySelectorAll('.xpgp-panel').forEach(p => p.classList.remove('active'));
+    document.querySelector('.xpgp-tab[data-tab="general"]').classList.add('active');
+    document.getElementById('xpgp-general').classList.add('active');
+    document.getElementById('xp-gamepage').classList.add('open');
+}
+
+function closeXpGamepage() {
+    document.getElementById('xp-gamepage').classList.remove('open');
+}
+
+(function initXP() {
+    // Search
+    document.getElementById('xp-search')?.addEventListener('input', e => {
+        _xpSearch = e.target.value;
+        _xpIdx = 0;
+        renderXP();
+    });
+
+    // Filter links (task pane)
+    document.querySelectorAll('.xp-filter-link').forEach(a => {
+        a.addEventListener('click', () => {
+            _xpFilter = a.dataset.xpfilter;
+            _xpIdx = 0;
+            renderXP();
+        });
+    });
+
+    // Start menu places (right column)
+    document.querySelectorAll('#xp-sm-right .xp-sm-place[data-xpfilter]').forEach(el => {
+        el.addEventListener('click', () => {
+            _xpFilter = el.dataset.xpfilter;
+            _xpIdx = 0;
+            document.getElementById('xp-start-menu').classList.remove('open');
+            renderXP();
+        });
+    });
+
+    // Start button toggle
+    document.getElementById('xp-start-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('xp-start-menu').classList.toggle('open');
+    });
+    document.addEventListener('click', () => document.getElementById('xp-start-menu')?.classList.remove('open'));
+    document.getElementById('xp-start-menu')?.addEventListener('click', e => e.stopPropagation());
+    document.getElementById('xp-sm-close-btn')?.addEventListener('click', () =>
+        document.getElementById('xp-start-menu').classList.remove('open'));
+
+    // Start menu — left column
+    document.getElementById('xp-sm-connect')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        document.getElementById('modal-connect').classList.add('active');
+    });
+    document.getElementById('xp-sm-tools')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        openToolsModal();
+    });
+    document.getElementById('xp-sm-crema')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        window.api.launchCrema();
+    });
+    document.getElementById('xp-sm-emulatte')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        window.api.launchEmuLatte();
+    });
+    document.getElementById('xp-sm-grinder')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        window.api.openGrinder();
+    });
+    document.getElementById('xp-sm-about')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        document.getElementById('modal-about').classList.add('active');
+    });
+
+    // Menu bar items
+    document.getElementById('xp-mi-connect')?.addEventListener('click', () =>
+        document.getElementById('modal-connect').classList.add('active'));
+    document.getElementById('xp-mi-tools')?.addEventListener('click', openToolsModal);
+    document.getElementById('xp-mi-help')?.addEventListener('click', () =>
+        document.getElementById('modal-about').classList.add('active'));
+
+    // Title bar close → switch back to sidebar
+    document.getElementById('xp-cap-close')?.addEventListener('click', () => applyLayoutMode('sidebar'));
+
+    // Game Tasks links
+    document.getElementById('xp-task-play')?.addEventListener('click', () => {
+        const games = _xpGetGames();
+        const g = games[_xpIdx];
+        if (g) verifyAndLaunch(g.id, g.LaunchCommand);
+    });
+    document.getElementById('xp-task-edit')?.addEventListener('click', () => {
+        const games = _xpGetGames();
+        const g = games[_xpIdx];
+        if (g) { _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openDetails(g); }
+    });
+    document.getElementById('xp-task-add')?.addEventListener('click', () => {
+        document.getElementById('xp-start-menu').classList.remove('open');
+        document.getElementById('btn-tools-add-game')?.click();
+    });
+
+    // Gamepage close/ok/cancel
+    document.getElementById('xpgp-close')?.addEventListener('click', closeXpGamepage);
+    document.getElementById('xpgp-ok-btn')?.addEventListener('click', closeXpGamepage);
+    document.getElementById('xpgp-cancel-btn')?.addEventListener('click', closeXpGamepage);
+    document.getElementById('xp-gamepage')?.addEventListener('click', e => {
+        if (e.target === document.getElementById('xp-gamepage')) closeXpGamepage();
+    });
+
+    // Gamepage play
+    document.getElementById('xpgp-play-btn')?.addEventListener('click', () => {
+        const games = _xpGetGames();
+        const g = games[_xpIdx];
+        if (g) { closeXpGamepage(); verifyAndLaunch(g.id, g.LaunchCommand); window.api.updateLastPlayed(g.id); }
+    });
+
+    // Gamepage edit
+    document.getElementById('xpgp-edit-btn')?.addEventListener('click', () => {
+        const games = _xpGetGames();
+        const g = games[_xpIdx];
+        if (g) { closeXpGamepage(); _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openDetails(g); }
+    });
+
+    // Tabs
+    document.querySelectorAll('.xpgp-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.xpgp-tab').forEach(t  => t.classList.remove('active'));
+            document.querySelectorAll('.xpgp-panel').forEach(p => p.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(`xpgp-${tab.dataset.tab}`)?.classList.add('active');
+        });
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-xp')) return;
+        if (document.getElementById('xp-gamepage').classList.contains('open')) {
+            if (e.key === 'Escape') closeXpGamepage();
+            return;
+        }
+        if (document.activeElement === document.getElementById('xp-search')) return;
+        const games = _xpGetGames();
+        if (e.key === 'ArrowDown') {
+            _xpIdx = Math.min((_xpIdx < 0 ? 0 : _xpIdx) + 1, games.length - 1);
+            renderXP(); e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            _xpIdx = Math.max(_xpIdx - 1, 0);
+            renderXP(); e.preventDefault();
+        } else if (e.key === 'Enter') {
+            if (games[_xpIdx]) { openXpGamepage(games[_xpIdx]); e.preventDefault(); }
+        } else if (e.key === 'Escape') {
+            if (document.getElementById('xp-start-menu').classList.contains('open')) {
+                document.getElementById('xp-start-menu').classList.remove('open');
+            }
+        }
+    });
+
+    // Clock
+    function _xpClock() {
+        const d = new Date();
+        const h = String(d.getHours()).padStart(2,'0');
+        const m = String(d.getMinutes()).padStart(2,'0');
+        const el = document.getElementById('xp-clock');
+        if (el) el.textContent = `${h}:${m}`;
+    }
+    _xpClock();
+    setInterval(_xpClock, 15000);
+})();
+
+// ── MANDRAKE LINUX / KDE 3 ────────────────────────────────────────────────
+let _kdeFilter = 'all';
+let _kdeSearch = '';
+let _kdeIdx    = -1;
+
+function _kdeGetGames() {
+    const picoBypass = _kdeFilter === 'pico8';
+    let src = _flatFilter(_kdeSearch, picoBypass);
+    const s = g => (g.Store || '').toLowerCase();
+    switch (_kdeFilter) {
+        case 'installed': src = src.filter(g => g.Installed == 1); break;
+        case 'favs':      src = src.filter(g => g.FAV === 'YES'); break;
+        case 'want':      src = src.filter(g => g.WANT_TO_PLAY === 'YES'); break;
+        case 'steam':     src = src.filter(g => s(g).includes('steam')); break;
+        case 'gog':       src = src.filter(g => s(g).includes('gog')); break;
+        case 'epic':      src = src.filter(g => s(g).includes('epic')); break;
+        case 'flatpak':   src = src.filter(g => s(g).includes('flatpak')); break;
+        case 'pico8':     src = src.filter(g => s(g).includes('pico')); break;
+        case 'itch':      src = src.filter(g => s(g).includes('itch')); break;
+        case 'physical':  src = src.filter(g => s(g).includes('physical')); break;
+        case 'emulation': src = src.filter(g => s(g).includes('emulation')); break;
+        case 'others':    src = src.filter(g => s(g).includes('others')); break;
+    }
+    return src;
+}
+
+function _kdeGameIcon(game) {
+    const s = (game.Store || '').toLowerCase();
+    if (s.includes('steam'))    return '🔵';
+    if (s.includes('gog'))      return '🟣';
+    if (s.includes('epic'))     return '⚫';
+    if (s.includes('flatpak'))  return '📦';
+    if (s.includes('pico'))     return '🕹️';
+    if (s.includes('itch'))     return '🟠';
+    if (s.includes('physical')) return '💿';
+    if (s.includes('emulation'))return '👾';
+    return '🎮';
+}
+
+function renderKDE() {
+    if (!document.getElementById('app-container').classList.contains('layout-kde')) return;
+    const games = _kdeGetGames();
+    if (_kdeIdx >= games.length) _kdeIdx = games.length - 1;
+
+    const list = document.getElementById('kde-file-list');
+    const frag = document.createDocumentFragment();
+    games.forEach((game, i) => {
+        const row = document.createElement('div');
+        row.className = 'kde-row' + (i === _kdeIdx ? ' kde-sel' : '');
+        row.dataset.id = game.id;
+        row.innerHTML =
+            `<div class="kde-row-icon">${_kdeGameIcon(game)}</div>` +
+            `<div class="kde-row-name">${escHtml(game.Game || '')}</div>` +
+            `<div class="kde-row-store">${escHtml(game.Store || '')}</div>` +
+            `<div class="kde-row-genre">${escHtml(game.GENRE || '')}</div>` +
+            `<div class="kde-row-hltb">${game.HLTB_Main ? escHtml(game.HLTB_Main) + 'h' : ''}</div>`;
+        row.addEventListener('click', () => { _kdeIdx = i; renderKDE(); });
+        row.addEventListener('dblclick', () => openKdeGamepage(game));
+        frag.appendChild(row);
+    });
+    list.innerHTML = '';
+    list.appendChild(frag);
+
+    const labels = { all:'All Games', installed:'Installed', favs:'Favourites', want:'Want to Play', steam:'Steam', gog:'GOG', epic:'Epic', flatpak:'Flatpak', pico8:'PICO-8', itch:'itch.io', physical:'Physical', emulation:'Emulation', others:'Others' };
+    document.getElementById('kde-status-count').textContent = games.length + ' item' + (games.length !== 1 ? 's' : '');
+    const sel = games[_kdeIdx];
+    document.getElementById('kde-status-sel').textContent = sel ? sel.Game : 'Nothing selected';
+    document.getElementById('kde-titlebar-title').textContent = `Konqueror — ${labels[_kdeFilter] || 'Games'} (${games.length})`;
+    document.getElementById('kde-loc-input').value = `file:/home/user/Games/${labels[_kdeFilter] || _kdeFilter}`;
+
+    // Tree active state
+    document.querySelectorAll('#kde-tree .kde-tree-item[data-kfilter]').forEach(f =>
+        f.classList.toggle('kde-ti-active', f.dataset.kfilter === _kdeFilter));
+    // Bookmarks active state
+    document.querySelectorAll('#kde-bookmarks .kde-bm[data-kfilter]').forEach(b =>
+        b.classList.toggle('kde-bm-active', b.dataset.kfilter === _kdeFilter));
+}
+
+function openKdeGamepage(game) {
+    const gp = document.getElementById('kde-gamepage');
+    document.getElementById('kdegp-title-text').textContent = game.Game || 'Properties';
+    const cover = game.CoverArt ? getSafePath(game.CoverArt) : null;
+    const img = document.getElementById('kdegp-cover-img');
+    const ph  = document.getElementById('kdegp-cover-ph');
+    if (cover) { img.src = cover; img.style.display = ''; ph.style.display = 'none'; }
+    else       { img.style.display = 'none'; ph.style.display = ''; }
+    document.getElementById('kdegp-game-name').textContent = game.Game || '';
+    document.getElementById('kdegp-store').textContent    = game.Store || '—';
+    document.getElementById('kdegp-genre').textContent    = game.GENRE || '—';
+    document.getElementById('kdegp-dev').textContent      = game.DEV || '—';
+    document.getElementById('kdegp-released').textContent = game.RELEASED || '—';
+    document.getElementById('kdegp-hltb').textContent     = game.HLTB_Main ? game.HLTB_Main + 'h' : '—';
+    document.getElementById('kdegp-proton').textContent   = game.ProtonTier || '—';
+    const installed = game.Installed == 1 || !!game.LaunchCommand;
+    document.getElementById('kdegp-status').textContent   = installed ? '✓ Installed' : 'Not installed';
+    document.getElementById('kdegp-desc').textContent     = getLocalizedDescription(game) || '(No description)';
+    const playBtn = document.getElementById('kdegp-play-btn');
+    playBtn.style.display = installed ? '' : 'none';
+    playBtn.onclick = () => { gp.classList.remove('open'); verifyAndLaunch(game.id, game.LaunchCommand); };
+    document.getElementById('kdegp-edit-btn').onclick = () => { gp.classList.remove('open'); openDetails(game); };
+    gp.classList.add('open');
+}
+
+(function initKDE() {
+    function _kdeSetFilter(f) { _kdeFilter = f; _kdeIdx = -1; renderKDE(); }
+
+    // Tree items
+    document.querySelectorAll('#kde-tree .kde-tree-item[data-kfilter]').forEach(f =>
+        f.addEventListener('click', () => _kdeSetFilter(f.dataset.kfilter)));
+
+    // Bookmarks bar
+    document.querySelectorAll('#kde-bookmarks .kde-bm[data-kfilter]').forEach(b =>
+        b.addEventListener('click', () => _kdeSetFilter(b.dataset.kfilter)));
+
+    // Location bar search (type in location box to search)
+    document.getElementById('kde-loc-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { _kdeSearch = e.target.value; renderKDE(); }
+    });
+    document.getElementById('kde-loc-btn')?.addEventListener('click', () => {
+        _kdeSearch = document.getElementById('kde-loc-input').value; renderKDE();
+    });
+
+    // Toolbar buttons
+    document.getElementById('kde-tbtn-refresh')?.addEventListener('click', () => {
+        const btn = document.getElementById('kde-tbtn-refresh');
+        btn.style.animation = 'spin 0.6s linear';
+        setTimeout(() => btn.style.animation = '', 650);
+        syncGrinderInstalled().then(() => loadGames());
+    });
+    document.getElementById('kde-tbtn-home')?.addEventListener('click', () => _kdeSetFilter('all'));
+    document.getElementById('kde-tbtn-up')?.addEventListener('click',   () => _kdeSetFilter('all'));
+    document.getElementById('kde-tbtn-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect')?.click());
+    document.getElementById('kde-tbtn-tools')?.addEventListener('click',   () => document.getElementById('btn-open-tools')?.click());
+    document.getElementById('kde-tbtn-add')?.addEventListener('click',     () => openAddGameDialog());
+
+    // Sidebar icon strip
+    document.getElementById('kde-strip-all')?.addEventListener('click',      () => _kdeSetFilter('all'));
+    document.getElementById('kde-strip-connect')?.addEventListener('click',  () => document.getElementById('btn-open-connect')?.click());
+    document.getElementById('kde-strip-tools')?.addEventListener('click',    () => document.getElementById('btn-open-tools')?.click());
+    document.getElementById('kde-strip-crema')?.addEventListener('click',    () => window.api.launchCrema());
+    document.getElementById('kde-strip-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
+    document.getElementById('kde-strip-grinder')?.addEventListener('click',  () => window.api.openGrinder());
+    document.getElementById('kde-strip-about')?.addEventListener('click',    () => document.getElementById('modal-about')?.classList.add('active'));
+
+    // Panel quicklaunch
+    document.getElementById('kde-ql-all')?.addEventListener('click',      () => _kdeSetFilter('all'));
+    document.getElementById('kde-ql-connect')?.addEventListener('click',  () => document.getElementById('btn-open-connect')?.click());
+    document.getElementById('kde-ql-tools')?.addEventListener('click',    () => document.getElementById('btn-open-tools')?.click());
+    document.getElementById('kde-ql-refresh')?.addEventListener('click',  () => {
+        const btn = document.getElementById('kde-ql-refresh');
+        btn.style.animation = 'spin 0.6s linear';
+        setTimeout(() => btn.style.animation = '', 650);
+        syncGrinderInstalled().then(() => loadGames());
+    });
+    document.getElementById('kde-ql-add')?.addEventListener('click',      () => openAddGameDialog());
+    document.getElementById('kde-ql-crema')?.addEventListener('click',    () => window.api.launchCrema());
+    document.getElementById('kde-ql-emulatte')?.addEventListener('click', () => window.api.launchEmuLatte());
+
+    // K Menu button toggle
+    document.getElementById('kde-kmenu-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('kde-kmenu').classList.toggle('open');
+    });
+    document.addEventListener('click', () => document.getElementById('kde-kmenu')?.classList.remove('open'));
+
+    // K Menu items
+    const _km = id => document.getElementById(id)?.addEventListener('click', () => document.getElementById('kde-kmenu').classList.remove('open'));
+    document.getElementById('kde-km-connect')?.addEventListener('click',  () => { document.getElementById('kde-kmenu').classList.remove('open'); document.getElementById('btn-open-connect')?.click(); });
+    document.getElementById('kde-km-tools')?.addEventListener('click',    () => { document.getElementById('kde-kmenu').classList.remove('open'); document.getElementById('btn-open-tools')?.click(); });
+    document.getElementById('kde-km-add')?.addEventListener('click',      () => { document.getElementById('kde-kmenu').classList.remove('open'); openAddGameDialog(); });
+    document.getElementById('kde-km-crema')?.addEventListener('click',    () => { _km('kde-km-crema'); window.api.launchCrema(); });
+    document.getElementById('kde-km-emulatte')?.addEventListener('click', () => { _km('kde-km-emulatte'); window.api.launchEmuLatte(); });
+    document.getElementById('kde-km-grinder')?.addEventListener('click',  () => { _km('kde-km-grinder'); window.api.openGrinder(); });
+    document.getElementById('kde-km-about')?.addEventListener('click',    () => { document.getElementById('kde-kmenu').classList.remove('open'); document.getElementById('modal-about')?.classList.add('active'); });
+
+    // Menu bar items
+    document.getElementById('kde-mi-tools')?.addEventListener('click',    () => document.getElementById('btn-open-tools')?.click());
+    document.getElementById('kde-mi-settings')?.addEventListener('click', () => document.getElementById('btn-open-connect')?.click());
+    document.getElementById('kde-mi-help')?.addEventListener('click',     () => document.getElementById('modal-about')?.classList.add('active'));
+
+    // Title bar close → back to sidebar
+    document.getElementById('kde-wb-close')?.addEventListener('click', () => applyLayoutMode('sidebar'));
+
+    // Gamepage close / ok / cancel
+    document.getElementById('kdegp-cap-close')?.addEventListener('click', () => document.getElementById('kde-gamepage').classList.remove('open'));
+    document.getElementById('kdegp-ok-btn')?.addEventListener('click',     () => document.getElementById('kde-gamepage').classList.remove('open'));
+    document.getElementById('kdegp-cancel-btn')?.addEventListener('click', () => document.getElementById('kde-gamepage').classList.remove('open'));
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-kde')) return;
+        if (document.activeElement?.tagName === 'INPUT') return;
+        if (document.getElementById('kde-gamepage').classList.contains('open')) {
+            if (e.key === 'Escape') document.getElementById('kde-gamepage').classList.remove('open');
+            return;
+        }
+        const games = _kdeGetGames();
+        if (!games.length) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            _kdeIdx = Math.min(_kdeIdx + 1, games.length - 1);
+            renderKDE();
+            document.querySelectorAll('.kde-row')[_kdeIdx]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            _kdeIdx = Math.max(_kdeIdx - 1, 0);
+            renderKDE();
+            document.querySelectorAll('.kde-row')[_kdeIdx]?.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter' && _kdeIdx >= 0) {
+            openKdeGamepage(games[_kdeIdx]);
+        } else if (e.key === 'Escape') {
+            _kdeSearch = ''; _kdeIdx = -1; renderKDE();
+        }
+    });
+
+    // Clock
+    function _kdeClock() {
+        const now = new Date();
+        let h = now.getHours(), m = now.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        document.getElementById('kde-clock').innerHTML = `${h}:${String(m).padStart(2,'0')}<br>${ampm}`;
+    }
+    _kdeClock();
+    setInterval(_kdeClock, 15000);
+})();
+
 // ── TTY GAMEPAGE ──────────────────────────────────────────────────────────────
 let _ttyGame = null;
 let _ttyAchToken = 0;
@@ -2916,6 +3453,7 @@ function _dhSelectGame(game) {
 }
 
 function renderDataHero() {
+    if (!document.getElementById('app-container').classList.contains('layout-datahero')) return;
     const query = (document.getElementById('dh-search')?.value || '').trim();
     const games = _flatFilter(query);
     document.getElementById('dh-count').textContent = games.length + ' games';
@@ -2994,6 +3532,7 @@ function _catSortGames(games) {
 }
 
 function renderCatalog() {
+    if (!document.getElementById('app-container').classList.contains('layout-catalog')) return;
     const query = (document.getElementById('cat-search')?.value || '').trim();
     const games = _catSortGames(_flatFilter(query));
     document.getElementById('cat-count').textContent = games.length + ' games';
@@ -3066,6 +3605,7 @@ function _npSelectGame(game) {
 }
 
 function renderNewspaper() {
+    if (!document.getElementById('app-container').classList.contains('layout-newspaper')) return;
     const query = (document.getElementById('np-search')?.value || '').trim();
     const games = _flatFilter(query);
     document.getElementById('np-count').textContent = games.length + ' titles';
@@ -3820,6 +4360,7 @@ function renderAdventure() {
 
 
 function renderGallery(recent, regular) {
+    if (_inFlatLayout()) return;
     const grid = document.getElementById('gallery-grid');
     grid.innerHTML = '';
 
@@ -5306,7 +5847,7 @@ const CP_KEYWORDS = {
 // ── TOP NAV BAR WIRING ────────────────────────────────────────────────────
 document.querySelectorAll('.topnav-filter[data-filter]').forEach(btn =>
     btn.addEventListener('click', () => activateFilter(btn.dataset.filter)));
-document.getElementById('topnav-search')?.addEventListener('input', applyFilters);
+document.getElementById('topnav-search')?.addEventListener('input', _debouncedApplyFilters);
 document.getElementById('btn-topnav-gallery')?.addEventListener('click', () => {
     switchView('view-gallery');
     document.getElementById('btn-topnav-gallery').classList.add('active');
