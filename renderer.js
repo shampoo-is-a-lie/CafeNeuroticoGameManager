@@ -868,6 +868,7 @@ function renderPlaylistPanels() {
     _renderPlaylistList('panel-playlists-list', 'rail');
     _renderPlaylistList('sidebar-playlists-list', 'sidebar');
     _renderPlaylistList('modal-playlists-nav-list', 'nav');
+    _macUpdatePlaylistMenu();
 }
 
 function _renderPlaylistList(containerId, mode) {
@@ -2108,29 +2109,37 @@ function _openFlatGamepage(game) {
 }
 
 // ── MAC OS 1.0 ────────────────────────────────────────────────────────────
-let _macIdx    = 0;
-let _macSearch = '';
-let _macGame   = null;
-let _macFilter = 'all';
+let _macIdx          = 0;
+let _macSearch       = '';
+let _macGame         = null;
+let _macFilter       = 'all';
+let _macPlaylistId   = null;
+let _macPlaylistGameIds = null;
 
 const _macFilterLabels = {
-    all:'All Games', installed:'Installed', favs:'Favourites', want:'Want to Play',
-    steam:'Steam', gog:'GOG', epic:'Epic', others:'Others'
+    all:'All Games', installed:'Installed', favs:'Favs', want:'Want',
+    steam:'Steam', epic:'Epic', gog:'GOG', flatpak:'Flatpak',
+    pico8:'PICO-8', itch:'itch.io', physical:'Physical',
+    others:'Others', emulation:'Emulation', apps:'Apps'
 };
 
 function _applyMacFilter(src) {
+    const s = g => (g.Store || '').toLowerCase();
     switch (_macFilter) {
-        case 'installed': return src.filter(g => g.Installed == 1);
-        case 'favs':      return src.filter(g => g.is_favourite == 1);
-        case 'want':      return src.filter(g => g.WANT_TO_PLAY === 'YES');
-        case 'steam':     return src.filter(g => (g.Store||'').toLowerCase().includes('steam'));
-        case 'gog':       return src.filter(g => (g.Store||'').toLowerCase().includes('gog'));
-        case 'epic':      return src.filter(g => (g.Store||'').toLowerCase().includes('epic') || (g.Store||'').toLowerCase().includes('legendary'));
-        case 'others':    return src.filter(g => {
-            const s = (g.Store||'').toLowerCase();
-            return !s.includes('steam') && !s.includes('gog') && !s.includes('epic') && !s.includes('legendary');
-        });
-        default: return src;
+        case 'installed':  return src.filter(g => g.Installed == 1);
+        case 'favs':       return src.filter(g => g.is_favourite == 1);
+        case 'want':       return src.filter(g => g.WANT_TO_PLAY === 'YES');
+        case 'steam':      return src.filter(g => s(g).includes('steam'));
+        case 'epic':       return src.filter(g => s(g).includes('epic'));
+        case 'gog':        return src.filter(g => s(g).includes('gog'));
+        case 'flatpak':    return src.filter(g => s(g).includes('flatpak'));
+        case 'pico8':      return src.filter(g => s(g).includes('pico-8') || s(g).includes('pico8'));
+        case 'itch':       return src.filter(g => s(g).includes('itch') || (g.LaunchCommand||'').startsWith('itch://'));
+        case 'physical':   return src.filter(g => s(g).includes('physical'));
+        case 'others':     return src.filter(g => s(g).includes('others'));
+        case 'emulation':  return src.filter(g => s(g).includes('emulation'));
+        case 'apps':       return src.filter(g => s(g).includes('apps'));
+        default:           return src;
     }
 }
 
@@ -2183,7 +2192,10 @@ function _updateMacSidePanels(game) {
 
 function renderMac() {
     if (!document.getElementById('app-container').classList.contains('layout-mac')) return;
-    const src = _applyMacFilter(_flatFilter(_macSearch));
+    let src = _applyMacFilter(_flatFilter(_macSearch));
+    if (_macPlaylistId !== null && _macPlaylistGameIds) {
+        src = src.filter(g => _macPlaylistGameIds.has(g.id));
+    }
     document.getElementById('mac-finder-count').textContent = src.length;
     document.getElementById('mac-status-left').textContent =
         src.length + ' item' + (src.length !== 1 ? 's' : '');
@@ -2243,9 +2255,32 @@ function openMacGamepage(game) {
         ).join('');
     document.getElementById('mgp-desc-area').textContent =
         getLocalizedDescription(game) || '—';
-    const launchBtn = document.getElementById('mgp-btn-launch');
-    launchBtn.disabled = !game.LaunchCommand;
-    launchBtn.style.opacity = game.LaunchCommand ? '1' : '0.4';
+    const launchBtn   = document.getElementById('mgp-btn-launch');
+    const installBtn  = document.getElementById('mgp-btn-install');
+    const installCmd  = getInstallCommand(game);
+    const isInstalled = game.Installed == 1 || (!!game.LaunchCommand && game.Installed == null);
+    if (game.LaunchCommand && isInstalled) {
+        launchBtn.style.display  = '';
+        launchBtn.disabled       = false;
+        launchBtn.style.opacity  = '1';
+        launchBtn.textContent    = '▶ Launch';
+        launchBtn.onclick        = () => { verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); };
+        installBtn.style.display = 'none';
+    } else if (installCmd) {
+        launchBtn.style.display  = 'none';
+        installBtn.style.display = '';
+        installBtn.disabled      = false;
+        installBtn.onclick       = () => { closeMacGamepage(); openInstallPicker(game, installCmd); };
+    } else {
+        launchBtn.style.display  = '';
+        launchBtn.disabled       = !game.LaunchCommand;
+        launchBtn.style.opacity  = game.LaunchCommand ? '1' : '0.4';
+        launchBtn.textContent    = '▶ Launch';
+        launchBtn.onclick        = game.LaunchCommand
+            ? () => { verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); }
+            : null;
+        installBtn.style.display = 'none';
+    }
     document.getElementById('mac-gamepage').classList.add('open');
 }
 
@@ -2254,14 +2289,42 @@ function closeMacGamepage() {
     _macGame = null;
 }
 
+function _macUpdatePlaylistMenu() {
+    const drop = document.getElementById('mac-playlist-dropdown');
+    if (!drop) return;
+    drop.innerHTML = '';
+    const allItem = document.createElement('div');
+    allItem.className = 'mac-ditem' + (_macPlaylistId === null ? ' mac-dactive' : '');
+    allItem.textContent = 'All Games';
+    allItem.addEventListener('click', e => {
+        e.stopPropagation();
+        _macPlaylistId = null; _macPlaylistGameIds = null; _macIdx = 0;
+        drop.classList.remove('open');
+        renderMac();
+    });
+    drop.appendChild(allItem);
+    if (allPlaylists.length) {
+        const sep = document.createElement('div'); sep.className = 'mac-dsep'; drop.appendChild(sep);
+    }
+    allPlaylists.forEach(p => {
+        const item = document.createElement('div');
+        item.className = 'mac-ditem' + (_macPlaylistId === p.id ? ' mac-dactive' : '');
+        item.textContent = p.name;
+        item.addEventListener('click', async e => {
+            e.stopPropagation();
+            _macPlaylistId = p.id; _macIdx = 0;
+            const games = await window.api.getPlaylistGames(p.id);
+            _macPlaylistGameIds = new Set(games.map(g => g.GameId ?? g.id));
+            drop.classList.remove('open');
+            renderMac();
+        });
+        drop.appendChild(item);
+    });
+}
+
 (function () {
     document.getElementById('mgp-closebox').addEventListener('click', closeMacGamepage);
     document.getElementById('mgp-btn-close').addEventListener('click', closeMacGamepage);
-    document.getElementById('mgp-btn-launch').addEventListener('click', () => {
-        if (!_macGame?.LaunchCommand) return;
-        verifyAndLaunch(_macGame.id, _macGame.LaunchCommand);
-        window.api.updateLastPlayed(_macGame.id);
-    });
     document.getElementById('mgp-btn-edit').addEventListener('click', () => {
         if (!_macGame) return;
         const g = _macGame; closeMacGamepage();
@@ -2288,10 +2351,40 @@ function closeMacGamepage() {
     document.getElementById('mac-finder-closebox').addEventListener('click', () => applyLayoutMode('sidebar'));
     document.getElementById('mac-mitem-special')?.addEventListener('click', openToolsModal);
     document.getElementById('mac-mitem-apple')?.addEventListener('click', openToolsModal);
+    // File menu dropdown
+    document.getElementById('mac-mitem-file').addEventListener('click', e => {
+        e.stopPropagation();
+        const drop = document.getElementById('mac-file-dropdown');
+        const wasOpen = drop.classList.contains('open');
+        _macCloseAllDropdowns();
+        if (!wasOpen) drop.classList.add('open');
+    });
+    document.getElementById('mac-file-addgame').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        openAddGameDialog();
+    });
+    document.getElementById('mac-file-grinder').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        window.api.openGrinder();
+    });
+    document.getElementById('mac-file-steam').addEventListener('click', async e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const steamId  = await window.api.getSetting('steam_id');
+        const steamKey = await window.api.getSetting('steam_api_key');
+        if (!steamId || !steamKey) { await showAlert(t('alert.steam_id_required')); return; }
+        await window.api.syncSteam(steamId, steamKey);
+        loadGames();
+    });
     // View menu dropdown
     document.getElementById('mac-mitem-view').addEventListener('click', e => {
         e.stopPropagation();
-        document.getElementById('mac-view-dropdown').classList.toggle('open');
+        const drop = document.getElementById('mac-view-dropdown');
+        const wasOpen = drop.classList.contains('open');
+        _macCloseAllDropdowns();
+        if (!wasOpen) drop.classList.add('open');
     });
     document.querySelectorAll('.mac-ditem[data-mfilter]').forEach(el => {
         el.addEventListener('click', e => {
@@ -2300,14 +2393,24 @@ function closeMacGamepage() {
             _macIdx = 0;
             document.querySelectorAll('.mac-ditem[data-mfilter]').forEach(d =>
                 d.classList.toggle('mac-dactive', d.dataset.mfilter === _macFilter));
-            document.getElementById('mac-mitem-view').textContent =
-                (_macFilter === 'all' ? 'View' : _macFilterLabels[_macFilter]) + ' ▾';
+            document.getElementById('mac-mitem-view').textContent = 'View';
             document.getElementById('mac-view-dropdown').classList.remove('open');
             renderMac();
         });
     });
-    document.addEventListener('click', () =>
-        document.getElementById('mac-view-dropdown')?.classList.remove('open'));
+    // Playlists menu dropdown
+    document.getElementById('mac-mitem-playlist').addEventListener('click', e => {
+        e.stopPropagation();
+        const drop = document.getElementById('mac-playlist-dropdown');
+        const wasOpen = drop.classList.contains('open');
+        _macCloseAllDropdowns();
+        if (!wasOpen) drop.classList.add('open');
+    });
+    function _macCloseAllDropdowns() {
+        ['mac-file-dropdown','mac-view-dropdown','mac-playlist-dropdown'].forEach(id =>
+            document.getElementById(id)?.classList.remove('open'));
+    }
+    document.addEventListener('click', _macCloseAllDropdowns);
     // Clock
     function _macClock() {
         const el = document.getElementById('mac-mitem-clock');

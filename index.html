@@ -557,6 +557,12 @@
     #tty-gamepage[data-filter="dotmatrix"] #tgp-cover-crt img { filter:contrast(1.1) brightness(0.58) saturate(0.3) sepia(0.25); }
     #tty-gamepage[data-filter="dotmatrix"] #tgp-hero-crt::after,
     #tty-gamepage[data-filter="dotmatrix"] #tgp-cover-crt::after { background:radial-gradient(circle, transparent 1px, rgba(0,0,0,0.68) 1px) 0 0 / 3px 3px; }
+/* ── Mac OS 1.0 system-wide theme — overrides CNGM theme selector ───────── */
+    #app-container.layout-mac { --bg:#fff; --bg_panel:#f0f0f0; --bg_menu:#fff; --accent:#000; --accent_alt:#000; --accent_menu:#000; --text_main:#000; --text_sec:#222; --text_dim:#666; --border:#ccc; --border_solid:#000; }
+    #app-container.layout-mac .modal-box { background:#fff !important; border:2px solid #000 !important; border-radius:0 !important; box-shadow:4px 4px 0 #000 !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    #app-container.layout-mac .modal-box h2, #app-container.layout-mac .modal-box h3 { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    #app-container.layout-mac .modal-box input, #app-container.layout-mac .modal-box select, #app-container.layout-mac .modal-box textarea { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    #app-container.layout-mac .modal-box button, #app-container.layout-mac .modal-box .btn { border-radius:0 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
 /* ── Mac OS 1.0 Layout ─────────────────────────────────────────────────── */
     #mac-shell { display:none; flex-direction:column; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; background:#fff; color:#000; overflow:hidden; -webkit-font-smoothing:none; image-rendering:pixelated; }
     #app-container.layout-mac #mac-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
@@ -569,8 +575,8 @@
     #mac-mitem-clock { font-size:12px; font-weight:normal; padding:0 10px; display:flex; align-items:center; color:#000; }
     /* View dropdown */
     .mac-mitem-wrap { position:relative; display:flex; align-items:stretch; }
-    #mac-view-dropdown { display:none; position:absolute; top:100%; left:0; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; min-width:160px; z-index:200; padding:3px 0; }
-    #mac-view-dropdown.open { display:block; }
+    #mac-view-dropdown, #mac-file-dropdown, #mac-playlist-dropdown { display:none; position:absolute; top:100%; left:0; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; min-width:180px; z-index:200; padding:3px 0; }
+    #mac-view-dropdown.open, #mac-file-dropdown.open, #mac-playlist-dropdown.open { display:block; }
     .mac-ditem { padding:2px 14px 2px 26px; font-size:13px; font-weight:bold; cursor:default; white-space:nowrap; color:#000; position:relative; line-height:1.7; }
     .mac-ditem:hover { background:#000; color:#fff; }
     .mac-ditem.mac-dactive::before { content:'✓'; position:absolute; left:8px; }
@@ -1856,20 +1862,38 @@
     <div id="mac-shell">
       <div id="mac-menubar">
         <span class="mac-mitem" id="mac-mitem-apple">✦</span>
-        <span class="mac-mitem" id="mac-mitem-file">File</span>
+        <div class="mac-mitem-wrap" id="mac-mitem-file-wrap">
+          <span class="mac-mitem" id="mac-mitem-file">File</span>
+          <div id="mac-file-dropdown">
+            <div class="mac-ditem" id="mac-file-addgame">Add Game…</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" id="mac-file-grinder">Manage with GRINDER</div>
+            <div class="mac-ditem" id="mac-file-steam">Manage STEAM Games</div>
+          </div>
+        </div>
         <div class="mac-mitem-wrap" id="mac-mitem-view-wrap">
           <span class="mac-mitem" id="mac-mitem-view">View</span>
           <div id="mac-view-dropdown">
             <div class="mac-ditem mac-dactive" data-mfilter="all">All Games</div>
             <div class="mac-ditem" data-mfilter="installed">Installed</div>
-            <div class="mac-ditem" data-mfilter="favs">Favourites</div>
-            <div class="mac-ditem" data-mfilter="want">Want to Play</div>
+            <div class="mac-ditem" data-mfilter="favs">Favs</div>
+            <div class="mac-ditem" data-mfilter="want">Want</div>
             <div class="mac-dsep"></div>
             <div class="mac-ditem" data-mfilter="steam">Steam</div>
-            <div class="mac-ditem" data-mfilter="gog">GOG</div>
             <div class="mac-ditem" data-mfilter="epic">Epic</div>
+            <div class="mac-ditem" data-mfilter="gog">GOG</div>
+            <div class="mac-ditem" data-mfilter="flatpak">Flatpak</div>
+            <div class="mac-ditem" data-mfilter="pico8">PICO-8</div>
+            <div class="mac-ditem" data-mfilter="itch">itch.io</div>
+            <div class="mac-ditem" data-mfilter="physical">Physical</div>
             <div class="mac-ditem" data-mfilter="others">Others</div>
+            <div class="mac-ditem" data-mfilter="emulation">Emulation</div>
+            <div class="mac-ditem" data-mfilter="apps">Apps</div>
           </div>
+        </div>
+        <div class="mac-mitem-wrap" id="mac-mitem-playlist-wrap">
+          <span class="mac-mitem" id="mac-mitem-playlist">Playlists</span>
+          <div id="mac-playlist-dropdown"></div>
         </div>
         <span class="mac-mitem" id="mac-mitem-special">Special</span>
         <span id="mac-mitem-spacer"></span>
@@ -1961,6 +1985,7 @@
         <button class="mac-btn" id="mgp-btn-close">Close</button>
         <button class="mac-btn" id="mgp-btn-edit">Edit Info</button>
         <button class="mac-btn mac-btn-default" id="mgp-btn-launch">▶ Launch</button>
+        <button class="mac-btn mac-btn-default" id="mgp-btn-install" style="display:none;">⬇ Install</button>
       </div>
     </div>
   </div>
@@ -2366,6 +2391,8 @@
             <button class="segmented-btn" data-val="bbs">BBS</button>
             <button class="segmented-btn" data-val="vi">Vi Buffer</button>
             <button class="segmented-btn lsc-full" data-val="adventure">Adventure</button>
+            <hr class="lsc-divider">
+            <span class="lsc-label">Ancient OS</span>
             <button class="segmented-btn lsc-full" data-val="mac">Mac OS 1.0</button>
           </div>
         </div>
