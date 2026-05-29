@@ -528,13 +528,6 @@ document.getElementById('btn-refresh-library-sb')?.addEventListener('click', () 
     document.getElementById('btn-refresh-library').click());
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
-    const ac = document.getElementById('app-container');
-    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows'];
-    const flatActive = flatLayouts.find(l => ac.classList.contains(l));
-    if (flatActive) {
-        document.getElementById('main-content').classList.remove('split-edit');
-        return;
-    }
     applyFilters();
     switchView(lastGridView);
     document.getElementById(lastGridView).scrollTop = savedGridScrollTop;
@@ -2024,9 +2017,9 @@ function getStoreLogo(store) {
 
 // ── FLAT LAYOUT HELPERS ──────────────────────────────────────────────────────
 function _openFlatGamepage(game) {
+    _splitEditActive = true;
     document.getElementById('main-content').classList.add('split-edit');
-    savedGridScrollTop = 0;
-    openGamepage(game);
+    openDetails(game);
 }
 
 function _flatFilter(query) {
@@ -2132,9 +2125,7 @@ document.addEventListener('keydown', e => {
     });
     document.getElementById('btn-dh-open')?.addEventListener('click', () => { if (_dhSelected) _openFlatGamepage(_dhSelected); });
     document.getElementById('btn-dh-edit')?.addEventListener('click', () => {
-        if (!_dhSelected) return;
-        document.getElementById('main-content').classList.add('split-edit');
-        openDetails(_dhSelected);
+        if (_dhSelected) _openFlatGamepage(_dhSelected);
     });
 })();
 
