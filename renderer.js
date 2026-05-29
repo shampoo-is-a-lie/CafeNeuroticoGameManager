@@ -2270,7 +2270,7 @@ function openMacGamepage(game) {
         launchBtn.style.display  = 'none';
         installBtn.style.display = '';
         installBtn.disabled      = false;
-        installBtn.onclick       = () => { closeMacGamepage(); openInstallPicker(game, installCmd); };
+        installBtn.onclick       = () => { closeMacGamepage(); window.api.openInstallUrl(installCmd); };
     } else {
         launchBtn.style.display  = '';
         launchBtn.disabled       = !game.LaunchCommand;

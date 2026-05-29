@@ -559,10 +559,19 @@
     #tty-gamepage[data-filter="dotmatrix"] #tgp-cover-crt::after { background:radial-gradient(circle, transparent 1px, rgba(0,0,0,0.68) 1px) 0 0 / 3px 3px; }
 /* ── Mac OS 1.0 system-wide theme — overrides CNGM theme selector ───────── */
     #app-container.layout-mac { --bg:#fff; --bg_panel:#f0f0f0; --bg_menu:#fff; --accent:#000; --accent_alt:#000; --accent_menu:#000; --text_main:#000; --text_sec:#222; --text_dim:#666; --border:#ccc; --border_solid:#000; }
-    #app-container.layout-mac .modal-box { background:#fff !important; border:2px solid #000 !important; border-radius:0 !important; box-shadow:4px 4px 0 #000 !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
-    #app-container.layout-mac .modal-box h2, #app-container.layout-mac .modal-box h3 { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
-    #app-container.layout-mac .modal-box input, #app-container.layout-mac .modal-box select, #app-container.layout-mac .modal-box textarea { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
-    #app-container.layout-mac .modal-box button, #app-container.layout-mac .modal-box .btn { border-radius:0 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    /* Modals live outside #app-container in the DOM, so use :has() to reach them */
+    :root:has(#app-container.layout-mac) .modal-box { background:#fff !important; border:2px solid #000 !important; border-radius:0 !important; box-shadow:4px 4px 0 #000 !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    :root:has(#app-container.layout-mac) .modal-box h2,
+    :root:has(#app-container.layout-mac) .modal-box h3 { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    :root:has(#app-container.layout-mac) .modal-box p { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; }
+    :root:has(#app-container.layout-mac) .modal-box input,
+    :root:has(#app-container.layout-mac) .modal-box select,
+    :root:has(#app-container.layout-mac) .modal-box textarea { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    :root:has(#app-container.layout-mac) .modal-box button,
+    :root:has(#app-container.layout-mac) .modal-box .btn { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; font-weight:bold !important; -webkit-font-smoothing:none !important; box-shadow:2px 2px 0 #999 !important; padding:4px 14px !important; cursor:pointer; }
+    :root:has(#app-container.layout-mac) .modal-box button:hover,
+    :root:has(#app-container.layout-mac) .modal-box .btn:hover { background:#eee !important; }
+    :root:has(#app-container.layout-mac) .modal-overlay { background:rgba(0,0,0,0.55) !important; }
 /* ── Mac OS 1.0 Layout ─────────────────────────────────────────────────── */
     #mac-shell { display:none; flex-direction:column; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; background:#fff; color:#000; overflow:hidden; -webkit-font-smoothing:none; image-rendering:pixelated; }
     #app-container.layout-mac #mac-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
