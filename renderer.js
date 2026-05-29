@@ -476,7 +476,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-constellation');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -494,9 +494,8 @@ function applyLayoutMode(mode) {
     if (mode === 'catalog')   { renderCatalog(); }
     if (mode === 'newspaper') { renderNewspaper(); }
     if (mode === 'streamrows')    { renderStreamRows(); }
-    if (mode === 'constellation') { initConstellation(); }
     // Exit flat layouts: remove split-edit overlay if lingering
-    if (!['datahero','catalog','newspaper','streamrows','constellation'].includes(mode)) {
+    if (!['datahero','catalog','newspaper','streamrows'].includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
 }
@@ -530,7 +529,7 @@ document.getElementById('btn-refresh-library-sb')?.addEventListener('click', () 
 
 document.getElementById('btn-gamepage-back').addEventListener('click', () => {
     const ac = document.getElementById('app-container');
-    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-constellation'];
+    const flatLayouts = ['layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows'];
     const flatActive = flatLayouts.find(l => ac.classList.contains(l));
     if (flatActive) {
         document.getElementById('main-content').classList.remove('split-edit');
@@ -2353,183 +2352,6 @@ function renderStreamRows() {
     });
 })();
 
-// ── CONSTELLATION / STAR MAP ──────────────────────────────────────────────────
-
-const _CONST_COLORS = [
-    '#6496ff','#ff6464','#64d496','#ffaa64','#c864ff',
-    '#64d4ff','#e8e864','#ff64b4','#aaff64','#ff6496',
-    '#64b4ff','#ffd464','#9696ff','#ff8264','#64ffb4'
-];
-
-function _constRng(seed) {
-    let s = (seed ^ 0x12345678) >>> 0;
-    return () => { s ^= s<<13; s ^= s>>>17; s ^= s<<5; return ((s>>>0)/4294967296); };
-}
-
-let _constPos = null;       // [{game, x, y, genre}]
-let _constGenres = null;    // {genre: {x,y,color}}
-let _constStars = null;
-let _constZoom = 0.75;
-let _constPanX = 0;
-let _constPanY = 0;
-let _constDrag = null;      // {sx,sy,px,py} start of drag
-let _constHovered = null;
-let _constListeners = false;
-
-function _constBuild(games) {
-    const counts = {};
-    games.forEach(g => { const ge = g.GENRE||'—'; counts[ge] = (counts[ge]||0)+1; });
-    const genres = Object.keys(counts).sort((a,b) => counts[b]-counts[a]);
-    const R = Math.max(320, genres.length * 65);
-    _constGenres = {};
-    genres.forEach((genre, i) => {
-        const angle = (i/genres.length)*Math.PI*2 - Math.PI/2;
-        _constGenres[genre] = { x: Math.cos(angle)*R, y: Math.sin(angle)*R, color: _CONST_COLORS[i%_CONST_COLORS.length] };
-    });
-    _constPos = games.map(game => {
-        const genre = game.GENRE||'—';
-        const c = _constGenres[genre];
-        const rng = _constRng(game.id||1);
-        const angle = rng()*Math.PI*2, spread = rng()*100+12;
-        return { game, x: c.x+Math.cos(angle)*spread, y: c.y+Math.sin(angle)*spread, genre };
-    });
-    const srng = _constRng(7777);
-    _constStars = Array.from({length:200}, () => ({
-        x:(srng()-0.5)*5000, y:(srng()-0.5)*5000, r:srng()*1.2+0.2, a:srng()*0.45+0.05
-    }));
-}
-
-function _constDraw() {
-    const canvas = document.getElementById('constellation-canvas');
-    if (!canvas || !_constPos) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.fillStyle = '#050507';
-    ctx.fillRect(0,0,W,H);
-    ctx.save();
-    ctx.translate(_constPanX + W/2, _constPanY + H/2);
-    ctx.scale(_constZoom, _constZoom);
-
-    // Background stars
-    _constStars?.forEach(s => {
-        ctx.fillStyle = `rgba(255,255,255,${s.a})`;
-        ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
-    });
-
-    // Genre halos
-    Object.values(_constGenres||{}).forEach(info => {
-        const gr = ctx.createRadialGradient(info.x,info.y,0,info.x,info.y,170);
-        gr.addColorStop(0, info.color+'1a'); gr.addColorStop(1,'transparent');
-        ctx.fillStyle = gr;
-        ctx.beginPath(); ctx.arc(info.x,info.y,170,0,Math.PI*2); ctx.fill();
-    });
-
-    // Nodes
-    const q = (document.getElementById('const-search')?.value||'').toLowerCase().trim();
-    _constPos.forEach(({game,x,y,genre}) => {
-        const matched = q && (game.Game||'').toLowerCase().includes(q);
-        const dimmed  = q && !matched;
-        const hovered = _constHovered?.game?.id === game.id;
-        const r = (game.is_favourite?6:4) * (hovered?1.7:1);
-        const color = _constGenres?.[genre]?.color||'#6496ff';
-
-        if (dimmed) {
-            ctx.fillStyle='rgba(50,50,60,0.35)';
-            ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill();
-            return;
-        }
-        const gr = ctx.createRadialGradient(x,y,0,x,y,r*5);
-        gr.addColorStop(0, color+(matched||hovered?'bb':'44')); gr.addColorStop(1,'transparent');
-        ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(x,y,r*5,0,Math.PI*2); ctx.fill();
-        ctx.fillStyle = (matched||hovered)?'#fff':color;
-        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-    });
-
-    // Genre labels
-    ctx.textAlign='center'; ctx.font='900 8px Raleway,sans-serif';
-    Object.entries(_constGenres||{}).forEach(([genre,info]) => {
-        ctx.fillStyle = info.color+'66';
-        ctx.fillText(genre.toUpperCase(), info.x, info.y-180);
-    });
-
-    ctx.restore();
-}
-
-function _constHitTest(clientX, clientY) {
-    const canvas = document.getElementById('constellation-canvas');
-    if (!canvas||!_constPos) return null;
-    const rect = canvas.getBoundingClientRect();
-    const cx = (clientX-rect.left-_constPanX-canvas.width/2)/_constZoom;
-    const cy = (clientY-rect.top-_constPanY-canvas.height/2)/_constZoom;
-    let best=null, bestD=Infinity;
-    _constPos.forEach(pos => {
-        const d = Math.hypot(cx-pos.x, cy-pos.y);
-        if (d<bestD) { bestD=d; best=pos; }
-    });
-    return bestD < 16/_constZoom ? best : null;
-}
-
-function _constShowTip(pos, clientX, clientY) {
-    const tip = document.getElementById('const-tooltip');
-    if (!tip) return;
-    const shell = document.getElementById('constellation-shell');
-    const sr = shell.getBoundingClientRect();
-    if (!pos) { tip.style.display='none'; return; }
-    tip.querySelector('.const-tip-name').textContent = pos.game.Game||'';
-    tip.querySelector('.const-tip-meta').textContent = [pos.game.Store, pos.game.GENRE, pos.game.HLTB_Main?pos.game.HLTB_Main+'h HLTB':null].filter(Boolean).join(' · ');
-    tip.style.display='block';
-    tip.style.left = Math.min(clientX-sr.left+14, sr.width-200)+'px';
-    tip.style.top  = Math.max(clientY-sr.top-36, 8)+'px';
-}
-
-function initConstellation() {
-    const canvas = document.getElementById('constellation-canvas');
-    const shell  = document.getElementById('constellation-shell');
-    if (!canvas||!shell) return;
-    canvas.width  = shell.clientWidth;
-    canvas.height = shell.clientHeight;
-    if (!_constPos || _constPos.length !== allGames.length) {
-        _constBuild(allGames);
-        _constPanX=0; _constPanY=0; _constZoom=0.75;
-    }
-    _constDraw();
-
-    if (_constListeners) return;
-    _constListeners = true;
-
-    canvas.addEventListener('wheel', e => {
-        e.preventDefault();
-        const factor = e.deltaY < 0 ? 1.12 : 0.89;
-        _constZoom = Math.max(0.15, Math.min(6, _constZoom*factor));
-        _constDraw();
-    }, { passive:false });
-
-    canvas.addEventListener('mousedown', e => {
-        _constDrag = { sx:e.clientX, sy:e.clientY, px:_constPanX, py:_constPanY };
-        canvas.classList.add('dragging');
-    });
-    window.addEventListener('mousemove', e => {
-        if (_constDrag) {
-            _constPanX = _constDrag.px + (e.clientX-_constDrag.sx);
-            _constPanY = _constDrag.py + (e.clientY-_constDrag.sy);
-            _constDraw(); return;
-        }
-        const hit = _constHitTest(e.clientX, e.clientY);
-        if (hit !== _constHovered) { _constHovered=hit; _constDraw(); }
-        _constShowTip(hit, e.clientX, e.clientY);
-    });
-    window.addEventListener('mouseup', e => {
-        if (!_constDrag) return;
-        const moved = Math.hypot(e.clientX-_constDrag.sx, e.clientY-_constDrag.sy);
-        _constDrag=null; canvas.classList.remove('dragging');
-        if (moved<5) {
-            const hit = _constHitTest(e.clientX, e.clientY);
-            if (hit) _openFlatGamepage(hit.game);
-        }
-    });
-
-    document.getElementById('const-search')?.addEventListener('input', () => _constDraw());
-}
 
 function renderGallery(recent, regular) {
     const grid = document.getElementById('gallery-grid');

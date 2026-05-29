@@ -160,20 +160,16 @@
     #app-container.layout-datahero      #icon-rail, #app-container.layout-datahero      #side-panel, #app-container.layout-datahero      #sidebar, #app-container.layout-datahero      #topnav,
     #app-container.layout-catalog       #icon-rail, #app-container.layout-catalog       #side-panel, #app-container.layout-catalog       #sidebar, #app-container.layout-catalog       #topnav,
     #app-container.layout-newspaper     #icon-rail, #app-container.layout-newspaper     #side-panel, #app-container.layout-newspaper     #sidebar, #app-container.layout-newspaper     #topnav,
-    #app-container.layout-streamrows    #icon-rail, #app-container.layout-streamrows    #side-panel, #app-container.layout-streamrows    #sidebar, #app-container.layout-streamrows    #topnav,
-    #app-container.layout-constellation #icon-rail, #app-container.layout-constellation #side-panel, #app-container.layout-constellation #sidebar, #app-container.layout-constellation #topnav { display:none !important; }
+    #app-container.layout-streamrows    #icon-rail, #app-container.layout-streamrows    #side-panel, #app-container.layout-streamrows    #sidebar, #app-container.layout-streamrows    #topnav { display:none !important; }
     #app-container.layout-datahero      #main-content, #app-container.layout-catalog       #main-content,
-    #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content,
-    #app-container.layout-constellation #main-content { display:none !important; }
+    #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content { display:none !important; }
     #app-container.layout-datahero      #main-content.split-edit, #app-container.layout-catalog       #main-content.split-edit,
-    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit,
-    #app-container.layout-constellation #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
-    #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell, #constellation-shell { display:none; flex:1; overflow:hidden; }
-    #app-container.layout-datahero      #datahero-shell      { display:flex !important; }
-    #app-container.layout-catalog       #catalog-shell       { display:flex !important; }
-    #app-container.layout-newspaper     #newspaper-shell     { display:flex !important; }
-    #app-container.layout-streamrows    #streamrows-shell    { display:flex !important; }
-    #app-container.layout-constellation #constellation-shell { display:flex !important; }
+    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit { display:flex !important; position:fixed; inset:0; z-index:10000; background:var(--bg); }
+    #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell { display:none; flex:1; overflow:hidden; }
+    #app-container.layout-datahero      #datahero-shell   { display:flex !important; }
+    #app-container.layout-catalog       #catalog-shell    { display:flex !important; }
+    #app-container.layout-newspaper     #newspaper-shell  { display:flex !important; }
+    #app-container.layout-streamrows    #streamrows-shell { display:flex !important; }
     /* shared flat input */
     .flat-input { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 10px; border-radius:0; }
     .flat-input:focus { outline:none; border-color:var(--accent); }
@@ -277,18 +273,6 @@
     .sr-card-name { font-size:9px; font-weight:900; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
     .sr-empty { padding:60px 18px; text-align:center; font-size:9px; color:var(--text_dim); letter-spacing:2px; text-transform:uppercase; }
 
-    /* ── CONSTELLATION ───────────────────────────────────────────────────────── */
-    #constellation-shell { position:relative; overflow:hidden; }
-    #constellation-canvas { position:absolute; inset:0; display:block; cursor:grab; }
-    #constellation-canvas.dragging { cursor:grabbing; }
-    #const-float { position:absolute; top:10px; right:12px; z-index:10; display:flex; gap:6px; align-items:center; }
-    #const-search { background:rgba(6,6,6,0.78); border:1px solid rgba(255,255,255,0.14); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 10px; border-radius:0; backdrop-filter:blur(10px); width:180px; }
-    #const-search:focus { outline:none; border-color:var(--accent); }
-    #const-search::placeholder { color:rgba(255,255,255,0.28); font-style:italic; }
-    #const-hint { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); font-size:8px; color:rgba(255,255,255,0.2); letter-spacing:2px; text-transform:uppercase; pointer-events:none; }
-    #const-tooltip { position:absolute; z-index:20; background:rgba(0,0,0,0.88); border:1px solid rgba(255,255,255,0.12); padding:5px 10px; pointer-events:none; display:none; backdrop-filter:blur(8px); }
-    .const-tip-name { font-size:10px; font-weight:900; color:#fff; display:block; }
-    .const-tip-meta { font-size:8px; color:rgba(255,255,255,0.5); letter-spacing:0.5px; display:block; margin-top:2px; }
     /* Left list panel */
     #split-left { width:280px; flex-shrink:0; display:flex; flex-direction:column; border-right:1px solid var(--border_solid); background:var(--bg_menu); overflow:hidden; }
     #split-left-header { padding:10px 10px 8px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
@@ -1358,16 +1342,6 @@
       <div id="sr-content"></div>
     </div>
 
-    <!-- ── CONSTELLATION ───────────────────────────────────────────────────── -->
-    <div id="constellation-shell">
-      <canvas id="constellation-canvas"></canvas>
-      <div id="const-float">
-        <input id="const-search" placeholder="Search…" autocomplete="off" spellcheck="false">
-        <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-const-tools" title="Tools &amp; Settings" style="background:rgba(6,6,6,0.78); backdrop-filter:blur(10px); border-color:rgba(255,255,255,0.14);"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-      </div>
-      <div id="const-tooltip"><span class="const-tip-name"></span><span class="const-tip-meta"></span></div>
-      <div id="const-hint">scroll to zoom · drag to pan · click to open</div>
-    </div>
 
     </div><!-- /#app-inner -->
   </div><!-- /#app-container -->
@@ -1677,7 +1651,6 @@
             <button class="segmented-btn" data-val="catalog">Catalog</button>
             <button class="segmented-btn" data-val="newspaper">Newspaper</button>
             <button class="segmented-btn" data-val="streamrows">Streaming Rows</button>
-            <button class="segmented-btn" data-val="constellation">Constellation</button>
           </div>
         </div>
 
