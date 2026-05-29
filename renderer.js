@@ -2265,11 +2265,15 @@ function renderNewspaper() {
         _npSelected = null;
     });
 
+    document.getElementById('np-columns')?.addEventListener('wheel', e => {
+        e.preventDefault();
+        document.getElementById('np-columns').scrollLeft += e.deltaY;
+    }, { passive: false });
+
     document.getElementById('btn-dh-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-cat-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-np-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-sr-tools')?.addEventListener('click', () => openToolsModal());
-    document.getElementById('btn-const-tools')?.addEventListener('click', () => openToolsModal());
 })();
 
 // ── STREAMING ROWS ────────────────────────────────────────────────────────────
