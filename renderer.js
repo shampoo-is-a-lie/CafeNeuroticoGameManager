@@ -476,7 +476,7 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac');
     c.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
@@ -493,9 +493,17 @@ function applyLayoutMode(mode) {
     if (mode === 'datahero')  { renderDataHero(); }
     if (mode === 'catalog')   { renderCatalog(); }
     if (mode === 'newspaper') { renderNewspaper(); }
-    if (mode === 'streamrows')    { renderStreamRows(); }
-    // Exit flat layouts: remove split-edit overlay if lingering
-    if (!['datahero','catalog','newspaper','streamrows'].includes(mode)) {
+    if (mode === 'streamrows') { renderStreamRows(); }
+    if (mode === 'timeline')  { renderTimeline(); }
+    if (mode === 'kanban')    { renderKanban(); }
+    if (mode === 'htop')      { renderHtop(); }
+    if (mode === 'ranger')    { renderRanger(); }
+    if (mode === 'bbs')       { renderBbs(); }
+    if (mode === 'vi')        { renderVi(); }
+    if (mode === 'adventure') { renderAdventure(); }
+    if (mode === 'mac')       { renderMac(); }
+    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac'];
+    if (!allFlatModes.includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
 }
@@ -1319,6 +1327,14 @@ function applyFilters() {
     renderCatalog();
     renderNewspaper();
     renderStreamRows();
+    renderTimeline();
+    renderKanban();
+    renderHtop();
+    renderRanger();
+    renderBbs();
+    renderVi();
+    renderAdventure();
+    renderMac();
     if (_splitHistoryMode) { showSplitHistory(); return; }
     renderSplitList(filtered);
 }
@@ -2083,18 +2099,558 @@ document.getElementById('btn-fdo-launch').addEventListener('click', () => {
     window.api.updateLastPlayed(_flatDetailGame.id);
 });
 
+const _ttyLayouts = ['htop','ranger','bbs','vi','adventure'];
+
 function _openFlatGamepage(game) {
-    openFlatDetail(game);
+    const c = document.getElementById('app-container');
+    if (_ttyLayouts.some(l => c.classList.contains('layout-' + l))) openTtyGamepage(game);
+    else openFlatDetail(game);
 }
 
+// ── MAC OS 1.0 ────────────────────────────────────────────────────────────
+let _macIdx    = 0;
+let _macSearch = '';
+let _macGame   = null;
+let _macFilter = 'all';
+
+const _macFilterLabels = {
+    all:'All Games', installed:'Installed', favs:'Favourites', want:'Want to Play',
+    steam:'Steam', gog:'GOG', epic:'Epic', others:'Others'
+};
+
+function _applyMacFilter(src) {
+    switch (_macFilter) {
+        case 'installed': return src.filter(g => g.Installed == 1);
+        case 'favs':      return src.filter(g => g.is_favourite == 1);
+        case 'want':      return src.filter(g => g.WANT_TO_PLAY === 'YES');
+        case 'steam':     return src.filter(g => (g.Store||'').toLowerCase().includes('steam'));
+        case 'gog':       return src.filter(g => (g.Store||'').toLowerCase().includes('gog'));
+        case 'epic':      return src.filter(g => (g.Store||'').toLowerCase().includes('epic') || (g.Store||'').toLowerCase().includes('legendary'));
+        case 'others':    return src.filter(g => {
+            const s = (g.Store||'').toLowerCase();
+            return !s.includes('steam') && !s.includes('gog') && !s.includes('epic') && !s.includes('legendary');
+        });
+        default: return src;
+    }
+}
+
+function _hltbDisplay(val) {
+    if (!val) return null;
+    const s = String(val);
+    return (s !== '' && isFinite(+s)) ? s + 'h' : s;
+}
+
+function _updateMacSidePanels(game) {
+    const coverWrap = document.getElementById('mac-sidebar-cover-wrap');
+    const coverPh   = document.getElementById('mac-cover-noart-ph');
+    const coverImg  = document.getElementById('mac-sidebar-cover');
+    const nameEl    = document.getElementById('mac-cover-game-name');
+    const infoBody  = document.getElementById('mac-info-body');
+    if (!game) {
+        if (coverWrap) coverWrap.style.display = 'none';
+        if (coverPh)   coverPh.style.display   = '';
+        if (nameEl)    nameEl.textContent       = '';
+        if (infoBody)  infoBody.innerHTML       = '';
+        return;
+    }
+    const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+    if (coverSrc) {
+        coverImg.src = coverSrc;
+        coverWrap.style.display = '';
+        coverPh.style.display   = 'none';
+    } else {
+        coverWrap.style.display = 'none';
+        coverPh.style.display   = '';
+    }
+    nameEl.textContent = game.Game || '';
+    const store = (game.Store || '').split(',')[0].trim();
+    const rows = [
+        ['Store',      store || null],
+        ['Developer',  game.DEV || null],
+        ['Publisher',  (game.PUB && game.PUB !== game.DEV) ? game.PUB : null],
+        ['Released',   game.RELEASED || null],
+        ['Genre',      game.GENRE || null],
+        ['HLTB',       _hltbDisplay(game.HLTB_Main)],
+        ['Proton',     game.ProtonTier || null],
+        ['Metacritic', game.METACRITIC ? String(game.METACRITIC) : null],
+        ['Last Played',game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString() : null],
+        ['Favourite',  game.is_favourite == 1 ? '★ Yes' : null],
+    ].filter(([, v]) => v);
+    infoBody.innerHTML = rows.map(([k, v]) =>
+        `<div class="mac-info-row"><span class="mac-info-key">${escHtml(k)}:</span><span class="mac-info-val">${escHtml(String(v))}</span></div>`
+    ).join('');
+}
+
+function renderMac() {
+    if (!document.getElementById('app-container').classList.contains('layout-mac')) return;
+    const src = _applyMacFilter(_flatFilter(_macSearch));
+    document.getElementById('mac-finder-count').textContent = src.length;
+    document.getElementById('mac-status-left').textContent =
+        src.length + ' item' + (src.length !== 1 ? 's' : '');
+    _macIdx = Math.min(Math.max(_macIdx, 0), src.length - 1);
+    const list = document.getElementById('mac-finder-list');
+    list.innerHTML = '';
+    src.forEach((g, i) => {
+        const row = document.createElement('div');
+        row.className = 'mac-list-row' + (i === _macIdx ? ' mac-selected' : '');
+        const store = (g.Store || '').split(',')[0].trim();
+        const icon  = g.Installed == 1 ? '▪' : '▫';
+        row.innerHTML =
+            `<span class="mac-list-icon">${icon}</span>` +
+            `<span class="mac-list-name">${escHtml(g.Game || '')}</span>` +
+            `<span class="mac-list-store">${escHtml(store)}</span>` +
+            `<span class="mac-list-genre">${escHtml(g.GENRE || '')}</span>`;
+        row.addEventListener('click', () => { _macIdx = i; renderMac(); });
+        row.addEventListener('dblclick', () => openMacGamepage(g));
+        list.appendChild(row);
+    });
+    const sel = list.querySelector('.mac-selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+    _updateMacSidePanels(src[_macIdx] || null);
+}
+
+function openMacGamepage(game) {
+    _macGame = game;
+    const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+    document.getElementById('mgp-title-text').textContent = 'Info: ' + (game.Game || '');
+    const coverWrap = document.getElementById('mgp-cover-wrap');
+    const noArt     = document.getElementById('mgp-cover-noart');
+    if (coverSrc) {
+        document.getElementById('mgp-cover').src = coverSrc;
+        coverWrap.style.display = '';
+        noArt.style.display     = 'none';
+    } else {
+        coverWrap.style.display = 'none';
+        noArt.style.display     = '';
+    }
+    const store = (game.Store || '').split(',')[0].trim();
+    const rows = [
+        ['Kind',       'Game'],
+        ['Store',      store || null],
+        ['Developer',  game.DEV || null],
+        ['Publisher',  (game.PUB && game.PUB !== game.DEV) ? game.PUB : null],
+        ['Released',   game.RELEASED || null],
+        ['Genre',      game.GENRE || null],
+        ['HLTB',       _hltbDisplay(game.HLTB_Main)],
+        ['Proton',     game.ProtonTier || null],
+        ['Metacritic', game.METACRITIC ? String(game.METACRITIC) : null],
+        ['Last Played', game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString() : null],
+        ['Favourite',  game.is_favourite == 1 ? '★ Yes' : null],
+    ].filter(([, v]) => v);
+    document.getElementById('mgp-right').innerHTML =
+        rows.map(([k, v]) =>
+            `<div class="mgp-row"><span class="mgp-key">${escHtml(k)}:</span><span class="mgp-val">${escHtml(String(v))}</span></div>`
+        ).join('');
+    document.getElementById('mgp-desc-area').textContent =
+        getLocalizedDescription(game) || '—';
+    const launchBtn = document.getElementById('mgp-btn-launch');
+    launchBtn.disabled = !game.LaunchCommand;
+    launchBtn.style.opacity = game.LaunchCommand ? '1' : '0.4';
+    document.getElementById('mac-gamepage').classList.add('open');
+}
+
+function closeMacGamepage() {
+    document.getElementById('mac-gamepage').classList.remove('open');
+    _macGame = null;
+}
+
+(function () {
+    document.getElementById('mgp-closebox').addEventListener('click', closeMacGamepage);
+    document.getElementById('mgp-btn-close').addEventListener('click', closeMacGamepage);
+    document.getElementById('mgp-btn-launch').addEventListener('click', () => {
+        if (!_macGame?.LaunchCommand) return;
+        verifyAndLaunch(_macGame.id, _macGame.LaunchCommand);
+        window.api.updateLastPlayed(_macGame.id);
+    });
+    document.getElementById('mgp-btn-edit').addEventListener('click', () => {
+        if (!_macGame) return;
+        const g = _macGame; closeMacGamepage();
+        _splitEditActive = true;
+        document.getElementById('main-content').classList.add('split-edit');
+        openDetails(g);
+    });
+    const _macSearchEl = document.getElementById('mac-finder-search');
+    const _macClearBtn = document.getElementById('mac-search-clear');
+    _macSearchEl.addEventListener('input', e => {
+        _macSearch = e.target.value;
+        _macIdx = 0;
+        _macClearBtn.classList.toggle('visible', _macSearch.length > 0);
+        renderMac();
+    });
+    _macClearBtn.addEventListener('click', () => {
+        _macSearch = '';
+        _macSearchEl.value = '';
+        _macClearBtn.classList.remove('visible');
+        _macIdx = 0;
+        _macSearchEl.focus();
+        renderMac();
+    });
+    document.getElementById('mac-finder-closebox').addEventListener('click', () => applyLayoutMode('sidebar'));
+    document.getElementById('mac-mitem-special')?.addEventListener('click', openToolsModal);
+    document.getElementById('mac-mitem-apple')?.addEventListener('click', openToolsModal);
+    // View menu dropdown
+    document.getElementById('mac-mitem-view').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-view-dropdown').classList.toggle('open');
+    });
+    document.querySelectorAll('.mac-ditem[data-mfilter]').forEach(el => {
+        el.addEventListener('click', e => {
+            e.stopPropagation();
+            _macFilter = el.dataset.mfilter;
+            _macIdx = 0;
+            document.querySelectorAll('.mac-ditem[data-mfilter]').forEach(d =>
+                d.classList.toggle('mac-dactive', d.dataset.mfilter === _macFilter));
+            document.getElementById('mac-mitem-view').textContent =
+                (_macFilter === 'all' ? 'View' : _macFilterLabels[_macFilter]) + ' ▾';
+            document.getElementById('mac-view-dropdown').classList.remove('open');
+            renderMac();
+        });
+    });
+    document.addEventListener('click', () =>
+        document.getElementById('mac-view-dropdown')?.classList.remove('open'));
+    // Clock
+    function _macClock() {
+        const el = document.getElementById('mac-mitem-clock');
+        if (el) el.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    _macClock();
+    setInterval(_macClock, 30000);
+    // Keyboard
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-mac')) return;
+        if (document.getElementById('mac-gamepage').classList.contains('open')) {
+            if (e.key === 'Escape') { closeMacGamepage(); e.preventDefault(); }
+            return;
+        }
+        if (document.activeElement === document.getElementById('mac-finder-search')) return;
+        const src = _applyMacFilter(_flatFilter(_macSearch));
+        if (e.key === 'ArrowDown')  { _macIdx = Math.min(_macIdx + 1, src.length - 1); renderMac(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { _macIdx = Math.max(_macIdx - 1, 0); renderMac(); e.preventDefault(); }
+        else if (e.key === 'Enter') {
+            if (src[_macIdx]) { openMacGamepage(src[_macIdx]); e.preventDefault(); }
+        } else if (e.key === 'Escape') {
+            if (_macSearch) { _macSearch = ''; document.getElementById('mac-finder-search').value = ''; renderMac(); }
+        }
+    });
+})();
+
+// ── TTY GAMEPAGE ──────────────────────────────────────────────────────────────
+let _ttyGame = null;
+let _ttyAchToken = 0;
+const _ttyFilterLabels = { crt:'CRT', green:'GREEN', amber:'AMBER', mono:'MONO', interlaced:'SCAN', dotmatrix:'DOTS' };
+let _ttyFilterMode = localStorage.getItem('tty-filter') || 'crt';
+
+const _ttyFonts = {
+    pressstart:  { label: 'PRESS START', family: "'Press Start 2P'" },
+    pxibm:       { label: 'IBM VGA8',    family: "'PxPlus IBM VGA8'" },
+    bigblue:     { label: 'BIGBLUE',     family: "'BigBlue Terminal'" },
+    whiterabbit: { label: 'WHITE RABBIT',family: "'White Rabbit'" },
+    c64:         { label: 'C64 PRO',     family: "'C64 Pro Mono'" },
+    jetbrains:   { label: 'JETBRAINS',   family: "'JetBrains Mono'" },
+    firacode:    { label: 'FIRA CODE',   family: "'Fira Code'" },
+    hack:        { label: 'HACK',        family: "'Hack'" },
+};
+let _ttyFontMode = localStorage.getItem('tty-font') || 'bigblue';
+
+function _applyTtyFont(key) {
+    _ttyFontMode = key;
+    localStorage.setItem('tty-font', key);
+    const f = _ttyFonts[key] || _ttyFonts.pressstart;
+    document.documentElement.style.setProperty('--tty-font', f.family);
+    const btn = document.getElementById('tgp-font-btn');
+    if (btn) btn.textContent = f.label + ' ▼';
+    document.querySelectorAll('.tgp-fopt-font').forEach(el => el.classList.toggle('active', el.dataset.fnt === key));
+}
+_applyTtyFont(_ttyFontMode);
+
+function _applyTtyFilter(mode) {
+    _ttyFilterMode = mode;
+    localStorage.setItem('tty-filter', mode);
+    document.getElementById('tty-gamepage').dataset.filter = mode;
+    document.getElementById('tgp-filter-btn').textContent = (_ttyFilterLabels[mode] || mode.toUpperCase()) + ' ▼';
+    document.querySelectorAll('.tgp-fopt').forEach(el => el.classList.toggle('active', el.dataset.f === mode));
+}
+
+async function openTtyGamepage(game) {
+    _ttyGame = game;
+    const token = ++_ttyAchToken;
+
+    const store    = (game.Store || '').split(',')[0].trim();
+    const heroSrc  = game.HeroArt  ? getSafePath(game.HeroArt)  : '';
+    const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+
+    // Hero band
+    const heroBandSrc = heroSrc || coverSrc;
+    const heroCrt   = document.getElementById('tgp-hero-crt');
+    const heroNoArt = document.getElementById('tgp-hero-noart');
+    if (heroBandSrc) {
+        document.getElementById('tgp-hero-img').src = heroBandSrc;
+        heroCrt.style.display = '';
+        heroNoArt.style.display = 'none';
+    } else {
+        heroCrt.style.display = 'none';
+        heroNoArt.style.display = '';
+    }
+
+    document.getElementById('tgp-dos-logo').textContent = game.Game || '';
+    document.getElementById('tgp-dos-logo-sub').textContent =
+        [store, game.GENRE, game.RELEASED].filter(Boolean).join('  ·  ').toUpperCase();
+
+    document.getElementById('tgp-sub-line').textContent =
+        [store, game.DEV, game.RELEASED].filter(Boolean).join('  ·  ').toUpperCase();
+    document.getElementById('tgp-desc-body').textContent =
+        getLocalizedDescription(game) || 'No description on record.';
+
+    // Achievements placeholder
+    const achSection = document.getElementById('tgp-ach-section');
+    achSection.innerHTML = '';
+
+    // Cover art — always show if available
+    const coverCrt = document.getElementById('tgp-cover-crt');
+    if (coverSrc) {
+        document.getElementById('tgp-cover-img').src = coverSrc;
+        coverCrt.style.display = '';
+    } else {
+        coverCrt.style.display = 'none';
+    }
+
+    // Metadata
+    const infoRows = [
+        ['DEVELOPER', game.DEV],
+        ['PUBLISHER', game.PUB && game.PUB !== game.DEV ? game.PUB : null],
+        ['RELEASED',  game.RELEASED],
+        ['STORE',     store],
+        ['GENRE',     game.GENRE],
+    ].filter(([,v]) => v)
+     .map(([k,v]) => `<div class="tgp-meta-row"><span class="tgp-meta-key">${k}</span><span class="tgp-meta-val">${escHtml(String(v))}</span></div>`)
+     .join('');
+
+    let hltbHtml = '';
+    if (game.HLTB_Main) {
+        const filled = Math.min(10, Math.round(parseFloat(game.HLTB_Main) / 10));
+        hltbHtml = `<div class="tgp-meta-row"><span class="tgp-meta-key">HLTB</span><span class="tgp-meta-val"><span class="tgp-hbar-full"><span class="hb-f">${'▓'.repeat(filled)}</span><span class="hb-e">${'░'.repeat(10-filled)}</span></span>  ${escHtml(String(game.HLTB_Main))}h</span></div>`;
+    }
+    let protonHtml = '';
+    if (game.ProtonTier) {
+        const pt = (game.ProtonTier || '').toLowerCase();
+        const cls = pt.includes('platinum') ? 'tgp-proton-plat' : pt.includes('gold') ? 'tgp-proton-gold' : pt.includes('silver') ? 'tgp-proton-silv' : pt.includes('bronze') ? 'tgp-proton-brnz' : '';
+        protonHtml = `<div class="tgp-meta-row"><span class="tgp-meta-key">PROTON</span><span class="tgp-meta-val ${cls}">${escHtml(game.ProtonTier)}</span></div>`;
+    }
+    let mcHtml = '';
+    if (game.METACRITIC) {
+        const mc = parseInt(game.METACRITIC, 10);
+        const cls = mc >= 75 ? 'g' : mc >= 50 ? 'y' : 'r';
+        mcHtml = `<div class="tgp-meta-row"><span class="tgp-meta-key">METACRITIC</span><span class="tgp-meta-val"><span class="tgp-mc-badge ${cls}">${mc}</span></span></div>`;
+    }
+    const lastP = game.LastPlayed ? new Date(game.LastPlayed).toLocaleDateString() : null;
+    const isFav = game.is_favourite == 1;
+
+    document.getElementById('tgp-info-rows').innerHTML =
+        `${infoRows}` +
+        (hltbHtml || protonHtml || mcHtml
+            ? `<hr class="tgp-dos-ruler">${hltbHtml}${protonHtml}${mcHtml}`
+            : '') +
+        (lastP || isFav
+            ? `<hr class="tgp-dos-ruler">` +
+              (lastP ? `<div class="tgp-meta-row"><span class="tgp-meta-key">PLAYED</span><span class="tgp-meta-val">${escHtml(lastP)}</span></div>` : '') +
+              (isFav ? `<div class="tgp-meta-row"><span class="tgp-meta-key">FAVOURITE</span><span class="tgp-meta-val" style="color:#ffff55;">★</span></div>` : '')
+            : '');
+
+    document.getElementById('tgp-fk-launch').style.opacity = game.LaunchCommand ? '1' : '0.35';
+    _applyTtyFilter(_ttyFilterMode);
+    document.getElementById('tty-gamepage').classList.add('open');
+
+    // Async: load achievements
+    const gogId    = _gogAppIdFromGame(game);
+    const steamRaw = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '') : null;
+    const tasks = [];
+    if (gogId)    tasks.push({ label: 'GOG',   fetch: async () => { let r = await window.api.getGameAchievements(gogId); if (!r.ok || !r.achievements?.length) r = await window.api.fetchAchievementsNow(gogId); return r; } });
+    if (steamRaw) tasks.push({ label: 'STEAM', fetch: async () => { const k = `steam_${steamRaw}`; let r = await window.api.getGameAchievements(k); if (!r.ok || !r.achievements?.length) r = await window.api.fetchSteamAchievements(steamRaw); return r; } });
+    if (!tasks.length) return;
+
+    const results = await Promise.all(tasks.map(t => t.fetch()));
+    if (token !== _ttyAchToken) return;
+
+    for (let i = 0; i < tasks.length; i++) {
+        const res = results[i];
+        if (!res.ok || !res.achievements?.length) continue;
+        _renderTtyAchievements(achSection, res.achievements);
+        break; // show first source that has data
+    }
+}
+
+function _renderTtyAchievements(container, achievements) {
+    const total    = achievements.length;
+    const unlocked = achievements.filter(a => a.date_unlocked).length;
+    const pct      = total ? Math.round(unlocked / total * 100) : 0;
+    const filled   = Math.round(pct / 10);
+
+    const section = document.createElement('div');
+    section.id = 'tgp-ach-section-inner';
+
+    const bar = `<span class="tgp-ach-bar-chars"><span class="hb-f">${'▓'.repeat(filled)}</span><span class="hb-e">${'░'.repeat(10-filled)}</span></span>`;
+    section.innerHTML =
+        `<div class="tgp-ach-label">ACHIEVEMENTS</div>` +
+        `<div class="tgp-ach-progress">${bar}  ${unlocked} / ${total}  (${pct}%)</div>`;
+
+    // Show up to 5 unlocked (recent first), then up to 3 locked
+    const done   = achievements.filter(a => a.date_unlocked).slice(0, 5);
+    const locked = achievements.filter(a => !a.date_unlocked).slice(0, 3);
+
+    for (const a of done) {
+        const row = document.createElement('div');
+        row.className = 'tgp-ach-item';
+        if (a.image_unlocked) {
+            const img = document.createElement('img');
+            img.src = a.image_unlocked;
+            img.className = 'tgp-ach-icon';
+            img.onerror = () => img.remove();
+            row.appendChild(img);
+        }
+        const name = document.createElement('span');
+        name.className = 'tgp-ach-name done';
+        name.textContent = a.name || a.key || '';
+        row.appendChild(name);
+        if (a.date_unlocked) {
+            const d = document.createElement('span');
+            d.className = 'tgp-ach-date';
+            d.textContent = _relativeDate(a.date_unlocked);
+            row.appendChild(d);
+        }
+        section.appendChild(row);
+    }
+    for (const a of locked) {
+        const row = document.createElement('div');
+        row.className = 'tgp-ach-item';
+        const name = document.createElement('span');
+        name.className = 'tgp-ach-name locked';
+        name.textContent = '[ LOCKED ]';
+        row.appendChild(name);
+        section.appendChild(row);
+    }
+    if (achievements.filter(a => !a.date_unlocked).length > 3) {
+        const more = document.createElement('div');
+        more.className = 'tgp-ach-more';
+        more.textContent = `+${achievements.filter(a => !a.date_unlocked).length - 3} MORE LOCKED`;
+        section.appendChild(more);
+    }
+
+    container.appendChild(section);
+}
+
+function closeTtyGamepage() {
+    document.getElementById('tty-gamepage').classList.remove('open');
+    _ttyGame = null;
+}
+
+document.getElementById('tgp-font-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('tgp-filter-menu').classList.remove('open');
+    document.getElementById('tgp-font-menu').classList.toggle('open');
+});
+document.querySelectorAll('.tgp-fopt-font').forEach(el => {
+    el.addEventListener('click', () => {
+        _applyTtyFont(el.dataset.fnt);
+        document.getElementById('tgp-font-menu').classList.remove('open');
+        document.getElementById('tty-layout-font-menu').classList.remove('open');
+    });
+});
+document.getElementById('tgp-filter-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('tgp-font-menu').classList.remove('open');
+    document.getElementById('tgp-filter-menu').classList.toggle('open');
+});
+document.querySelectorAll('.tgp-fopt').forEach(el => {
+    el.addEventListener('click', () => {
+        _applyTtyFilter(el.dataset.f);
+        document.getElementById('tgp-filter-menu').classList.remove('open');
+    });
+});
+['htop-fk-font','ranger-fk-font','bbs-fk-font','vi-fk-font','adv-fk-font'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('tty-layout-font-menu').classList.toggle('open');
+    });
+});
+document.addEventListener('click', () => {
+    document.getElementById('tgp-filter-menu')?.classList.remove('open');
+    document.getElementById('tgp-font-menu')?.classList.remove('open');
+    document.getElementById('tty-layout-font-menu')?.classList.remove('open');
+});
+
+document.getElementById('tgp-fk-back').addEventListener('click', closeTtyGamepage);
+document.getElementById('tgp-fk-launch').addEventListener('click', () => {
+    if (!_ttyGame?.LaunchCommand) return;
+    verifyAndLaunch(_ttyGame.id, _ttyGame.LaunchCommand);
+    window.api.updateLastPlayed(_ttyGame.id);
+});
+document.getElementById('tgp-fk-edit').addEventListener('click', () => {
+    if (!_ttyGame) return;
+    const g = _ttyGame; closeTtyGamepage();
+    _splitEditActive = true;
+    document.getElementById('main-content').classList.add('split-edit');
+    openDetails(g);
+});
+document.getElementById('tgp-fk-fullpage').addEventListener('click', () => {
+    if (!_ttyGame) return;
+    const g = _ttyGame; closeTtyGamepage();
+    _splitEditActive = true;
+    document.getElementById('main-content').classList.add('split-edit');
+    openGamepage(g);
+});
+
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('tty-gamepage').classList.contains('open')) return;
+    if (e.key === 'Escape' || e.key === 'q' || e.key === 'Q') {
+        closeTtyGamepage(); e.preventDefault();
+    } else if (e.key === 'Enter') {
+        if (_ttyGame?.LaunchCommand) { verifyAndLaunch(_ttyGame.id, _ttyGame.LaunchCommand); window.api.updateLastPlayed(_ttyGame.id); }
+        e.preventDefault();
+    } else if (e.key === 'e' || e.key === 'E') {
+        if (!_ttyGame) return;
+        const g = _ttyGame; closeTtyGamepage();
+        _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openDetails(g);
+        e.preventDefault();
+    } else if (e.key === 'f' || e.key === 'F') {
+        if (!_ttyGame) return;
+        const g = _ttyGame; closeTtyGamepage();
+        _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openGamepage(g);
+        e.preventDefault();
+    }
+});
+
+// Wire clear (✕) buttons for all flat search inputs
+[['dh-search', renderDataHero], ['cat-search', renderCatalog], ['np-search', renderNewspaper], ['sr-search', renderStreamRows],
+ ['tl-search', renderTimeline], ['kb-search', renderKanban]].forEach(([id, render]) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const wrap = input.parentElement;
+    const btn  = wrap.querySelector('.flat-input-clear');
+    input.addEventListener('input', () => {
+        wrap.classList.toggle('has-text', input.value.length > 0);
+    });
+    btn.addEventListener('click', () => {
+        input.value = '';
+        wrap.classList.remove('has-text');
+        input.focus();
+        render();
+    });
+});
+
 function _flatFilter(query) {
-    if (!query) return allGames;
-    const q = query.toLowerCase();
-    return allGames.filter(g =>
-        (g.Game||'').toLowerCase().includes(q) ||
-        (g.GENRE||'').toLowerCase().includes(q) ||
-        (g.Store||'').toLowerCase().includes(q) ||
-        (g.DEV||'').toLowerCase().includes(q));
+    const q = (query || '').toLowerCase();
+    const picoSearch = q.includes('pico');
+    return allGames.filter(g => {
+        if (_hidePico8 && !picoSearch) {
+            const s = (g.Store||'').toLowerCase();
+            if (s.includes('pico-8') || s.includes('pico8')) return false;
+        }
+        if (!q) return true;
+        return (g.Game||'').toLowerCase().includes(q) ||
+               (g.GENRE||'').toLowerCase().includes(q) ||
+               (g.Store||'').toLowerCase().includes(q) ||
+               (g.DEV||'').toLowerCase().includes(q);
+    });
 }
 
 // ── DATA HERO ────────────────────────────────────────────────────────────────
@@ -2330,6 +2886,9 @@ function renderNewspaper() {
     document.getElementById('btn-cat-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-np-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-sr-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-tl-tools')?.addEventListener('click', () => openToolsModal());
+    document.getElementById('btn-kb-tools')?.addEventListener('click', () => openToolsModal());
+    // TTY tools buttons handled inside each render function's F10/gear handlers
 })();
 
 // ── STREAMING ROWS ────────────────────────────────────────────────────────────
@@ -2409,6 +2968,627 @@ function renderStreamRows() {
     let _srt = null;
     document.getElementById('sr-search')?.addEventListener('input', () => {
         clearTimeout(_srt); _srt = setTimeout(renderStreamRows, 120);
+    });
+})();
+
+// ── TIMELINE ─────────────────────────────────────────────────────────────────
+function renderTimeline() {
+    if (!document.getElementById('app-container').classList.contains('layout-timeline')) return;
+    const query = (document.getElementById('tl-search')?.value || '').trim();
+    const src = _flatFilter(query);
+    document.getElementById('tl-count').textContent = src.length + ' games';
+    const track = document.getElementById('tl-track');
+    track.innerHTML = '';
+
+    const yearMap = {};
+    src.forEach(g => {
+        const raw = g.RELEASED || '';
+        const m = raw.match(/\d{4}/);
+        const yr = m ? m[0] : '?';
+        (yearMap[yr] = yearMap[yr] || []).push(g);
+    });
+
+    const sorted = Object.keys(yearMap).sort((a, b) => {
+        if (a === '?') return 1; if (b === '?') return -1;
+        return Number(b) - Number(a);
+    });
+
+    sorted.forEach(yr => {
+        const col = document.createElement('div');
+        col.className = 'tl-year-col';
+        const lbl = document.createElement('div');
+        lbl.className = 'tl-year-label' + (yr === '?' ? ' tl-unknown' : '');
+        lbl.textContent = yr === '?' ? 'Unknown' : yr;
+        col.appendChild(lbl);
+        const body = document.createElement('div');
+        body.className = 'tl-year-body';
+        yearMap[yr].sort((a, b) => (a.Game||'').localeCompare(b.Game||'')).forEach(g => {
+            const card = document.createElement('div');
+            card.className = 'tl-card';
+            const src = g.CoverArt ? getSafePath(g.CoverArt) : '';
+            card.innerHTML = src
+                ? `<img class="tl-card-thumb" src="${src}" loading="lazy"><span class="tl-card-name">${escHtml(g.Game||'')}</span>`
+                : `<div class="tl-card-thumb"></div><span class="tl-card-name">${escHtml(g.Game||'')}</span>`;
+            card.addEventListener('click', () => _openFlatGamepage(g));
+            body.appendChild(card);
+        });
+        col.appendChild(body);
+        track.appendChild(col);
+    });
+}
+(function () {
+    let _t = null;
+    document.getElementById('tl-search')?.addEventListener('input', () => { clearTimeout(_t); _t = setTimeout(renderTimeline, 120); });
+})();
+
+// ── KANBAN ────────────────────────────────────────────────────────────────────
+function _kbCard(g) {
+    const card = document.createElement('div');
+    card.className = 'kb-card';
+    card.draggable = true;
+    card.dataset.id = g.id;
+    const cover = g.CoverArt ? getSafePath(g.CoverArt) : '';
+    card.innerHTML = cover
+        ? `<img class="kb-card-thumb" src="${cover}" loading="lazy">`
+        : `<div class="kb-card-thumb"></div>`;
+    const info = document.createElement('div');
+    info.className = 'kb-card-info';
+    info.innerHTML = `<div class="kb-card-name">${escHtml(g.Game||'')}</div>` +
+        `<div class="kb-card-meta">${escHtml([g.Store, g.GENRE].filter(Boolean).join(' · '))}</div>`;
+    card.appendChild(info);
+    card.addEventListener('click', () => _openFlatGamepage(g));
+    card.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', g.id); card.style.opacity = '0.5'; });
+    card.addEventListener('dragend', () => { card.style.opacity = ''; });
+    return card;
+}
+
+function renderKanban() {
+    if (!document.getElementById('app-container').classList.contains('layout-kanban')) return;
+    const query = (document.getElementById('kb-search')?.value || '').trim();
+    const src = _flatFilter(query);
+
+    const now = Date.now() / 1000;
+    const recentCutoff = 60 * 24 * 3600; // 60 days
+    const bins = { backlog: [], want: [], playing: [], played: [] };
+
+    src.forEach(g => {
+        if (g.WANT_TO_PLAY === 'YES')           { bins.want.push(g); return; }
+        if (g.is_favourite == 1)                { bins.playing.push(g); return; }
+        if (g.LastPlayed > 0)                   { bins.played.push(g); return; }
+        bins.backlog.push(g);
+    });
+
+    const total = src.length;
+    document.getElementById('kb-count').textContent = total + ' games';
+
+    Object.entries(bins).forEach(([col, games]) => {
+        const body = document.getElementById('kb-' + col);
+        if (!body) return;
+        body.innerHTML = '';
+        const header = body.closest('.kb-col').querySelector('.kb-col-count');
+        if (header) header.textContent = games.length;
+        games.forEach(g => body.appendChild(_kbCard(g)));
+    });
+
+    // Drag-to-reassign: Want ↔ Backlog (backed by WANT_TO_PLAY flag)
+    document.querySelectorAll('.kb-col').forEach(col => {
+        col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('kb-drop-over'); });
+        col.addEventListener('dragleave', () => col.classList.remove('kb-drop-over'));
+        col.addEventListener('drop', async e => {
+            e.preventDefault();
+            col.classList.remove('kb-drop-over');
+            const id = Number(e.dataTransfer.getData('text/plain'));
+            const target = col.dataset.col;
+            if (target !== 'want' && target !== 'backlog') return;
+            const val = target === 'want' ? 'YES' : 'NO';
+            await window.api.updateGame(id, { WANT_TO_PLAY: val });
+            const g = allGames.find(x => x.id === id);
+            if (g) g.WANT_TO_PLAY = val;
+            renderKanban();
+        });
+    });
+}
+(function () {
+    let _t = null;
+    document.getElementById('kb-search')?.addEventListener('input', () => { clearTimeout(_t); _t = setTimeout(renderKanban, 120); });
+})();
+
+// ── HTOP ─────────────────────────────────────────────────────────────────────
+let _htopSort = 'Game', _htopDesc = false, _htopIdx = 0, _htopSearch = '';
+
+function _htopBar(val, max) {
+    if (!val || !max) return '          ';
+    const n = Math.round((val / max) * 10);
+    return '▓'.repeat(n) + '░'.repeat(10 - n);
+}
+
+function renderHtop() {
+    if (!document.getElementById('app-container').classList.contains('layout-htop')) return;
+    let src = _flatFilter(_htopSearch).slice();
+    src.sort((a, b) => {
+        let av = a[_htopSort] ?? '', bv = b[_htopSort] ?? '';
+        if (_htopSort === 'HLTB_Main') { av = Number(av)||0; bv = Number(bv)||0; }
+        if (typeof av === 'number') return _htopDesc ? bv - av : av - bv;
+        return _htopDesc ? String(bv).localeCompare(String(av)) : String(av).localeCompare(String(bv));
+    });
+
+    const total = src.length;
+    const installed = src.filter(g => g.Installed == 1).length;
+    const stores = new Set(src.map(g => (g.Store||'').split(',')[0].trim()).filter(Boolean)).size;
+    const totalH = src.reduce((s, g) => s + (Number(g.HLTB_Main)||0), 0);
+    const maxH = Math.max(...src.map(g => Number(g.HLTB_Main)||0));
+
+    document.getElementById('htop-topbar').innerHTML =
+        `<span class="htop-stat">GAMES: <b>${total}</b></span>` +
+        `<span class="htop-stat">INSTALLED: <b>${installed}</b></span>` +
+        `<span class="htop-stat">STORES: <b>${stores}</b></span>` +
+        `<span class="htop-stat">TOTAL HLTB: <b>${totalH}h</b></span>`;
+
+    // sort arrow on thead
+    document.querySelectorAll('#htop-thead [data-htop-sort]').forEach(th => {
+        th.classList.toggle('htop-sort-active', th.dataset.htopSort === _htopSort);
+        const arrow = th.dataset.htopSort === _htopSort ? (_htopDesc ? '↓' : '↑') : '';
+        th.textContent = th.dataset.htopSort.replace('HLTB_Main','HLTB').replace('ProtonTier','PROTON').replace('Game','TITLE').replace('Store','STORE').replace('GENRE','GENRE') + (arrow ? ' ' + arrow : '');
+    });
+
+    _htopIdx = Math.min(_htopIdx, src.length - 1);
+    const tbody = document.getElementById('htop-tbody');
+    tbody.innerHTML = '';
+    src.forEach((g, i) => {
+        const row = document.createElement('div');
+        row.className = 'htop-row' + (i === _htopIdx ? ' htop-selected' : '');
+        row.innerHTML =
+            `<span class="htop-cur">${i === _htopIdx ? '>' : ' '}</span>` +
+            `<span class="htop-name">${escHtml(g.Game||'')}</span>` +
+            `<span class="htop-store">${escHtml((g.Store||'').split(',')[0].trim().substring(0,10))}</span>` +
+            `<span class="htop-genre">${escHtml(g.GENRE||'')}</span>` +
+            `<span class="htop-hltb">${g.HLTB_Main ? g.HLTB_Main+'h' : ''}</span>` +
+            `<span class="htop-proton">${escHtml(g.ProtonTier||'')}</span>` +
+            `<span class="htop-bar">${_htopBar(Number(g.HLTB_Main)||0, maxH)}</span>`;
+        row.addEventListener('click', () => { _htopIdx = i; renderHtop(); });
+        row.addEventListener('dblclick', () => _openFlatGamepage(g));
+        tbody.appendChild(row);
+    });
+
+    // scroll selected into view
+    const sel = tbody.querySelector('.htop-selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+
+(function () {
+    // F-key clicks
+    document.querySelectorAll('.htop-fkey').forEach(fk => {
+        fk.addEventListener('click', () => {
+            const f = fk.dataset.htopF;
+            if (f && f.startsWith('sort-')) {
+                const col = f.slice(5);
+                if (_htopSort === col) _htopDesc = !_htopDesc; else { _htopSort = col; _htopDesc = false; }
+                renderHtop();
+            } else if (f === 'search') {
+                const row = document.getElementById('htop-search-row');
+                row.style.display = row.style.display === 'none' || !row.style.display ? 'block' : 'none';
+                if (row.style.display !== 'none') document.getElementById('htop-search').focus();
+            } else if (f === 'open') {
+                const src = _flatFilter(_htopSearch);
+                src.sort((a,b) => String(a[_htopSort]||'').localeCompare(String(b[_htopSort]||'')));
+                if (src[_htopIdx]) _openFlatGamepage(src[_htopIdx]);
+            } else if (f === 'tools') { openToolsModal(); }
+        });
+    });
+    document.getElementById('htop-search')?.addEventListener('input', e => {
+        _htopSearch = e.target.value;
+        _htopIdx = 0;
+        renderHtop();
+    });
+    // thead sort clicks
+    document.querySelectorAll('#htop-thead [data-htop-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            if (_htopSort === th.dataset.htopSort) _htopDesc = !_htopDesc;
+            else { _htopSort = th.dataset.htopSort; _htopDesc = false; }
+            renderHtop();
+        });
+    });
+    // keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-htop')) return;
+        if (document.getElementById('htop-search') === document.activeElement) return;
+        const src = _flatFilter(_htopSearch);
+        if (e.key === 'ArrowDown')  { _htopIdx = Math.min(_htopIdx + 1, src.length - 1); renderHtop(); e.preventDefault(); }
+        if (e.key === 'ArrowUp')    { _htopIdx = Math.max(_htopIdx - 1, 0); renderHtop(); e.preventDefault(); }
+        if (e.key === 'Enter' && src[_htopIdx]) _openFlatGamepage(src[_htopIdx]);
+    });
+})();
+
+// ── RANGER ───────────────────────────────────────────────────────────────────
+let _rangerCat = { type: 'all' }, _rangerMidIdx = 0, _rangerGame = null;
+
+function _rangerGamesFor(cat) {
+    const src = _flatFilter('');
+    if (cat.type === 'all')   return src;
+    if (cat.type === 'store') return src.filter(g => (g.Store||'').toLowerCase().includes(cat.val.toLowerCase()));
+    if (cat.type === 'genre') return src.filter(g => (g.GENRE||'').toLowerCase() === cat.val.toLowerCase());
+    return src;
+}
+
+function renderRanger() {
+    if (!document.getElementById('app-container').classList.contains('layout-ranger')) return;
+    const src = _flatFilter('');
+
+    // Build left pane items
+    const leftBody = document.getElementById('rp-left-body');
+    leftBody.innerHTML = '';
+    const cats = [{ type:'all', label:'[ALL]  All Games' }];
+    [['Steam','steam'],['GOG','gog'],['Epic','epic'],['Itch','itch'],['Flatpak','flatpak']].forEach(([lbl,k]) => {
+        if (src.some(g => (g.Store||'').toLowerCase().includes(k))) cats.push({ type:'store', val:k, label:`[${lbl.substring(0,3).toUpperCase()}]  ${lbl}` });
+    });
+    cats.push({ type:'_sep' });
+    const genres = [...new Set(src.map(g => g.GENRE).filter(Boolean))].sort();
+    genres.slice(0,18).forEach(g => cats.push({ type:'genre', val:g, label:g }));
+
+    cats.forEach(c => {
+        if (c.type === '_sep') { const sep = document.createElement('div'); sep.className = 'rp-sep'; leftBody.appendChild(sep); return; }
+        const isActive = _rangerCat.type === c.type && (_rangerCat.val||'') === (c.val||'');
+        const item = document.createElement('div');
+        item.className = 'rp-item' + (isActive ? ' rp-active' : '');
+        item.innerHTML = `<span class="rp-arrow">${isActive ? '>' : ' '}</span>${escHtml(c.label)}`;
+        item.addEventListener('click', () => { _rangerCat = c; _rangerMidIdx = 0; _rangerGame = null; renderRanger(); });
+        leftBody.appendChild(item);
+    });
+
+    // Path label
+    document.getElementById('rp-path-cat').textContent =
+        _rangerCat.type === 'all' ? 'All' : _rangerCat.val || 'All';
+
+    // Middle pane
+    const games = _rangerGamesFor(_rangerCat).slice().sort((a,b) => (a.Game||'').localeCompare(b.Game||''));
+    _rangerMidIdx = Math.min(_rangerMidIdx, Math.max(0, games.length - 1));
+    if (!_rangerGame && games.length) _rangerGame = games[_rangerMidIdx];
+
+    const midBody = document.getElementById('rp-mid-body');
+    midBody.innerHTML = '';
+    games.forEach((g, i) => {
+        const isSel = i === _rangerMidIdx;
+        const item = document.createElement('div');
+        item.className = 'rp-item' + (isSel ? ' rp-sel' : '');
+        item.innerHTML = `<span class="rp-arrow">${isSel ? '>' : ' '}</span>${escHtml(g.Game||'')}`;
+        item.addEventListener('click', () => { _rangerMidIdx = i; _rangerGame = g; renderRanger(); });
+        item.addEventListener('dblclick', () => _openFlatGamepage(g));
+        midBody.appendChild(item);
+    });
+    const selMid = midBody.querySelector('.rp-sel');
+    if (selMid) selMid.scrollIntoView({ block: 'nearest' });
+
+    // Right pane preview
+    const g = _rangerGame || games[0];
+    const inner = document.getElementById('rp-right-inner');
+    if (!g) { inner.innerHTML = '<div style="padding:12px;color:#333;font-size:10px;">No game selected</div>'; return; }
+    const fields = [
+        ['Store',   (g.Store||'').split(',')[0].trim()],
+        ['Genre',   g.GENRE],
+        ['Dev',     g.DEV],
+        ['Released',g.RELEASED],
+        ['HLTB',    g.HLTB_Main ? g.HLTB_Main + 'h' : ''],
+        ['Proton',  g.ProtonTier],
+        ['MC',      g.METACRITIC],
+    ].filter(([,v]) => v);
+    inner.innerHTML =
+        `<div id="rp-right-body"><div class="rp-preview-title">${escHtml(g.Game||'')}</div>` +
+        fields.map(([k,v]) => `<div><span class="rp-preview-field">${k}:</span> <span class="rp-preview-val">${escHtml(String(v))}</span></div>`).join('') +
+        (g.LaunchCommand ? `<div class="rp-preview-launch"><b data-id="${g.id}">▶ OPEN</b></div>` : '') +
+        `</div>`;
+    inner.querySelector('[data-id]')?.addEventListener('click', () => _openFlatGamepage(g));
+}
+
+document.getElementById('ranger-fk-tools')?.addEventListener('click', () => openToolsModal());
+
+// ── BBS ──────────────────────────────────────────────────────────────────────
+let _bbsView = 'main';
+
+function _bbsRender() {
+    if (!document.getElementById('app-container').classList.contains('layout-bbs')) return;
+    const body = document.getElementById('bbs-body');
+    const searchRow = document.getElementById('bbs-search-row');
+    const src = _flatFilter('');
+    document.getElementById('bbs-ftr-count').textContent = src.length + ' GAMES IN LIBRARY';
+    searchRow.style.display = 'none';
+
+    if (_bbsView === 'main') {
+        const recentCount = src.filter(g => g.LastPlayed > 0).length;
+        const favCount    = src.filter(g => g.is_favourite == 1).length;
+        body.innerHTML =
+            `<div class="bbs-sec">MAIN MENU</div>` +
+            ['[1]  Browse by Store', '[2]  Browse by Genre', '[3]  Search Library', '[4]  Recently Played', '[5]  Favourites', '[6]  Tools &amp; Settings']
+            .map((lbl, i) => {
+                const views = ['store','genre','search','recent','favs','tools'];
+                return `<div class="bbs-mi" data-bbs-go="${views[i]}"><span class="bbs-mk">${i+1}</span><span class="bbs-ml">${lbl}</span></div>`;
+            }).join('') +
+            `<div class="bbs-prompt">Enter selection: <span class="tty-cursor">&nbsp;</span></div>`;
+        body.querySelectorAll('.bbs-mi').forEach(el => {
+            el.addEventListener('click', () => {
+                if (el.dataset.bbsGo === 'tools') { openToolsModal(); return; }
+                _bbsView = el.dataset.bbsGo; _bbsRender();
+            });
+        });
+        return;
+    }
+
+    if (_bbsView === 'search') {
+        searchRow.style.display = 'block';
+        const q = document.getElementById('bbs-search').value.trim();
+        const results = q ? _flatFilter(q) : [];
+        body.innerHTML = `<div class="bbs-sec">SEARCH LIBRARY</div>` +
+            (results.length ? results.slice(0,30).map((g,i) =>
+                `<div class="bbs-li" data-bbs-id="${g.id}"><span class="bbs-li-idx">${String(i+1).padStart(2,'0')}.</span><span class="bbs-ln">${escHtml(g.Game||'')}</span><span class="bbs-lm">${escHtml(g.Store||'')}</span></div>`
+            ).join('') : (q ? '<div style="color:#444;font-size:10px;padding:6px 0;">No results.</div>' : '')) +
+            `<div class="bbs-mi bbs-mi-back" data-bbs-go="main"><span class="bbs-mk">←</span><span class="bbs-ml">Back to main menu</span></div>`;
+        document.getElementById('bbs-search').focus();
+        body.querySelectorAll('.bbs-li').forEach(el => {
+            el.addEventListener('click', () => {
+                const g = allGames.find(x => x.id === Number(el.dataset.bbsId));
+                if (g) _openFlatGamepage(g);
+            });
+        });
+        body.querySelector('[data-bbs-go="main"]')?.addEventListener('click', () => { _bbsView = 'main'; _bbsRender(); });
+        return;
+    }
+
+    let games = [], title = '';
+    if (_bbsView === 'recent') {
+        games = src.filter(g => g.LastPlayed > 0).sort((a,b) => b.LastPlayed - a.LastPlayed).slice(0,50);
+        title = 'RECENTLY PLAYED';
+    } else if (_bbsView === 'favs') {
+        games = src.filter(g => g.is_favourite == 1);
+        title = 'FAVOURITES';
+    } else if (_bbsView === 'store') {
+        const stores = [...new Set(src.map(g => (g.Store||'').split(',')[0].trim()).filter(Boolean))].sort();
+        body.innerHTML = `<div class="bbs-sec">BROWSE BY STORE</div>` +
+            stores.map((s,i) => `<div class="bbs-mi" data-bbs-store="${s}"><span class="bbs-mk">${i+1}</span><span class="bbs-ml">${escHtml(s)}</span></div>`).join('') +
+            `<div class="bbs-mi bbs-mi-back" data-bbs-go="main"><span class="bbs-mk">←</span><span class="bbs-ml">Back</span></div>`;
+        body.querySelectorAll('[data-bbs-store]').forEach(el =>
+            el.addEventListener('click', () => { _bbsView = 'store:' + el.dataset.bbsStore; _bbsRender(); }));
+        body.querySelector('[data-bbs-go="main"]')?.addEventListener('click', () => { _bbsView = 'main'; _bbsRender(); });
+        return;
+    } else if (_bbsView === 'genre') {
+        const glist = [...new Set(src.map(g => g.GENRE).filter(Boolean))].sort();
+        body.innerHTML = `<div class="bbs-sec">BROWSE BY GENRE</div>` +
+            glist.map((g,i) => `<div class="bbs-mi" data-bbs-genre="${escHtml(g)}"><span class="bbs-mk">${i+1}</span><span class="bbs-ml">${escHtml(g)}</span></div>`).join('') +
+            `<div class="bbs-mi bbs-mi-back" data-bbs-go="main"><span class="bbs-mk">←</span><span class="bbs-ml">Back</span></div>`;
+        body.querySelectorAll('[data-bbs-genre]').forEach(el =>
+            el.addEventListener('click', () => { _bbsView = 'genre:' + el.dataset.bbsGenre; _bbsRender(); }));
+        body.querySelector('[data-bbs-go="main"]')?.addEventListener('click', () => { _bbsView = 'main'; _bbsRender(); });
+        return;
+    } else if (_bbsView.startsWith('store:')) {
+        const sv = _bbsView.slice(6);
+        games = src.filter(g => (g.Store||'').split(',')[0].trim() === sv);
+        title = 'STORE: ' + sv.toUpperCase();
+    } else if (_bbsView.startsWith('genre:')) {
+        const gv = _bbsView.slice(6);
+        games = src.filter(g => g.GENRE === gv);
+        title = 'GENRE: ' + gv.toUpperCase();
+    }
+
+    body.innerHTML = `<div class="bbs-sec">${escHtml(title)} (${games.length})</div>` +
+        games.slice(0,40).map((g,i) =>
+            `<div class="bbs-li" data-bbs-id="${g.id}"><span class="bbs-li-idx">${String(i+1).padStart(2,'0')}.</span><span class="bbs-ln">${escHtml(g.Game||'')}</span><span class="bbs-lm">${g.HLTB_Main ? g.HLTB_Main+'h' : ''}</span></div>`
+        ).join('') +
+        `<div class="bbs-mi bbs-mi-back" data-bbs-go="back"><span class="bbs-mk">←</span><span class="bbs-ml">Back</span></div>`;
+    body.querySelectorAll('.bbs-li').forEach(el => {
+        el.addEventListener('click', () => {
+            const g = allGames.find(x => x.id === Number(el.dataset.bbsId));
+            if (g) _openFlatGamepage(g);
+        });
+    });
+    body.querySelector('[data-bbs-go="back"]')?.addEventListener('click', () => {
+        _bbsView = _bbsView.startsWith('store:') ? 'store' : _bbsView.startsWith('genre:') ? 'genre' : 'main';
+        _bbsRender();
+    });
+}
+
+function renderBbs() {
+    if (!document.getElementById('app-container').classList.contains('layout-bbs')) return;
+    _bbsView = 'main';
+    _bbsRender();
+}
+
+(function () {
+    let _t = null;
+    document.getElementById('bbs-search')?.addEventListener('input', () => { clearTimeout(_t); _t = setTimeout(_bbsRender, 150); });
+})();
+
+// ── VI ───────────────────────────────────────────────────────────────────────
+let _viIdx = 0, _viMode = 'normal', _viFilter = '', _viSort = 'Game', _viDesc = false;
+
+function _viProtonClass(p) {
+    if (!p) return '';
+    const l = p.toLowerCase();
+    if (l === 'platinum') return 'vp-pl'; if (l === 'native') return 'vp-na';
+    if (l === 'gold') return 'vp-go'; if (l === 'silver') return 'vp-si';
+    if (l === 'bronze') return 'vp-br'; if (l === 'borked') return 'vp-bo';
+    return '';
+}
+
+function renderVi() {
+    if (!document.getElementById('app-container').classList.contains('layout-vi')) return;
+    let src = _flatFilter(_viFilter).slice();
+    src.sort((a, b) => {
+        let av = a[_viSort] ?? '', bv = b[_viSort] ?? '';
+        if (_viSort === 'HLTB_Main') { av = Number(av)||0; bv = Number(bv)||0; }
+        if (typeof av === 'number') return _viDesc ? bv - av : av - bv;
+        return _viDesc ? String(bv).localeCompare(String(av)) : String(av).localeCompare(String(bv));
+    });
+    _viIdx = Math.min(_viIdx, Math.max(0, src.length - 1));
+    const g = src[_viIdx];
+
+    document.getElementById('vi-status-count').textContent = src.length + ' games';
+    document.getElementById('vi-status-game').textContent = g ? g.Game || '' : '';
+    const badge = document.getElementById('vi-mode-badge');
+    badge.className = 'vi-mode-badge ' + _viMode;
+    badge.textContent = _viMode.toUpperCase();
+
+    const buf = document.getElementById('vi-buffer');
+    buf.innerHTML = '';
+    src.forEach((g, i) => {
+        const isSel = i === _viIdx;
+        const row = document.createElement('div');
+        row.className = 'vi-line' + (isSel ? ' vi-sel' : '');
+        const cursor = isSel ? `<span class="tty-cursor" style="color:#d4d4d4;">${(g.Game||'').charAt(0)}</span>` : '';
+        const name = isSel
+            ? `<span class="vi-name">${cursor}${escHtml((g.Game||'').slice(1))}</span>`
+            : `<span class="vi-name">${escHtml(g.Game||'')}</span>`;
+        row.innerHTML =
+            `<span class="vi-ln">${String(i+1).padStart(4,' ')}</span>` +
+            name +
+            `<span class="vi-store">${escHtml((g.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
+            `<span class="vi-genre">${escHtml(g.GENRE||'')}</span>` +
+            `<span class="vi-hltb">${g.HLTB_Main ? g.HLTB_Main+'h' : '  '}</span>` +
+            `<span class="vi-proton ${_viProtonClass(g.ProtonTier)}">${escHtml(g.ProtonTier||'')}</span>`;
+        row.addEventListener('click', () => { _viIdx = i; renderVi(); });
+        row.addEventListener('dblclick', () => _openFlatGamepage(g));
+        buf.appendChild(row);
+    });
+    const sel = buf.querySelector('.vi-sel');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+
+    // command line
+    const prefix = document.getElementById('vi-cmd-prefix');
+    const input  = document.getElementById('vi-cmd-input');
+    if (_viMode === 'normal') { prefix.textContent = ''; input.value = ''; input.placeholder = '  press : for commands, / to search, ↑↓ to move, Enter to open  · :tools for Tools'; }
+    else if (_viMode === 'search')  { prefix.textContent = '/'; }
+    else if (_viMode === 'command') { prefix.textContent = ':'; }
+}
+
+(function () {
+    const cmdInput = document.getElementById('vi-cmd-input');
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-vi')) return;
+        const src = _flatFilter(_viFilter);
+        if (_viMode === 'normal') {
+            if (e.key === 'ArrowDown' || e.key === 'j') { _viIdx = Math.min(_viIdx+1, src.length-1); renderVi(); e.preventDefault(); }
+            else if (e.key === 'ArrowUp' || e.key === 'k') { _viIdx = Math.max(_viIdx-1, 0); renderVi(); e.preventDefault(); }
+            else if (e.key === 'Enter') { if (src[_viIdx]) _openFlatGamepage(src[_viIdx]); }
+            else if (e.key === ':') { _viMode = 'command'; cmdInput.value = ''; cmdInput.placeholder = ''; renderVi(); cmdInput.focus(); e.preventDefault(); }
+            else if (e.key === '/') { _viMode = 'search'; cmdInput.value = ''; cmdInput.placeholder = ''; renderVi(); cmdInput.focus(); e.preventDefault(); }
+            else if (e.key === 'Escape') { _viFilter = ''; _viMode = 'normal'; renderVi(); }
+        } else {
+            if (e.key === 'Escape') { _viMode = 'normal'; renderVi(); }
+        }
+    });
+    cmdInput?.addEventListener('input', () => {
+        if (_viMode === 'search') { _viFilter = cmdInput.value; _viIdx = 0; renderVi(); }
+    });
+    cmdInput?.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        const val = cmdInput.value.trim();
+        if (_viMode === 'search') { _viMode = 'normal'; renderVi(); return; }
+        if (_viMode === 'command') {
+            const parts = val.split(/\s+/);
+            const cmd = parts[0].toLowerCase();
+            if (cmd === 'sort' || cmd === 's') {
+                const map = { name:'Game', game:'Game', store:'Store', genre:'GENRE', hltb:'HLTB_Main', proton:'ProtonTier' };
+                const field = map[parts[1]?.toLowerCase()];
+                if (field) { if (_viSort === field) _viDesc = !_viDesc; else { _viSort = field; _viDesc = false; } }
+            } else if (cmd === 'clear' || cmd === 'e') { _viFilter = ''; }
+            else if (cmd === 'tools' || cmd === 't') { _viMode = 'normal'; renderVi(); openToolsModal(); return; }
+            _viMode = 'normal'; renderVi();
+        }
+    });
+})();
+
+// ── ADVENTURE ─────────────────────────────────────────────────────────────────
+let _advIdx = 0, _advFilter = '', _advLog = [];
+
+function _advDesc(g) {
+    if (!g) return 'Your library is empty.';
+    const store = (g.Store||'').split(',')[0].trim();
+    const year  = g.RELEASED ? ` (${g.RELEASED})` : '';
+    const genre = g.GENRE ? `A ${g.GENRE.toLowerCase()} of some renown.` : '';
+    const hltb  = g.HLTB_Main ? ` The critics claim it demands ${g.HLTB_Main} hours of your life.` : '';
+    const proton = g.ProtonTier ? ` Proton compatibility: ${g.ProtonTier}.` : '';
+    const desc  = getLocalizedDescription(g);
+    return [
+        `You stand before <b>${escHtml(g.Game||'')}${year}</b>, shelved under ${escHtml(store)||'parts unknown'}.`,
+        genre + hltb + proton,
+        desc ? `<br><em style="color:#1a8c1a">"${escHtml(desc.slice(0,160))}${desc.length>160?'…':''}"</em>` : ''
+    ].filter(Boolean).join(' ');
+}
+
+function _advRender() {
+    if (!document.getElementById('app-container').classList.contains('layout-adventure')) return;
+    const src = _flatFilter(_advFilter);
+    _advIdx = Math.max(0, Math.min(_advIdx, src.length - 1));
+    const g = src[_advIdx];
+
+    document.getElementById('adv-idx-label').textContent = src.length ? `${_advIdx+1} / ${src.length}` : '';
+    const scene = document.getElementById('adv-scene');
+    scene.innerHTML = g
+        ? `<div class="adv-room">[ ${escHtml(g.Game||'').toUpperCase()} ]</div>` +
+          `<div class="adv-body">${_advDesc(g)}</div>` +
+          `<div class="adv-exits">Exits: <b>NEXT</b> &nbsp; <b>PREV</b>` + (g.LaunchCommand ? ` &nbsp; <b>PLAY</b>` : '') + `</div>` +
+          `<div class="adv-hint">LOOK · SEARCH [term] · SORT [field] · LIST · HELP</div>`
+        : `<div class="adv-body" style="color:#0a5c0a;">The library is empty. Nothing to see here.</div>`;
+
+    const log = document.getElementById('adv-log');
+    log.innerHTML = _advLog.slice(-6).map(e =>
+        `<div class="adv-log-line"><span class="adv-log-cmd">&gt; ${escHtml(e.cmd)}</span></div>` +
+        `<div class="adv-log-line adv-log-resp">${e.resp}</div>`
+    ).join('');
+    log.scrollTop = log.scrollHeight;
+}
+
+function renderAdventure() {
+    if (!document.getElementById('app-container').classList.contains('layout-adventure')) return;
+    _advLog = [];
+    _advFilter = '';
+    _advIdx = 0;
+    _advRender();
+}
+
+(function () {
+    document.getElementById('adv-input')?.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        if (!document.getElementById('app-container').classList.contains('layout-adventure')) return;
+        const raw = document.getElementById('adv-input').value.trim();
+        document.getElementById('adv-input').value = '';
+        if (!raw) return;
+        const cmd = raw.toUpperCase().trim();
+        const src = _flatFilter(_advFilter);
+        const g = src[_advIdx];
+        let resp = 'I don\'t understand that command. Try HELP.';
+
+        if (cmd === 'HELP') {
+            resp = 'Commands: NEXT · PREV · PLAY · LOOK · SEARCH [term] · SORT [field] · LIST · TOOLS · HELP';
+        } else if (cmd === 'NEXT' || cmd === 'N' || cmd === '>') {
+            _advIdx = Math.min(_advIdx + 1, src.length - 1);
+            resp = src[_advIdx] ? 'You move to the next game.' : 'You are at the end of the shelf.';
+        } else if (cmd === 'PREV' || cmd === 'P' || cmd === 'S' || cmd === '<') {
+            _advIdx = Math.max(_advIdx - 1, 0);
+            resp = src[_advIdx] ? 'You step back to the previous game.' : 'You are at the beginning.';
+        } else if (cmd === 'LOOK' || cmd === 'L' || cmd === 'EXAMINE') {
+            resp = g ? `You are looking at ${g.Game}.` : 'Nothing to examine.';
+        } else if (cmd === 'PLAY' || cmd === 'OPEN') {
+            if (g) { _openFlatGamepage(g); resp = `Opening ${g.Game}…`; }
+            else resp = 'No game selected.';
+        } else if (cmd === 'LIST') {
+            resp = src.slice(0,8).map((x,i) => `${i+1}. ${x.Game}`).join(' · ') + (src.length > 8 ? ` … +${src.length-8} more` : '');
+        } else if (cmd.startsWith('SEARCH ')) {
+            _advFilter = raw.slice(7).trim();
+            _advIdx = 0;
+            resp = _advFilter ? `Searching for "${_advFilter}"… ${_flatFilter(_advFilter).length} results.` : 'Search cleared.';
+        } else if (cmd.startsWith('SORT ')) {
+            const map = { name:'Game', game:'Game', store:'Store', genre:'GENRE', hltb:'HLTB_Main', year:'RELEASED' };
+            resp = 'Unknown sort field. Try: name, store, genre, hltb, year.';
+        } else if (cmd === 'TOOLS') {
+            resp = 'You consult the arcane settings panel…';
+            _advLog.push({ cmd: raw, resp });
+            _advRender();
+            openToolsModal();
+            return;
+        } else if (cmd === 'QUIT' || cmd === 'EXIT' || cmd === 'Q') {
+            resp = 'You cannot leave. The library holds you.';
+        }
+
+        _advLog.push({ cmd: raw, resp });
+        _advRender();
     });
 })();
 

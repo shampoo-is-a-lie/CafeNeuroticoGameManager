@@ -7,14 +7,23 @@
     @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Regular.ttf') format('truetype'); font-weight: 400; }
     @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Bold.ttf') format('truetype'); font-weight: 700; }
     @font-face { font-family: 'Raleway'; src: url('assets/fonts/Raleway-Black.ttf') format('truetype'); font-weight: 900; }
-    @font-face { font-family: 'Fira Code'; src: url('assets/fonts/FiraCode-Regular.ttf') format('truetype'); font-weight: 400; }
-    @font-face { font-family: 'Fira Code'; src: url('assets/fonts/FiraCode-Bold.ttf') format('truetype'); font-weight: 700; }
+    @font-face { font-family: 'Chicago'; src: url('assets/fonts/ChicagoFLF.ttf') format('truetype'); font-weight: 400; }
+    @font-face { font-family: 'Fira Code'; src: url('assets/fonts/FiraCode-Regular.ttf') format('truetype'); font-weight: 400; size-adjust: 132%; }
+    @font-face { font-family: 'Fira Code'; src: url('assets/fonts/FiraCode-Bold.ttf') format('truetype'); font-weight: 700; size-adjust: 132%; }
+    @font-face { font-family: 'Press Start 2P'; src: url('assets/fonts/PressStart2P-Regular.ttf') format('truetype'); font-weight: 400; }
+    @font-face { font-family: 'PxPlus IBM VGA8'; src: url('assets/fonts/PxPlusIBMVGA8.ttf') format('truetype'); font-weight: 400; size-adjust: 150%; }
+    @font-face { font-family: 'BigBlue Terminal'; src: url('assets/fonts/BigBlueTerminal.ttf') format('truetype'); font-weight: 400; size-adjust: 125%; }
+    @font-face { font-family: 'White Rabbit'; src: url('assets/fonts/WhiteRabbit.ttf') format('truetype'); font-weight: 400; size-adjust: 125%; }
+    @font-face { font-family: 'C64 Pro Mono'; src: url('assets/fonts/C64ProMono.ttf') format('truetype'); font-weight: 400; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; size-adjust: 125%; }
+    @font-face { font-family: 'Hack'; src: url('assets/fonts/Hack-Regular.ttf') format('truetype'); font-weight: 400; size-adjust: 119%; }
 
     :root {
       --bg: #2C1E16; --bg_panel: rgba(67, 40, 24, 0.6); --bg_menu: #432818;
       --accent: #D4A373; --accent_menu: #D4A373; --text_main: #FFE6A7;
       --text_sec: #E6CC98; --text_dim: #A47148; --border: rgba(212, 163, 115, 0.2);
       --border_solid: #8B5A2B;
+      --tty-font: 'BigBlue Terminal';
     }
 
     body { margin: 0; background-color: var(--bg); color: var(--text_main); font-family: 'Raleway', sans-serif; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; transition: background-color 0.3s ease; }
@@ -160,20 +169,50 @@
     #app-container.layout-datahero      #icon-rail, #app-container.layout-datahero      #side-panel, #app-container.layout-datahero      #sidebar, #app-container.layout-datahero      #topnav,
     #app-container.layout-catalog       #icon-rail, #app-container.layout-catalog       #side-panel, #app-container.layout-catalog       #sidebar, #app-container.layout-catalog       #topnav,
     #app-container.layout-newspaper     #icon-rail, #app-container.layout-newspaper     #side-panel, #app-container.layout-newspaper     #sidebar, #app-container.layout-newspaper     #topnav,
-    #app-container.layout-streamrows    #icon-rail, #app-container.layout-streamrows    #side-panel, #app-container.layout-streamrows    #sidebar, #app-container.layout-streamrows    #topnav { display:none !important; }
+    #app-container.layout-streamrows    #icon-rail, #app-container.layout-streamrows    #side-panel, #app-container.layout-streamrows    #sidebar, #app-container.layout-streamrows    #topnav,
+    #app-container.layout-timeline      #icon-rail, #app-container.layout-timeline      #side-panel, #app-container.layout-timeline      #sidebar, #app-container.layout-timeline      #topnav,
+    #app-container.layout-kanban        #icon-rail, #app-container.layout-kanban        #side-panel, #app-container.layout-kanban        #sidebar, #app-container.layout-kanban        #topnav,
+    #app-container.layout-htop          #icon-rail, #app-container.layout-htop          #side-panel, #app-container.layout-htop          #sidebar, #app-container.layout-htop          #topnav,
+    #app-container.layout-ranger        #icon-rail, #app-container.layout-ranger        #side-panel, #app-container.layout-ranger        #sidebar, #app-container.layout-ranger        #topnav,
+    #app-container.layout-bbs           #icon-rail, #app-container.layout-bbs           #side-panel, #app-container.layout-bbs           #sidebar, #app-container.layout-bbs           #topnav,
+    #app-container.layout-vi            #icon-rail, #app-container.layout-vi            #side-panel, #app-container.layout-vi            #sidebar, #app-container.layout-vi            #topnav,
+    #app-container.layout-adventure     #icon-rail, #app-container.layout-adventure     #side-panel, #app-container.layout-adventure     #sidebar, #app-container.layout-adventure     #topnav,
+    #app-container.layout-mac           #icon-rail, #app-container.layout-mac           #side-panel, #app-container.layout-mac           #sidebar, #app-container.layout-mac           #topnav { display:none !important; }
     #app-container.layout-datahero      #main-content, #app-container.layout-catalog       #main-content,
-    #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content { display:none !important; }
+    #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content,
+    #app-container.layout-timeline      #main-content, #app-container.layout-kanban        #main-content,
+    #app-container.layout-htop          #main-content, #app-container.layout-ranger        #main-content,
+    #app-container.layout-bbs           #main-content, #app-container.layout-vi            #main-content,
+    #app-container.layout-adventure     #main-content, #app-container.layout-mac           #main-content { display:none !important; }
     #app-container.layout-datahero      #main-content.split-edit, #app-container.layout-catalog       #main-content.split-edit,
-    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
-    #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell { display:none; flex:1; overflow:hidden; }
+    #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit,
+    #app-container.layout-timeline      #main-content.split-edit, #app-container.layout-kanban        #main-content.split-edit,
+    #app-container.layout-htop          #main-content.split-edit, #app-container.layout-ranger        #main-content.split-edit,
+    #app-container.layout-bbs           #main-content.split-edit, #app-container.layout-vi            #main-content.split-edit,
+    #app-container.layout-adventure     #main-content.split-edit, #app-container.layout-mac           #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
+    #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell,
+    #timeline-shell, #kanban-shell,
+    #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell,
+    #mac-shell { display:none; flex:1; overflow:hidden; }
     #app-container.layout-datahero      #datahero-shell   { display:flex !important; }
     #app-container.layout-catalog       #catalog-shell    { display:flex !important; }
     #app-container.layout-newspaper     #newspaper-shell  { display:flex !important; }
     #app-container.layout-streamrows    #streamrows-shell { display:flex !important; }
+    #app-container.layout-timeline      #timeline-shell   { display:flex !important; }
+    #app-container.layout-kanban        #kanban-shell     { display:flex !important; }
+    #app-container.layout-htop          #htop-shell       { display:flex !important; }
+    #app-container.layout-ranger        #ranger-shell     { display:flex !important; }
+    #app-container.layout-bbs           #bbs-shell        { display:flex !important; }
+    #app-container.layout-vi            #vi-shell         { display:flex !important; }
+    #app-container.layout-adventure     #adventure-shell  { display:flex !important; }
     /* shared flat input */
-    .flat-input { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 10px; border-radius:0; }
+    .flat-input-wrap { position:relative; display:flex; align-items:center; }
+    .flat-input { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 24px 5px 10px; border-radius:0; width:100%; }
     .flat-input:focus { outline:none; border-color:var(--accent); }
     .flat-input::placeholder { color:var(--text_dim); font-style:italic; }
+    .flat-input-clear { position:absolute; right:5px; background:none; border:none; color:var(--text_dim); cursor:pointer; font-size:12px; line-height:1; padding:2px 3px; display:none; }
+    .flat-input-clear:hover { color:var(--text_main); }
+    .flat-input-wrap.has-text .flat-input-clear { display:block; }
     .flat-toolbar { flex-shrink:0; display:flex; align-items:center; gap:12px; padding:7px 14px; border-bottom:1px solid var(--border_solid); background:var(--bg_menu); }
     .flat-count { font-size:9px; font-weight:900; letter-spacing:1.5px; color:var(--text_dim); white-space:nowrap; text-transform:uppercase; }
     /* shared flat open-gamepage buttons */
@@ -181,7 +220,7 @@
     .fl-btn-primary { background:var(--accent); color:var(--bg); border:none; }
     .fl-btn-primary:hover { opacity:0.82; }
     .fl-btn-ghost { background:transparent; color:var(--text_dim); border:1px solid var(--border_solid); }
-    .fl-btn-ghost:hover { color:var(--text_main); border-color:var(--text_sec); }
+    .fl-btn-ghost:hover { background:rgba(255,255,255,0.14); color:#fff; border-color:rgba(255,255,255,0.45); }
     .fl-icon-btn { padding:5px 7px; line-height:0; }
 
     /* ── DATA HERO ──────────────────────────────────────────────────────────── */
@@ -257,6 +296,150 @@
     #streamrows-shell { flex-direction:column; }
     #sr-content { flex:1; overflow-y:auto; min-height:0; padding:16px 0 24px; }
 
+    /* ── TIMELINE ────────────────────────────────────────────────────────────── */
+    #timeline-shell { flex-direction:column; }
+    #tl-track { flex:1; display:flex; overflow-x:auto; overflow-y:hidden; padding:20px 24px 12px; gap:0; scrollbar-width:thin; }
+    #tl-track::-webkit-scrollbar { height:5px; }
+    #tl-track::-webkit-scrollbar-thumb { background:var(--border_solid); }
+    .tl-year-col { flex-shrink:0; width:140px; display:flex; flex-direction:column; border-right:1px solid rgba(139,90,43,0.25); padding-right:12px; margin-right:12px; }
+    .tl-year-col:last-child { border-right:none; }
+    .tl-year-label { font-size:20px; font-weight:900; letter-spacing:1px; color:var(--accent); padding-bottom:10px; border-bottom:1px solid var(--border_solid); margin-bottom:10px; flex-shrink:0; line-height:1; }
+    .tl-year-body { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; scrollbar-width:none; }
+    .tl-year-body::-webkit-scrollbar { display:none; }
+    .tl-card { display:flex; align-items:center; gap:7px; padding:4px 0; cursor:pointer; border-bottom:1px solid rgba(139,90,43,0.1); }
+    .tl-card:last-child { border-bottom:none; }
+    .tl-card:hover .tl-card-name { color:var(--accent); }
+    .tl-card-thumb { width:26px; height:35px; object-fit:cover; flex-shrink:0; background:var(--bg_menu); }
+    .tl-card-name { font-size:10px; color:var(--text_sec); line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .tl-unknown { color:var(--text_dim); font-size:9px; letter-spacing:1px; font-style:italic; }
+
+    /* ── KANBAN ──────────────────────────────────────────────────────────────── */
+    #kanban-shell { flex-direction:column; }
+    #kanban-board { flex:1; display:flex; gap:10px; padding:12px; overflow-x:auto; overflow-y:hidden; min-height:0; }
+    .kb-col { flex:1; min-width:190px; max-width:300px; display:flex; flex-direction:column; border:1px solid var(--border_solid); background:rgba(0,0,0,0.18); }
+    .kb-col-header { padding:9px 12px; font-size:9px; font-weight:900; letter-spacing:2px; text-transform:uppercase; border-bottom:1px solid var(--border_solid); flex-shrink:0; display:flex; align-items:center; justify-content:space-between; }
+    .kb-col-count { color:var(--text_dim); font-size:9px; font-weight:700; }
+    .kb-col-body { flex:1; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:5px; }
+    .kb-card { display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--bg_menu); border:1px solid var(--border_solid); cursor:pointer; user-select:none; }
+    .kb-card:hover { border-color:var(--accent); }
+    .kb-card-thumb { width:22px; height:30px; object-fit:cover; flex-shrink:0; background:var(--border_solid); }
+    .kb-card-info { flex:1; min-width:0; }
+    .kb-card-name { font-size:10px; font-weight:700; color:var(--text_main); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .kb-card-meta { font-size:8px; color:var(--text_dim); letter-spacing:0.5px; margin-top:1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .kb-col[data-col="backlog"]  .kb-col-header { color:var(--text_dim); }
+    .kb-col[data-col="want"]     .kb-col-header { color:#64b5f6; }
+    .kb-col[data-col="playing"]  .kb-col-header { color:#81c784; }
+    .kb-col[data-col="played"]   .kb-col-header { color:var(--accent); }
+    .kb-drop-over { outline:2px dashed var(--accent); }
+
+    /* ── TTY — shared ───────────────────────────────────────────────────────── */
+    @keyframes tty-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    .tty-cursor { display:inline-block; width:.6em; background:currentColor; animation:tty-blink 1s step-end infinite; vertical-align:text-bottom; }
+
+    /* ── HTOP ────────────────────────────────────────────────────────────────── */
+    #htop-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#0a0a0a; color:#c8c8c8; }
+    #htop-topbar { flex-shrink:0; padding:5px 12px; background:#111; border-bottom:1px solid #333; font-size:10px; display:flex; gap:22px; flex-wrap:wrap; }
+    .htop-stat { color:#666; } .htop-stat b { color:#d4a373; }
+    #htop-thead { display:flex; align-items:center; padding:3px 8px; background:#222; border-bottom:2px solid #444; flex-shrink:0; font-size:9px; color:#888; letter-spacing:1px; user-select:none; }
+    #htop-thead span[data-htop-sort] { cursor:pointer; } #htop-thead span[data-htop-sort]:hover { color:#fff; }
+    .htop-sort-active { color:#d4a373 !important; }
+    #htop-tbody { flex:1; overflow-y:auto; }
+    .htop-row { display:flex; align-items:center; padding:2px 8px; cursor:pointer; font-size:10px; }
+    .htop-row:hover { background:#151515; } .htop-row.htop-selected { background:#1e3050; color:#fff; }
+    .htop-cur { width:12px; flex-shrink:0; color:#4fc3f7; }
+    .htop-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .htop-store { width:68px; flex-shrink:0; color:#888; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .htop-genre { width:100px; flex-shrink:0; color:#888; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .htop-hltb { width:44px; flex-shrink:0; color:#d4a373; }
+    .htop-proton { width:74px; flex-shrink:0; font-size:9px; }
+    .htop-bar { width:86px; flex-shrink:0; color:#4a9; letter-spacing:-1px; font-size:10px; }
+    #htop-search-row { display:none; flex-shrink:0; padding:3px 10px; background:#111; border-top:1px solid #2a2a2a; font-size:10px; color:#d4a373; }
+    #htop-search-row input { background:transparent; border:none; color:#d4a373; font-family:inherit; font-size:inherit; outline:none; width:calc(100% - 14px); }
+    #htop-fkeys { flex-shrink:0; display:flex; background:#1a1a1a; border-top:1px solid #333; }
+    .htop-fkey { flex:1; text-align:center; font-size:9px; padding:4px 2px; cursor:pointer; border-right:1px solid #2a2a2a; white-space:nowrap; overflow:hidden; }
+    .htop-fkey:last-child { border-right:none; } .htop-fkey:hover { background:#2a2a2a; }
+    .htop-fkey .fk { background:#888; color:#000; padding:0 3px; margin-right:2px; border-radius:1px; font-size:8px; }
+
+    /* ── RANGER ──────────────────────────────────────────────────────────────── */
+    #ranger-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#0a0a0a; color:#c8c8c8; }
+    #ranger-path { flex-shrink:0; padding:4px 10px; font-size:10px; color:#555; background:#111; border-bottom:1px solid #222; letter-spacing:0.5px; }
+    #ranger-path span { color:#aaa; } #ranger-path .rp-cur { color:#d4a373; }
+    #ranger-panes { flex:1; display:flex; overflow:hidden; min-height:0; }
+    .rp { display:flex; flex-direction:column; overflow:hidden; border-right:1px solid #222; }
+    #rp-left { width:160px; flex-shrink:0; } #rp-mid { flex:1; min-width:0; } #rp-right { width:230px; flex-shrink:0; background:#080808; border-right:none; }
+    .rp-head { padding:3px 8px; background:#111; font-size:8px; color:#444; letter-spacing:2px; text-transform:uppercase; border-bottom:1px solid #222; flex-shrink:0; }
+    .rp-body { flex:1; overflow-y:auto; scrollbar-width:none; } .rp-body::-webkit-scrollbar { display:none; }
+    .rp-item { padding:2px 8px 2px 6px; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; }
+    .rp-item:hover { background:#111; } .rp-item.rp-sel { background:#1a2f1a; color:#81c784; } .rp-item.rp-active { background:#1e3050; color:#4fc3f7; }
+    .rp-arrow { width:10px; flex-shrink:0; color:#555; font-size:9px; }
+    .rp-sep { height:1px; background:#1a1a1a; margin:3px 8px; }
+    #rp-right-body { padding:12px 14px; font-size:10px; line-height:2; }
+    .rp-preview-title { font-size:13px; color:#fff; margin-bottom:8px; line-height:1.3; }
+    .rp-preview-field { color:#444; } .rp-preview-val { color:#aaa; }
+    .rp-preview-launch { margin-top:12px; font-size:9px; color:#555; font-style:italic; }
+    .rp-preview-launch b { color:#4a9; cursor:pointer; } .rp-preview-launch b:hover { color:#81c784; }
+    #ranger-fkeys { flex-shrink:0; display:flex; background:#1a1a1a; border-top:1px solid #333; }
+
+    /* ── BBS ─────────────────────────────────────────────────────────────────── */
+    #bbs-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#000; color:#aaa; align-items:center; justify-content:center; overflow-y:auto; }
+    #bbs-box { width:min(560px,92%); border:1px solid #444; display:flex; flex-direction:column; margin:auto; }
+    #bbs-hdr { background:#0d0d0d; padding:14px 20px 12px; text-align:center; border-bottom:1px solid #333; }
+    .bbs-logo { font-size:14px; color:#fff; font-weight:bold; letter-spacing:4px; margin-bottom:3px; }
+    .bbs-logo-sub { font-size:9px; color:#555; letter-spacing:2px; }
+    .bbs-tagline { font-size:9px; color:#333; margin-top:6px; }
+    #bbs-body { padding:18px 24px; min-height:180px; }
+    .bbs-mi { display:flex; align-items:baseline; gap:10px; padding:5px 0; cursor:pointer; font-size:11px; }
+    .bbs-mi:hover .bbs-ml { color:#fff; } .bbs-mk { color:#d4a373; width:16px; flex-shrink:0; }
+    .bbs-ml { color:#888; } .bbs-mi.bbs-mi-back .bbs-ml { color:#555; font-size:10px; }
+    .bbs-sec { font-size:9px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+    .bbs-li { display:flex; gap:8px; padding:3px 0; cursor:pointer; font-size:10px; }
+    .bbs-li:hover .bbs-ln { color:#fff; } .bbs-li-idx { color:#444; width:28px; flex-shrink:0; text-align:right; }
+    .bbs-ln { color:#c8c8c8; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bbs-lm { color:#555; font-size:9px; white-space:nowrap; flex-shrink:0; }
+    .bbs-prompt { font-size:10px; color:#444; margin-top:16px; } .bbs-prompt span { color:#888; }
+    #bbs-ftr { border-top:1px solid #1a1a1a; padding:6px 20px; font-size:9px; color:#333; display:flex; justify-content:space-between; }
+    #bbs-search-row { padding:4px 24px 14px; display:none; }
+    #bbs-search-row input { background:transparent; border:none; border-bottom:1px solid #333; color:#d4a373; font-family:inherit; font-size:11px; outline:none; width:100%; padding-bottom:2px; }
+
+    /* ── VI ──────────────────────────────────────────────────────────────────── */
+    #vi-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#0d0d0d; color:#d4d4d4; }
+    #vi-buffer { flex:1; overflow-y:auto; }
+    .vi-line { display:flex; font-size:11px; padding:1px 0; cursor:pointer; line-height:1.55; }
+    .vi-line:hover { background:#151515; } .vi-line.vi-sel { background:#1e2d40; }
+    .vi-ln { width:48px; flex-shrink:0; text-align:right; padding-right:10px; color:#3a3a3a; font-size:10px; user-select:none; }
+    .vi-sel .vi-ln { color:#5577aa; }
+    .vi-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .vi-store { width:68px; flex-shrink:0; color:#666; font-size:10px; }
+    .vi-genre { width:108px; flex-shrink:0; color:#666; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .vi-hltb { width:44px; flex-shrink:0; color:#d4a373; font-size:10px; }
+    .vi-proton { width:76px; flex-shrink:0; font-size:10px; }
+    .vi-proton.vp-pl,.vi-proton.vp-na { color:#ccc; } .vi-proton.vp-go { color:#ffd700; } .vi-proton.vp-si { color:#aaa; } .vi-proton.vp-br { color:#cd7f32; } .vi-proton.vp-bo { color:#e05c5c; }
+    #vi-statusbar { flex-shrink:0; background:#252526; border-top:1px solid #333; padding:3px 10px; font-size:10px; color:#888; display:flex; gap:14px; align-items:center; }
+    .vi-mode-badge { padding:0 6px; border-radius:2px; font-weight:bold; font-size:9px; }
+    .vi-mode-badge.normal  { background:#4a9eff; color:#000; }
+    .vi-mode-badge.search  { background:#d4a373; color:#000; }
+    .vi-mode-badge.command { background:#81c784; color:#000; }
+    #vi-cmdline { flex-shrink:0; background:#0d0d0d; border-top:1px solid #2a2a2a; padding:3px 10px; font-size:11px; display:flex; align-items:center; gap:4px; min-height:24px; }
+    #vi-cmd-prefix { color:#888; } #vi-cmd-input { background:transparent; border:none; color:#d4d4d4; font-family:inherit; font-size:inherit; outline:none; flex:1; }
+
+    /* ── ADVENTURE ───────────────────────────────────────────────────────────── */
+    #adventure-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#000; color:#33ff33; }
+    #adv-topbar { flex-shrink:0; padding:6px 16px; background:#000; border-bottom:1px solid #0a3d0a; font-size:9px; color:#0a5c0a; display:flex; justify-content:space-between; }
+    #adv-topbar span { color:#1a8c1a; } #adv-topbar b { color:#33ff33; }
+    #adv-scene { flex:1; overflow-y:auto; padding:22px 28px 12px; }
+    .adv-room { color:#66ff66; font-size:12px; font-weight:bold; letter-spacing:1px; margin-bottom:14px; }
+    .adv-body { color:#33ff33; font-size:11px; line-height:2; }
+    .adv-exits { color:#0a6600; font-size:10px; margin-top:14px; } .adv-exits b { color:#1acc1a; }
+    .adv-hint { color:#0a4400; font-size:9px; margin-top:6px; }
+    #adv-log { flex-shrink:0; max-height:80px; overflow-y:auto; padding:4px 28px; border-top:1px solid #051a05; }
+    .adv-log-line { font-size:10px; } .adv-log-cmd { color:#0a5c0a; } .adv-log-resp { color:#1a8c1a; }
+    #adv-input-row { flex-shrink:0; border-top:1px solid #0a3d0a; padding:8px 16px; display:flex; align-items:center; gap:6px; }
+    .adv-pr { color:#33ff33; font-size:12px; } #adv-input { background:transparent; border:none; color:#33ff33; font-family:inherit; font-size:12px; flex:1; outline:none; caret-color:#33ff33; }
+
+    /* ── Layout zoom ─────────────────────────────────────────────────────────── */
+    #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell, #timeline-shell, #kanban-shell,
+    #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell { zoom: 1.25; }
+
     /* ── FLAT DETAIL OVERLAY ─────────────────────────────────────────────────── */
     #flat-detail-overlay { display:none; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; flex-direction:column; background:#080808; }
     #flat-detail-overlay.open { display:flex; }
@@ -272,6 +455,204 @@
     .fdo-meta-pill.accent { color:var(--accent); }
     .fdo-meta-sep { width:1px; height:10px; background:rgba(255,255,255,0.18); flex-shrink:0; }
     #fdo-desc { font-size:12px; color:rgba(255,255,255,0.45); line-height:1.75; max-width:700px; max-height:130px; overflow:hidden; }
+    /* ── TTY Gamepage (DOS) ─────────────────────────────────────────────────── */
+    #tty-gamepage { display:none; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9999; flex-direction:column; background:#000; font-family:var(--tty-font),'Fira Code','Courier New',monospace; -webkit-font-smoothing:none; color:#ffffff; zoom:1.5; overflow:hidden; }
+    #tty-gamepage.open { display:flex; }
+    #tgp-titlebar { flex-shrink:0; background:#0000aa; color:#ffffff; font-size:10px; padding:5px 12px; display:flex; justify-content:space-between; letter-spacing:1px; }
+    /* hero band */
+    #tgp-hero-band { flex-shrink:0; height:168px; position:relative; overflow:hidden; border-bottom:2px solid #333; }
+    #tgp-hero-noart { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:#050505; color:#5555ff; font-size:10px; letter-spacing:3px; }
+    #tgp-hero-crt { position:absolute; inset:0; }
+    #tgp-hero-crt img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 30%; filter:contrast(1.15) brightness(0.68) saturate(0.5) sepia(0.12); }
+    #tgp-hero-crt::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0,0,0,0.72) 100%); pointer-events:none; z-index:1; }
+    #tgp-hero-crt::after  { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px); pointer-events:none; z-index:2; }
+    #tgp-hero-overlay { position:absolute; inset:0; z-index:5; display:flex; align-items:flex-end; padding:10px 14px; background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 65%); pointer-events:none; }
+    #tgp-dos-logo { font-size:22px; color:#ffffff; letter-spacing:2px; text-transform:uppercase; text-shadow:0 0 18px rgba(85,255,255,0.5), 2px 2px 0 #000; line-height:1.2; }
+    #tgp-dos-logo-sub { font-size:9px; color:#55ffff; letter-spacing:2px; margin-top:6px; }
+    /* main info */
+    #tgp-info { flex:1; display:flex; overflow:hidden; min-height:0; }
+    #tgp-col-left { flex:1; padding:16px 18px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#333 #000; min-width:0; border-right:2px solid #333; }
+    #tgp-col-right { width:250px; flex-shrink:0; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#333 #000; }
+    /* cover art — full height */
+    #tgp-cover-crt { flex-shrink:0; position:relative; overflow:hidden; }
+    #tgp-cover-crt img { display:block; width:100%; height:auto; filter:contrast(1.2) brightness(0.7) saturate(0.4) sepia(0.2); }
+    #tgp-cover-crt::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 50%, transparent 48%, rgba(0,0,0,0.68) 100%); pointer-events:none; z-index:1; }
+    #tgp-cover-crt::after  { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 4px); pointer-events:none; z-index:2; }
+    /* info box */
+    .tgp-info-box { border:2px solid #aaaaaa; padding:14px 14px 10px; position:relative; margin-bottom:22px; }
+    .tgp-info-box::before { content:'■ INFO'; position:absolute; top:-11px; left:8px; background:#000; padding:0 6px; font-size:9px; color:#ffff55; letter-spacing:2px; }
+    /* left column */
+    .tgp-sub { font-size:9px; color:#5555ff; letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; line-height:1.8; }
+    .tgp-desc-label { font-size:9px; color:#ffff55; letter-spacing:2px; margin-bottom:12px; border-bottom:2px solid #333; padding-bottom:7px; }
+    .tgp-desc-body { font-size:9px; color:#aaaaaa; line-height:2.2; white-space:pre-wrap; }
+    /* achievements */
+    #tgp-ach-section { margin-top:22px; }
+    .tgp-ach-label { font-size:9px; color:#ffff55; letter-spacing:2px; margin-bottom:12px; border-bottom:2px solid #333; padding-bottom:7px; }
+    .tgp-ach-progress { font-size:9px; color:#ffffff; margin-bottom:14px; line-height:2; }
+    .tgp-ach-bar-chars { font-family:'Fira Code','Courier New',monospace; letter-spacing:-1px; font-size:14px; }
+    .tgp-ach-bar-chars .hb-f { color:#55ff55; } .tgp-ach-bar-chars .hb-e { color:#1a1a1a; }
+    .tgp-ach-item { display:flex; align-items:center; gap:7px; margin-bottom:10px; font-size:9px; }
+    .tgp-ach-icon { width:18px; height:18px; object-fit:cover; flex-shrink:0; image-rendering:pixelated; }
+    .tgp-ach-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tgp-ach-name.done { color:#55ff55; } .tgp-ach-name.locked { color:#5555ff; }
+    .tgp-ach-date { color:#aaaaaa; font-size:8px; flex-shrink:0; }
+    .tgp-ach-more { font-size:8px; color:#aaaaaa; margin-top:8px; }
+    /* info rows (in box + right column) */
+    .tgp-meta-label { font-size:9px; color:#ffff55; letter-spacing:2px; margin-bottom:11px; margin-top:14px; }
+    .tgp-meta-label:first-child { margin-top:0; }
+    .tgp-meta-row { display:flex; font-size:9px; margin-bottom:9px; align-items:baseline; line-height:1.8; }
+    .tgp-meta-key { color:#55ffff; width:90px; flex-shrink:0; letter-spacing:1px; }
+    .tgp-meta-val { color:#ffffff; }
+    .tgp-dos-ruler { border:none; border-top:2px solid #333; margin:11px 0; }
+    .tgp-hbar-full { font-family:'Fira Code','Courier New',monospace; letter-spacing:-1px; font-size:14px; }
+    .tgp-hbar-full .hb-f { color:#55ff55; } .tgp-hbar-full .hb-e { color:#1a1a1a; }
+    .tgp-proton-plat { color:#55ffff; } .tgp-proton-gold { color:#ffff55; } .tgp-proton-silv { color:#ffffff; } .tgp-proton-brnz { color:#ffaa55; }
+    .tgp-mc-badge { display:inline-block; padding:1px 6px; font-size:9px; }
+    .tgp-mc-badge.g { background:#55ff55; color:#000; } .tgp-mc-badge.y { background:#ffff55; color:#000; } .tgp-mc-badge.r { background:#ff5555; color:#fff; }
+    /* fkeys DOS blue */
+    #tgp-fkeys { flex-shrink:0; display:flex; background:#0000aa; border-top:2px solid #0000dd; }
+    #tgp-fkeys .htop-fkey { color:#ffffff; border-right-color:#0033aa; font-family:'Press Start 2P',monospace; font-size:9px; }
+    #tgp-fkeys .htop-fkey:hover { background:#0033cc; color:#ffffff; }
+    #tgp-fkeys .htop-fkey .fk { background:#55ffff; color:#000; font-family:'Press Start 2P',monospace; font-size:9px; }
+    /* filter widget */
+    #tgp-filter-wrap { position:relative; display:flex; align-items:center; }
+    #tgp-filter-btn { background:transparent; border:1px solid #55ffff; color:#55ffff; font-family:'Press Start 2P',monospace; font-size:8px; padding:2px 7px; cursor:pointer; letter-spacing:1px; line-height:1.4; }
+    #tgp-filter-btn:hover { background:rgba(85,255,255,0.12); }
+    #tgp-filter-menu { display:none; position:absolute; top:calc(100% + 3px); right:0; background:#000; border:2px solid #55ffff; z-index:200; min-width:190px; }
+    #tgp-filter-menu.open { display:block; }
+    .tgp-fopt { font-family:'Press Start 2P',monospace; font-size:8px; padding:8px 10px; cursor:pointer; color:#aaaaaa; letter-spacing:1px; white-space:nowrap; }
+    .tgp-fopt:hover { background:rgba(85,255,255,0.1); color:#55ffff; }
+    .tgp-fopt.active { color:#ffff55; }
+    /* font picker widget */
+    #tgp-font-wrap { position:relative; display:flex; align-items:center; }
+    #tgp-font-btn { background:transparent; border:1px solid #55ff55; color:#55ff55; font-family:'Press Start 2P',monospace; font-size:8px; padding:2px 7px; cursor:pointer; letter-spacing:1px; line-height:1.4; }
+    #tgp-font-btn:hover { background:rgba(85,255,85,0.12); }
+    #tgp-font-menu { display:none; position:absolute; top:calc(100% + 3px); right:0; background:#000; border:2px solid #55ff55; z-index:200; min-width:200px; }
+    #tgp-font-menu.open { display:block; }
+    .tgp-fopt-font { font-size:8px; padding:8px 10px; cursor:pointer; color:#aaaaaa; letter-spacing:1px; white-space:nowrap; }
+    .tgp-fopt-font:hover { background:rgba(85,255,85,0.1); color:#55ff55; }
+    .tgp-fopt-font.active { color:#ffff55; }
+    /* shared TTY layout font menu */
+    #tty-layout-font-menu { display:none; position:fixed; bottom:42px; right:10px; background:#0a0a0a; border:2px solid #55ff55; z-index:9500; min-width:200px; }
+    #tty-layout-font-menu.open { display:block; }
+    .tty-shell-font-btn { background:transparent; border:none; cursor:pointer; font-family:inherit; font-size:9px; letter-spacing:1px; padding:0 8px; line-height:1; }
+    /* per-filter image overrides — default (crt) is the base CSS on the img elements */
+    #tty-gamepage[data-filter="green"] #tgp-hero-crt img,
+    #tty-gamepage[data-filter="green"] #tgp-cover-crt img { filter:grayscale(1) brightness(0.75) contrast(1.4) sepia(1) hue-rotate(80deg); }
+    #tty-gamepage[data-filter="green"] #tgp-hero-crt::after,
+    #tty-gamepage[data-filter="green"] #tgp-cover-crt::after { background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,25,0,0.38) 2px, rgba(0,25,0,0.38) 4px); }
+    #tty-gamepage[data-filter="amber"] #tgp-hero-crt img,
+    #tty-gamepage[data-filter="amber"] #tgp-cover-crt img { filter:grayscale(1) brightness(0.75) contrast(1.3) sepia(0.95) hue-rotate(15deg); }
+    #tty-gamepage[data-filter="amber"] #tgp-hero-crt::after,
+    #tty-gamepage[data-filter="amber"] #tgp-cover-crt::after { background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(30,12,0,0.32) 2px, rgba(30,12,0,0.32) 4px); }
+    #tty-gamepage[data-filter="mono"] #tgp-hero-crt img,
+    #tty-gamepage[data-filter="mono"] #tgp-cover-crt img { filter:grayscale(1) brightness(0.72) contrast(1.15); }
+    #tty-gamepage[data-filter="mono"] #tgp-hero-crt::after,
+    #tty-gamepage[data-filter="mono"] #tgp-cover-crt::after { background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.22) 2px, rgba(0,0,0,0.22) 4px); }
+    #tty-gamepage[data-filter="interlaced"] #tgp-hero-crt img,
+    #tty-gamepage[data-filter="interlaced"] #tgp-cover-crt img { filter:contrast(1.15) brightness(0.6) saturate(0.5) sepia(0.12); }
+    #tty-gamepage[data-filter="interlaced"] #tgp-hero-crt::after,
+    #tty-gamepage[data-filter="interlaced"] #tgp-cover-crt::after { background:repeating-linear-gradient(0deg, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.55) 2px, transparent 2px, transparent 4px); }
+    #tty-gamepage[data-filter="dotmatrix"] #tgp-hero-crt img,
+    #tty-gamepage[data-filter="dotmatrix"] #tgp-cover-crt img { filter:contrast(1.1) brightness(0.58) saturate(0.3) sepia(0.25); }
+    #tty-gamepage[data-filter="dotmatrix"] #tgp-hero-crt::after,
+    #tty-gamepage[data-filter="dotmatrix"] #tgp-cover-crt::after { background:radial-gradient(circle, transparent 1px, rgba(0,0,0,0.68) 1px) 0 0 / 3px 3px; }
+/* ── Mac OS 1.0 Layout ─────────────────────────────────────────────────── */
+    #mac-shell { display:none; flex-direction:column; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; background:#fff; color:#000; overflow:hidden; -webkit-font-smoothing:none; image-rendering:pixelated; }
+    #app-container.layout-mac #mac-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    /* Menubar */
+    #mac-menubar { height:22px; flex-shrink:0; background:#fff; border-bottom:2px solid #000; display:flex; align-items:stretch; user-select:none; position:relative; z-index:100; }
+    .mac-mitem { padding:0 10px; display:flex; align-items:center; font-size:13px; font-weight:bold; cursor:default; white-space:nowrap; color:#000; }
+    .mac-mitem:hover, .mac-mitem.mac-active { background:#000; color:#fff; }
+    #mac-mitem-apple { font-size:16px; padding:0 12px; }
+    #mac-mitem-spacer { flex:1; }
+    #mac-mitem-clock { font-size:12px; font-weight:normal; padding:0 10px; display:flex; align-items:center; color:#000; }
+    /* View dropdown */
+    .mac-mitem-wrap { position:relative; display:flex; align-items:stretch; }
+    #mac-view-dropdown { display:none; position:absolute; top:100%; left:0; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; min-width:160px; z-index:200; padding:3px 0; }
+    #mac-view-dropdown.open { display:block; }
+    .mac-ditem { padding:2px 14px 2px 26px; font-size:13px; font-weight:bold; cursor:default; white-space:nowrap; color:#000; position:relative; line-height:1.7; }
+    .mac-ditem:hover { background:#000; color:#fff; }
+    .mac-ditem.mac-dactive::before { content:'✓'; position:absolute; left:8px; }
+    .mac-dsep { height:1px; background:#000; margin:3px 0; }
+    /* Desktop — CSS Grid guarantees every cell has bounded dimensions */
+    #mac-desktop { flex:1; min-height:0; display:grid; grid-template-columns:1fr 215px; grid-template-rows:1fr; gap:10px; padding:10px; box-sizing:border-box; background:repeating-conic-gradient(#000 0% 25%,#fff 0% 50%) 0 0/2px 2px; overflow:hidden; }
+    /* Shared Mac window chrome */
+    .mac-chrome-bar { height:20px; flex-shrink:0; position:relative; display:flex; align-items:center; background:repeating-linear-gradient(180deg,#fff 0px,#fff 1px,#000 1px,#000 2px); border-bottom:1px solid #000; }
+    .mac-closebox { width:12px; height:12px; border:1px solid #000; background:#fff; margin-left:5px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .mac-closebox::after { content:''; width:6px; height:6px; border:1px solid #000; display:block; }
+    .mac-closebox:hover { background:#000; }
+    .mac-closebox:hover::after { border-color:#fff; }
+    .mac-wintitle { position:absolute; left:50%; transform:translateX(-50%); background:#fff; padding:0 8px; font-size:12px; font-weight:bold; white-space:nowrap; pointer-events:none; }
+    .mac-sizebox { width:12px; height:12px; border:1px solid #000; background:#fff; margin-right:5px; margin-left:auto; flex-shrink:0; }
+    /* Finder window */
+    #mac-finder-win { display:flex; flex-direction:column; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; overflow:hidden; min-height:0; }
+    #mac-finder-colheader { flex-shrink:0; height:18px; display:flex; align-items:center; border-bottom:1px solid #000; background:#f4f4f4; font-size:11px; font-weight:bold; }
+    .mac-col-icon { width:22px; flex-shrink:0; }
+    .mac-col-name { flex:1; min-width:0; padding-left:2px; }
+    .mac-col-store { width:100px; flex-shrink:0; padding-left:5px; border-left:1px solid #999; }
+    .mac-col-genre { width:110px; flex-shrink:0; padding-left:5px; border-left:1px solid #999; }
+    /* List — bounded by grid cell, scrolls within its own box */
+    #mac-finder-list { flex:1; min-height:0; overflow-y:scroll; overflow-x:hidden; background:#fff; }
+    #mac-finder-list::-webkit-scrollbar { width:16px; }
+    #mac-finder-list::-webkit-scrollbar-track { background:#fff; border-left:2px solid #000; }
+    #mac-finder-list::-webkit-scrollbar-thumb { background:#000; min-height:24px; }
+    .mac-list-row { display:flex; align-items:center; height:18px; cursor:pointer; font-size:11px; border-bottom:1px solid #e8e8e8; background:#fff; color:#000; user-select:none; }
+    .mac-list-row:hover { background:#e8e8e8; }
+    .mac-list-row.mac-selected { background:#000; color:#fff; }
+    .mac-list-icon { width:22px; flex-shrink:0; font-size:10px; text-align:center; }
+    .mac-list-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mac-list-store { width:100px; flex-shrink:0; font-size:10px; color:#444; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-left:1px solid #ddd; padding-left:5px; }
+    .mac-list-genre { width:110px; flex-shrink:0; font-size:10px; color:#444; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-left:1px solid #ddd; padding-left:5px; }
+    .mac-list-row.mac-selected .mac-list-store, .mac-list-row.mac-selected .mac-list-genre { color:#bbb; border-left-color:#444; }
+    #mac-finder-searchbar { flex-shrink:0; display:flex; align-items:center; gap:5px; padding:3px 6px; border-top:1px solid #000; background:#fff; }
+    #mac-search-wrap { flex:1; display:flex; align-items:center; border:1px solid #000; background:#fff; padding:0 3px; gap:3px; }
+    #mac-search-wrap svg { flex-shrink:0; display:block; }
+    #mac-finder-search { flex:1; border:none; font-family:inherit; font-size:11px; padding:1px 2px; outline:none; background:transparent; color:#000; }
+    #mac-search-clear { display:none; flex-shrink:0; background:none; border:none; cursor:pointer; padding:0; line-height:1; color:#000; }
+    #mac-search-clear:hover { color:#666; }
+    #mac-search-clear.visible { display:flex; align-items:center; }
+    #mac-finder-statusbar { flex-shrink:0; display:flex; justify-content:space-between; padding:2px 6px; border-top:1px solid #bbb; font-size:10px; color:#666; background:#eee; }
+    /* Right column */
+    #mac-right-col { display:flex; flex-direction:column; gap:10px; min-height:0; overflow:hidden; }
+    .mac-panel { display:flex; flex-direction:column; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; overflow:hidden; min-height:0; }
+    #mac-cover-win { flex:0 0 322px; }
+    #mac-info-win { flex:1; min-height:0; }
+    #mac-cover-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 8px; gap:8px; overflow:hidden; background:#fff; }
+    #mac-sidebar-cover-wrap { width:100%; max-width:175px; border:1px solid #bbb; box-shadow:2px 2px 0 #999; overflow:hidden; }
+    #mac-sidebar-cover-wrap img { display:block; width:100%; height:auto; filter:grayscale(0.15) contrast(1.05); }
+    #mac-cover-noart-ph { font-size:40px; color:#bbb; }
+    #mac-cover-game-name { font-size:10px; font-weight:bold; text-align:center; word-break:break-word; line-height:1.4; color:#333; max-width:100%; }
+    #mac-info-body { flex:1; min-height:0; overflow-y:auto; padding:8px 10px; scrollbar-width:thin; scrollbar-color:#000 #fff; background:#fff; }
+    .mac-info-row { display:flex; gap:4px; margin-bottom:5px; font-size:11px; line-height:1.4; color:#000; }
+    .mac-info-key { width:68px; flex-shrink:0; font-weight:bold; color:#555; }
+    .mac-info-val { flex:1; min-width:0; word-break:break-word; color:#000; }
+    /* Mac gamepage — Get Info dialog */
+    #mac-gamepage { display:none; position:fixed; inset:0; z-index:9999; background:repeating-conic-gradient(rgba(0,0,0,0.4) 0% 25%,transparent 0% 50%) 0 0/2px 2px; align-items:center; justify-content:center; }
+    #mac-gamepage.open { display:flex; }
+    #mgp-win { background:#fff; border:2px solid #000; box-shadow:4px 4px 0 #000; width:520px; max-width:calc(100vw - 40px); display:flex; flex-direction:column; max-height:calc(100vh - 80px); color:#000 !important; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; -webkit-font-smoothing:none; }
+    #mgp-titlebar { height:19px; flex-shrink:0; position:relative; border-bottom:1px solid #000; display:flex; align-items:center; background:repeating-linear-gradient(180deg,#fff 0px,#fff 1px,#000 1px,#000 2px); }
+    #mgp-closebox { width:11px; height:11px; border:1px solid #000; background:#fff; margin-left:4px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    #mgp-closebox::after { content:''; width:5px; height:5px; border:1px solid #000; display:block; }
+    #mgp-closebox:hover { background:#000; }
+    #mgp-closebox:hover::after { border-color:#fff; }
+    #mgp-title-text { position:absolute; left:50%; transform:translateX(-50%); background:#fff; padding:0 8px; font-size:11px; font-weight:bold; white-space:nowrap; pointer-events:none; max-width:70%; overflow:hidden; text-overflow:ellipsis; }
+    #mgp-body { display:flex; overflow:hidden; flex:1; min-height:0; }
+    #mgp-left { width:120px; flex-shrink:0; border-right:1px solid #ccc; display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px; }
+    #mgp-cover-wrap { width:96px; border:1px solid #000; overflow:hidden; box-shadow:2px 2px 0 #aaa; }
+    #mgp-cover-wrap img { display:block; width:100%; height:auto; filter:grayscale(0.3) contrast(1.05); }
+    #mgp-cover-noart { width:96px; height:120px; background:#f0f0f0; border:1px solid #ccc; display:flex; align-items:center; justify-content:center; font-size:28px; }
+    #mgp-right { flex:1; overflow-y:auto; padding:10px 12px; min-width:0; scrollbar-width:thin; }
+    .mgp-rule { border:none; border-top:1px solid #ccc; margin:8px 0; }
+    .mgp-row { display:flex; gap:4px; margin-bottom:5px; font-size:11px; line-height:1.4; }
+    .mgp-key { width:82px; flex-shrink:0; font-weight:bold; color:#555; }
+    .mgp-val { flex:1; min-width:0; word-break:break-word; }
+    #mgp-desc-area { padding:8px 12px; font-size:11px; color:#333; border-top:1px solid #ccc; max-height:80px; overflow-y:auto; line-height:1.5; scrollbar-width:thin; }
+    #mgp-footer { flex-shrink:0; display:flex; justify-content:flex-end; gap:8px; padding:8px 12px; border-top:1px solid #ccc; background:#fff; }
+    .mac-btn { border:1px solid #000; background:#fff; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; font-size:11px; font-weight:bold; padding:3px 14px; cursor:pointer; box-shadow:2px 2px 0 #999; min-width:56px; color:#000 !important; -webkit-font-smoothing:none; }
+    .mac-btn:hover { background:#eee; }
+    .mac-btn:active { box-shadow:none; transform:translate(1px,1px); }
+    .mac-btn.mac-btn-default { border-width:2px; }
     .sr-row { margin-bottom:30px; }
     .sr-row-label { font-size:9px; font-weight:900; letter-spacing:2px; color:var(--text_dim); text-transform:uppercase; padding:0 18px 10px; display:flex; align-items:center; gap:10px; }
     .sr-row-label span:first-child { flex:1; }
@@ -553,6 +934,9 @@
     #layout-segmented-control { display:grid !important; grid-template-columns:1fr 1fr; border:none !important; border-radius:0 !important; overflow:visible !important; gap:5px; margin-top:6px; }
     #layout-segmented-control .segmented-btn { border-right:none !important; border:1px solid var(--border_solid) !important; border-radius:6px !important; padding:10px 6px !important; font-size:10px !important; text-align:center; line-height:1.3; }
     #layout-segmented-control .segmented-btn.active { background:var(--accent) !important; color:var(--bg) !important; border-color:var(--accent) !important; }
+    #layout-segmented-control .segmented-btn.lsc-full { grid-column:1 / -1 !important; }
+    #layout-segmented-control .lsc-divider { grid-column:1 / -1; border:none; border-top:1px solid var(--border_solid); margin:2px 0; }
+    #layout-segmented-control .lsc-label { grid-column:1 / -1; font-size:8px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color:var(--text_dim); padding:2px 0 0; }
 
     /* ── GAMEPAGE: floating PLAY/INSTALL button ─────────────────────────────── */
     #btn-gamepage-play { position:fixed !important; bottom:28px; right:28px; font-size:18px !important; padding:14px 36px !important; border-radius:50px !important; box-shadow:0 8px 28px rgba(0,0,0,0.7) !important; letter-spacing:2px !important; z-index:50; }
@@ -1276,7 +1660,7 @@
     <div id="datahero-shell">
       <div id="dh-list-panel">
         <div class="flat-toolbar">
-          <input class="flat-input" id="dh-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="flex:1;">
+          <div class="flat-input-wrap" style="flex:1;"><input class="flat-input" id="dh-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
           <span class="flat-count" id="dh-count"></span>
           <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-dh-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         </div>
@@ -1300,7 +1684,7 @@
     <!-- ── CATALOG ───────────────────────────────────────────────────────── -->
     <div id="catalog-shell">
       <div class="flat-toolbar">
-        <input class="flat-input" id="cat-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="width:200px;">
+        <div class="flat-input-wrap" style="width:200px;"><input class="flat-input" id="cat-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
         <span class="flat-count" id="cat-count" style="flex:1;"></span>
         <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-cat-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
@@ -1327,7 +1711,7 @@
     <div id="newspaper-shell">
       <div class="flat-toolbar">
         <span id="np-masthead">Your Library</span>
-        <input class="flat-input" id="np-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="width:180px; margin-left:8px;">
+        <div class="flat-input-wrap" style="width:180px; margin-left:8px;"><input class="flat-input" id="np-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
         <span class="flat-count" id="np-count" style="margin-left:auto;"></span>
         <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-np-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
@@ -1351,7 +1735,7 @@
     <!-- ── STREAMING ROWS ─────────────────────────────────────────────────── -->
     <div id="streamrows-shell">
       <div class="flat-toolbar">
-        <input class="flat-input" id="sr-search" placeholder="Search…" autocomplete="off" spellcheck="false" style="flex:1;">
+        <div class="flat-input-wrap" style="flex:1;"><input class="flat-input" id="sr-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
         <span class="flat-count" id="sr-count"></span>
         <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-sr-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       </div>
@@ -1359,7 +1743,228 @@
     </div>
 
 
+    <!-- ── TIMELINE ──────────────────────────────────────────────────────── -->
+    <div id="timeline-shell">
+      <div class="flat-toolbar">
+        <div class="flat-input-wrap" style="flex:1;"><input class="flat-input" id="tl-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
+        <span class="flat-count" id="tl-count"></span>
+        <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-tl-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      </div>
+      <div id="tl-track"></div>
+    </div>
+
+    <!-- ── KANBAN ──────────────────────────────────────────────────────── -->
+    <div id="kanban-shell">
+      <div class="flat-toolbar">
+        <div class="flat-input-wrap" style="flex:1;"><input class="flat-input" id="kb-search" placeholder="Search…" autocomplete="off" spellcheck="false"><button class="flat-input-clear" tabindex="-1">✕</button></div>
+        <span class="flat-count" id="kb-count"></span>
+        <button class="fl-btn fl-btn-ghost fl-icon-btn" id="btn-kb-tools" title="Tools &amp; Settings"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      </div>
+      <div id="kanban-board">
+        <div class="kb-col" data-col="backlog"><div class="kb-col-header">Backlog <span class="kb-col-count"></span></div><div class="kb-col-body" id="kb-backlog"></div></div>
+        <div class="kb-col" data-col="want"><div class="kb-col-header">Want to Play <span class="kb-col-count"></span></div><div class="kb-col-body" id="kb-want"></div></div>
+        <div class="kb-col" data-col="playing"><div class="kb-col-header">Playing <span class="kb-col-count"></span></div><div class="kb-col-body" id="kb-playing"></div></div>
+        <div class="kb-col" data-col="played"><div class="kb-col-header">Played <span class="kb-col-count"></span></div><div class="kb-col-body" id="kb-played"></div></div>
+      </div>
+    </div>
+
+    <!-- ── HTOP ──────────────────────────────────────────────────────────── -->
+    <div id="htop-shell">
+      <div id="htop-topbar"></div>
+      <div id="htop-thead">
+        <span style="width:12px;flex-shrink:0;"></span>
+        <span style="flex:1;" data-htop-sort="Game">TITLE</span>
+        <span style="width:68px;flex-shrink:0;" data-htop-sort="Store">STORE</span>
+        <span style="width:100px;flex-shrink:0;" data-htop-sort="GENRE">GENRE</span>
+        <span style="width:44px;flex-shrink:0;" data-htop-sort="HLTB_Main">HLTB</span>
+        <span style="width:74px;flex-shrink:0;" data-htop-sort="ProtonTier">PROTON</span>
+        <span style="width:86px;flex-shrink:0;">PLAY▓</span>
+      </div>
+      <div id="htop-tbody"></div>
+      <div id="htop-search-row"><span>/</span><input id="htop-search" autocomplete="off" spellcheck="false" placeholder="filter…"></div>
+      <div id="htop-fkeys">
+        <div class="htop-fkey" data-htop-f="sort-Game"><span class="fk">F1</span>Name</div>
+        <div class="htop-fkey" data-htop-f="sort-Store"><span class="fk">F2</span>Store</div>
+        <div class="htop-fkey" data-htop-f="sort-GENRE"><span class="fk">F3</span>Genre</div>
+        <div class="htop-fkey" data-htop-f="sort-HLTB_Main"><span class="fk">F4</span>HLTB</div>
+        <div class="htop-fkey" data-htop-f="sort-ProtonTier"><span class="fk">F5</span>Proton</div>
+        <div class="htop-fkey" data-htop-f="search"><span class="fk">F6</span>Search</div>
+        <div class="htop-fkey" data-htop-f="open"><span class="fk">F9</span>Open</div>
+        <div class="htop-fkey" data-htop-f="tools"><span class="fk">F10</span>Tools</div>
+        <div class="htop-fkey tty-shell-font-btn" id="htop-fk-font"><span class="fk">F7</span>Font</div>
+      </div>
+    </div>
+
+    <!-- ── RANGER ─────────────────────────────────────────────────────── -->
+    <div id="ranger-shell">
+      <div id="ranger-path">/<span>library</span>/<span class="rp-cur" id="rp-path-cat">All</span></div>
+      <div id="ranger-panes">
+        <div class="rp" id="rp-left"><div class="rp-head">Categories</div><div class="rp-body" id="rp-left-body"></div></div>
+        <div class="rp" id="rp-mid"><div class="rp-head">Games</div><div class="rp-body" id="rp-mid-body"></div></div>
+        <div class="rp" id="rp-right"><div class="rp-head">Preview</div><div class="rp-body" id="rp-right-body"><div id="rp-right-inner"></div></div></div>
+      </div>
+      <div id="ranger-fkeys">
+        <div class="htop-fkey" id="ranger-fk-tools"><span class="fk">F10</span>Tools</div>
+        <div class="htop-fkey tty-shell-font-btn" id="ranger-fk-font"><span class="fk">F7</span>Font</div>
+      </div>
+    </div>
+
+    <!-- ── BBS ────────────────────────────────────────────────────────── -->
+    <div id="bbs-shell">
+      <div id="bbs-box">
+        <div id="bbs-hdr">
+          <div class="bbs-logo">CAFE NEUROTICO BBS</div>
+          <div class="bbs-logo-sub">GAME LIBRARY SYSTEM v1.0</div>
+          <div class="bbs-tagline">CONNECTING AT 56600 BAUD...</div>
+        </div>
+        <div id="bbs-body"></div>
+        <div id="bbs-search-row"><input id="bbs-search" autocomplete="off" spellcheck="false" placeholder="type to search…"></div>
+        <div id="bbs-ftr"><span>CAFE NEUROTICO BBS</span><span id="bbs-ftr-count"></span><button class="tty-shell-font-btn" id="bbs-fk-font" style="color:#555;">FONT</button></div>
+      </div>
+    </div>
+
+    <!-- ── VI ────────────────────────────────────────────────────────── -->
+    <div id="vi-shell">
+      <div id="vi-buffer"></div>
+      <div id="vi-statusbar">
+        <span class="vi-mode-badge normal" id="vi-mode-badge">NORMAL</span>
+        <span id="vi-status-game"></span>
+        <span style="flex:1;"></span>
+        <span id="vi-status-count"></span>
+        <button class="tty-shell-font-btn" id="vi-fk-font" style="color:#555;">FONT</button>
+      </div>
+      <div id="vi-cmdline">
+        <span id="vi-cmd-prefix"></span>
+        <input id="vi-cmd-input" autocomplete="off" spellcheck="false">
+        <span class="tty-cursor" id="vi-cursor" style="color:#d4d4d4;"></span>
+      </div>
+    </div>
+
+    <!-- ── ADVENTURE ──────────────────────────────────────────────────── -->
+    <div id="adventure-shell">
+      <div id="adv-topbar"><span>CAFE NEUROTICO ADVENTURE  ·  YOUR LIBRARY</span><button class="tty-shell-font-btn" id="adv-fk-font" style="color:#1a8c1a;">FONT</button><b id="adv-idx-label"></b></div>
+      <div id="adv-scene"></div>
+      <div id="adv-log"></div>
+      <div id="adv-input-row">
+        <span class="adv-pr">&gt;&nbsp;</span>
+        <input id="adv-input" autocomplete="off" spellcheck="false" placeholder="type a command…">
+        <span class="tty-cursor" style="color:#33ff33;"></span>
+      </div>
+    </div>
+
+    <!-- ── MAC OS 1.0 ───────────────────────────────────────────────────── -->
+    <div id="mac-shell">
+      <div id="mac-menubar">
+        <span class="mac-mitem" id="mac-mitem-apple">✦</span>
+        <span class="mac-mitem" id="mac-mitem-file">File</span>
+        <div class="mac-mitem-wrap" id="mac-mitem-view-wrap">
+          <span class="mac-mitem" id="mac-mitem-view">View</span>
+          <div id="mac-view-dropdown">
+            <div class="mac-ditem mac-dactive" data-mfilter="all">All Games</div>
+            <div class="mac-ditem" data-mfilter="installed">Installed</div>
+            <div class="mac-ditem" data-mfilter="favs">Favourites</div>
+            <div class="mac-ditem" data-mfilter="want">Want to Play</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" data-mfilter="steam">Steam</div>
+            <div class="mac-ditem" data-mfilter="gog">GOG</div>
+            <div class="mac-ditem" data-mfilter="epic">Epic</div>
+            <div class="mac-ditem" data-mfilter="others">Others</div>
+          </div>
+        </div>
+        <span class="mac-mitem" id="mac-mitem-special">Special</span>
+        <span id="mac-mitem-spacer"></span>
+        <span id="mac-mitem-clock"></span>
+      </div>
+      <div id="mac-desktop">
+        <div id="mac-finder-win">
+          <div class="mac-chrome-bar" id="mac-finder-titlebar">
+            <div class="mac-closebox" id="mac-finder-closebox"></div>
+            <div class="mac-wintitle" id="mac-finder-title">Library — <span id="mac-finder-count">0</span> items</div>
+            <div class="mac-sizebox" id="mac-finder-sizebox"></div>
+          </div>
+          <div id="mac-finder-colheader">
+            <span class="mac-col-icon"></span>
+            <span class="mac-col-name">Name</span>
+            <span class="mac-col-store">Store</span>
+            <span class="mac-col-genre">Genre</span>
+          </div>
+          <div id="mac-finder-list"></div>
+          <div id="mac-finder-searchbar">
+            <div id="mac-search-wrap">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="square"><circle cx="4.5" cy="4.5" r="3.5"/><line x1="7.5" y1="7.5" x2="11" y2="11"/></svg>
+              <input id="mac-finder-search" autocomplete="off" spellcheck="false" placeholder="Search…">
+              <button id="mac-search-clear" title="Clear">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="mac-finder-statusbar">
+            <span id="mac-status-left"></span>
+            <span id="mac-status-right">Cafe Neurotico</span>
+          </div>
+        </div>
+        <div id="mac-right-col">
+          <div class="mac-panel" id="mac-cover-win">
+            <div class="mac-chrome-bar">
+              <div class="mac-closebox"></div>
+              <div class="mac-wintitle">Cover Art</div>
+              <div class="mac-sizebox"></div>
+            </div>
+            <div id="mac-cover-body">
+              <div id="mac-cover-noart-ph">📄</div>
+              <div id="mac-sidebar-cover-wrap" style="display:none;"><img id="mac-sidebar-cover" src="" alt=""></div>
+              <div id="mac-cover-game-name"></div>
+            </div>
+          </div>
+          <div class="mac-panel" id="mac-info-win">
+            <div class="mac-chrome-bar">
+              <div class="mac-closebox"></div>
+              <div class="mac-wintitle">Info</div>
+              <div class="mac-sizebox"></div>
+            </div>
+            <div id="mac-info-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     </div><!-- /#app-inner -->
+
+    <!-- shared TTY layout font picker -->
+    <div id="tty-layout-font-menu">
+      <div class="tgp-fopt-font active" data-fnt="bigblue" style="font-family:'BigBlue Terminal','Courier New',monospace;">■ BigBlue Terminal</div>
+      <div class="tgp-fopt-font" data-fnt="pressstart" style="font-family:'Press Start 2P',monospace;">■ Press Start 2P</div>
+      <div class="tgp-fopt-font" data-fnt="pxibm" style="font-family:'PxPlus IBM VGA8','Courier New',monospace;">■ PxPlus IBM VGA8</div>
+      <div class="tgp-fopt-font" data-fnt="whiterabbit" style="font-family:'White Rabbit','Courier New',monospace;">■ White Rabbit</div>
+      <div class="tgp-fopt-font" data-fnt="c64" style="font-family:'C64 Pro Mono','Courier New',monospace;">■ C64 Pro Mono</div>
+      <div class="tgp-fopt-font" data-fnt="jetbrains" style="font-family:'JetBrains Mono','Courier New',monospace;">■ JetBrains Mono</div>
+      <div class="tgp-fopt-font" data-fnt="firacode" style="font-family:'Fira Code','Courier New',monospace;">■ Fira Code</div>
+      <div class="tgp-fopt-font" data-fnt="hack" style="font-family:'Hack','Courier New',monospace;">■ Hack</div>
+    </div>
+
+  <!-- Mac OS 1.0 Get Info dialog -->
+  <div id="mac-gamepage">
+    <div id="mgp-win">
+      <div id="mgp-titlebar">
+        <div id="mgp-closebox"></div>
+        <div id="mgp-title-text">Info</div>
+      </div>
+      <div id="mgp-body">
+        <div id="mgp-left">
+          <div id="mgp-cover-wrap"><img id="mgp-cover" src="" alt=""></div>
+          <div id="mgp-cover-noart" style="display:none;">📄</div>
+        </div>
+        <div id="mgp-right"></div>
+      </div>
+      <div id="mgp-desc-area"></div>
+      <div id="mgp-footer">
+        <button class="mac-btn" id="mgp-btn-close">Close</button>
+        <button class="mac-btn" id="mgp-btn-edit">Edit Info</button>
+        <button class="mac-btn mac-btn-default" id="mgp-btn-launch">▶ Launch</button>
+      </div>
+    </div>
+  </div>
+
   </div><!-- /#app-container -->
 
   <!-- ── FLAT DETAIL OVERLAY — shown when clicking a game from any flat layout ─ -->
@@ -1378,6 +1983,69 @@
       <div id="fdo-title"></div>
       <div id="fdo-meta"></div>
       <div id="fdo-desc"></div>
+    </div>
+  </div>
+
+  <!-- TTY Gamepage (DOS) -->
+  <div id="tty-gamepage" tabindex="-1">
+    <div id="tgp-titlebar">
+      <span>■ CAFE NEUROTICO GAME MANAGER</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div id="tgp-font-wrap">
+          <button id="tgp-font-btn">FONT ▼</button>
+          <div id="tgp-font-menu">
+            <div class="tgp-fopt-font active" data-fnt="bigblue" style="font-family:'BigBlue Terminal','Courier New',monospace;">■ BigBlue Terminal</div>
+            <div class="tgp-fopt-font" data-fnt="pressstart" style="font-family:'Press Start 2P',monospace;">■ Press Start 2P</div>
+            <div class="tgp-fopt-font" data-fnt="pxibm" style="font-family:'PxPlus IBM VGA8','Courier New',monospace;">■ PxPlus IBM VGA8</div>
+            <div class="tgp-fopt-font" data-fnt="whiterabbit" style="font-family:'White Rabbit','Courier New',monospace;">■ White Rabbit</div>
+            <div class="tgp-fopt-font" data-fnt="c64" style="font-family:'C64 Pro Mono','Courier New',monospace;">■ C64 Pro Mono</div>
+            <div class="tgp-fopt-font" data-fnt="jetbrains" style="font-family:'JetBrains Mono','Courier New',monospace;">■ JetBrains Mono</div>
+            <div class="tgp-fopt-font" data-fnt="firacode" style="font-family:'Fira Code','Courier New',monospace;">■ Fira Code</div>
+            <div class="tgp-fopt-font" data-fnt="hack" style="font-family:'Hack','Courier New',monospace;">■ Hack</div>
+          </div>
+        </div>
+        <div id="tgp-filter-wrap">
+          <button id="tgp-filter-btn">CRT ▼</button>
+          <div id="tgp-filter-menu">
+            <div class="tgp-fopt active" data-f="crt">■ CRT</div>
+            <div class="tgp-fopt" data-f="green">■ GREEN PHOSPHOR</div>
+            <div class="tgp-fopt" data-f="amber">■ AMBER PHOSPHOR</div>
+            <div class="tgp-fopt" data-f="mono">■ MONOCHROME</div>
+            <div class="tgp-fopt" data-f="interlaced">■ INTERLACED</div>
+            <div class="tgp-fopt" data-f="dotmatrix">■ DOT MATRIX</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="tgp-hero-band">
+      <div id="tgp-hero-noart">NO ART</div>
+      <div id="tgp-hero-crt"><img id="tgp-hero-img" src="" alt=""></div>
+      <div id="tgp-hero-overlay">
+        <div>
+          <div id="tgp-dos-logo"></div>
+          <div id="tgp-dos-logo-sub"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tgp-info">
+      <div id="tgp-col-left">
+        <div class="tgp-sub" id="tgp-sub-line"></div>
+        <div class="tgp-info-box">
+          <div id="tgp-info-rows"></div>
+        </div>
+        <div class="tgp-desc-label">DESCRIPTION</div>
+        <div class="tgp-desc-body" id="tgp-desc-body"></div>
+        <div id="tgp-ach-section"></div>
+      </div>
+      <div id="tgp-col-right">
+        <div id="tgp-cover-crt"><img id="tgp-cover-img" src="" alt=""></div>
+      </div>
+    </div>
+    <div id="tgp-fkeys">
+      <div class="htop-fkey" id="tgp-fk-back"><span class="fk">Q</span>Back</div>
+      <div class="htop-fkey" id="tgp-fk-launch"><span class="fk">↵</span>Launch</div>
+      <div class="htop-fkey" id="tgp-fk-edit"><span class="fk">E</span>Edit</div>
+      <div class="htop-fkey" id="tgp-fk-fullpage"><span class="fk">F</span>Full Page</div>
     </div>
   </div>
 
@@ -1677,15 +2345,28 @@
         <div class="tool-card tools-section" data-search="layout sidebar rail command palette navigation icon panel view navigator minimal split pane">
           <div class="tool-card-title">Layout</div>
           <div class="segmented-control" id="layout-segmented-control">
+            <span class="lsc-label">Classic</span>
             <button class="segmented-btn" data-val="rail">Minimal Sidebar</button>
             <button class="segmented-btn" data-val="sidebar">Classic Sidebar</button>
             <button class="segmented-btn" data-val="topnav">Top Nav</button>
             <button class="segmented-btn" data-val="split">Split Pane</button>
-            <button class="segmented-btn" data-val="commander">Commander</button>
+            <button class="segmented-btn lsc-full" data-val="commander">Commander</button>
+            <hr class="lsc-divider">
+            <span class="lsc-label">Flat</span>
             <button class="segmented-btn" data-val="datahero">Data Hero</button>
             <button class="segmented-btn" data-val="catalog">Catalog</button>
             <button class="segmented-btn" data-val="newspaper">Newspaper</button>
             <button class="segmented-btn" data-val="streamrows">Streaming Rows</button>
+            <button class="segmented-btn" data-val="timeline">Timeline</button>
+            <button class="segmented-btn" data-val="kanban">Kanban</button>
+            <hr class="lsc-divider">
+            <span class="lsc-label">TTY</span>
+            <button class="segmented-btn" data-val="htop">HTOP</button>
+            <button class="segmented-btn" data-val="ranger">Ranger</button>
+            <button class="segmented-btn" data-val="bbs">BBS</button>
+            <button class="segmented-btn" data-val="vi">Vi Buffer</button>
+            <button class="segmented-btn lsc-full" data-val="adventure">Adventure</button>
+            <button class="segmented-btn lsc-full" data-val="mac">Mac OS 1.0</button>
           </div>
         </div>
 
