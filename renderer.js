@@ -478,6 +478,10 @@ function applyLayoutMode(mode) {
     const c = document.getElementById('app-container');
     c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac');
     c.classList.add('layout-' + mode);
+    // Mirror themed layout classes onto body so CSS variables reach modals outside #app-container
+    const _themedModes = ['mac'];
+    _themedModes.forEach(m => document.body.classList.remove('layout-' + m));
+    if (_themedModes.includes(mode)) document.body.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
     localStorage.setItem('cngm_layout_mode', mode);
