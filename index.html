@@ -41,6 +41,13 @@
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     .modal-box { background: var(--bg_menu); padding: 30px; border-radius: 12px; border: 2px solid var(--border_solid); width: 400px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+    /* Playlist multi-select rows */
+    .pl-select-row { padding:10px 14px; cursor:pointer; user-select:none; display:flex; align-items:center; gap:10px; font-size:12px; font-weight:900; color:var(--text_sec); border-bottom:1px solid var(--border); transition:background 0.1s; font-family:inherit; }
+    .pl-select-row:last-child { border-bottom:none; }
+    .pl-select-row.pl-selected { background:var(--bg_menu); color:var(--text_sec); }
+    .pl-select-row:hover:not(.pl-selected) { background:var(--bg_panel); }
+    .pl-row-check { font-size:11px; flex-shrink:0; width:14px; text-align:center; opacity:0.7; }
+    .pl-select-row.pl-selected .pl-row-check { opacity:1; }
 
     #gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
     .gallery-item { background: var(--bg_panel); border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s, box-shadow 0.2s; text-align: center; display: flex; flex-direction: column; }
@@ -582,9 +589,66 @@
     /* #modal-tools has no .modal-box wrapper — override its buttons directly */
     body.layout-mac #modal-tools button { background:#fff !important; color:#000 !important; border:1px solid #000 !important; border-radius:0 !important; font-family:'Chicago',system-ui,sans-serif !important; font-weight:bold !important; -webkit-font-smoothing:none !important; box-shadow:2px 2px 0 #999 !important; cursor:pointer !important; }
     body.layout-mac #modal-tools button:hover { background:#eee !important; box-shadow:none !important; transform:translate(1px,1px) !important; }
+    /* Strip hover zoom from trailer search items — causes glitch in Mac layout */
+    body.layout-mac .yt-search-item:hover { transform:none !important; }
+    /* Playlist picker — thin scrollbar only when needed */
+    body.layout-mac #playlist-picker-list { overflow-y:auto !important; scrollbar-width:thin; scrollbar-color:#000 #fff; }
+    body.layout-mac #playlist-picker-list::-webkit-scrollbar { width:8px; }
+    body.layout-mac #playlist-picker-list::-webkit-scrollbar-track { background:#fff; border-left:1px solid #000; }
+    body.layout-mac #playlist-picker-list::-webkit-scrollbar-thumb { background:#000; }
+    /* Playlist picker buttons — strip box-shadow so it doesn't bleed outside container */
+    body.layout-mac #playlist-picker-list button { box-shadow:none !important; }
+    /* Disabled Mac dropdown item */
+    .mac-ditem-disabled { opacity:0.35; pointer-events:none; cursor:default !important; }
+    /* Connect modal — Mac OS 1.0 theme */
+    body.layout-mac #modal-connect > div { background:#fff !important; border-radius:0 !important; border:2px solid #000 !important; box-shadow:4px 4px 0 #000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-connect h3 { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; letter-spacing:1px !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-connect p, body.layout-mac #modal-connect code { color:#333 !important; font-family:'Chicago',system-ui,sans-serif !important; }
+    body.layout-mac #modal-connect .tool-card { background:#f0f0f0 !important; border:1px solid #000 !important; border-radius:0 !important; }
+    body.layout-mac #modal-connect .tool-card-title { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-connect input { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; }
+    body.layout-mac #modal-connect button { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; font-weight:bold !important; box-shadow:2px 2px 0 #999 !important; cursor:pointer !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-connect button:hover { background:#eee !important; box-shadow:none !important; transform:translate(1px,1px) !important; }
+    body.layout-mac #connect-cards-container { scrollbar-width:thin; scrollbar-color:#000 #fff; }
+    body.layout-mac #connect-cards-container::-webkit-scrollbar { width:8px; }
+    body.layout-mac #connect-cards-container::-webkit-scrollbar-track { background:#fff; border-left:1px solid #000; }
+    body.layout-mac #connect-cards-container::-webkit-scrollbar-thumb { background:#000; }
+    /* Tools modal — Mac OS 1.0 theme */
+    body.layout-mac #modal-tools > div { background:#fff !important; border-radius:0 !important; border:2px solid #000 !important; box-shadow:4px 4px 0 #000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-tools h3 { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; letter-spacing:1px !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-tools p, body.layout-mac #modal-tools code { color:#333 !important; font-family:'Chicago',system-ui,sans-serif !important; }
+    body.layout-mac #modal-tools .tool-card { background:#f0f0f0 !important; border:1px solid #000 !important; border-radius:0 !important; }
+    body.layout-mac #modal-tools .tool-card-title { color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-tools input[type="text"], body.layout-mac #modal-tools input[type="password"] { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; }
+    body.layout-mac #modal-tools button { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; font-weight:bold !important; box-shadow:2px 2px 0 #999 !important; cursor:pointer !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #modal-tools button:hover { background:#eee !important; box-shadow:none !important; transform:translate(1px,1px) !important; }
+    body.layout-mac #tools-cards-container { scrollbar-width:thin; scrollbar-color:#000 #fff; }
+    body.layout-mac #tools-cards-container::-webkit-scrollbar { width:8px; }
+    body.layout-mac #tools-cards-container::-webkit-scrollbar-track { background:#fff; border-left:1px solid #000; }
+    body.layout-mac #tools-cards-container::-webkit-scrollbar-thumb { background:#000; }
+    body.layout-mac .segmented-control { border:1px solid #000 !important; border-radius:0 !important; background:#fff !important; }
+    body.layout-mac .segmented-btn { border-radius:0 !important; border:none !important; border-right:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; box-shadow:none !important; }
+    body.layout-mac .segmented-btn:last-child { border-right:none !important; }
+    body.layout-mac .segmented-btn.active { background:#000 !important; color:#fff !important; box-shadow:none !important; transform:none !important; }
+    body.layout-mac .segmented-btn:hover:not(.active) { background:#e0e0e0 !important; transform:none !important; }
+    body.layout-mac .lsc-label { font-family:'Chicago',system-ui,sans-serif !important; color:#555 !important; }
+    body.layout-mac .lsc-divider { border-color:#000 !important; }
+    /* Edit game panel — Mac OS 1.0 theme */
+    body.layout-mac #view-details { font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #view-details label { font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; color:#000 !important; }
+    body.layout-mac #view-details input, body.layout-mac #view-details textarea { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border-radius:0 !important; border:1px solid #000 !important; background:#fff !important; color:#000 !important; font-family:'Chicago',system-ui,sans-serif !important; font-weight:bold !important; box-shadow:2px 2px 0 #999 !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#eee !important; box-shadow:none !important; transform:translate(1px,1px) !important; }
+    body.layout-mac #view-details #btn-delete-cover, body.layout-mac #view-details #btn-delete-hero, body.layout-mac #view-details #btn-delete-logo, body.layout-mac #view-details #btn-delete-icon, body.layout-mac #view-details #btn-delete-screenshot, body.layout-mac #view-details #btn-delete-trailer, body.layout-mac #view-details #btn-delete-game { border-radius:0 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #view-details fieldset { border:2px solid #000 !important; border-radius:0 !important; }
+    body.layout-mac #view-details fieldset legend span { border-radius:0 !important; font-family:'Chicago',system-ui,sans-serif !important; -webkit-font-smoothing:none !important; }
+    body.layout-mac #view-details #ui-cover, body.layout-mac #view-details #ui-hero, body.layout-mac #view-details #ui-logo, body.layout-mac #view-details #ui-icon, body.layout-mac #view-details #ui-screenshot { border-radius:0 !important; border:2px solid #000 !important; background:#f0f0f0 !important; }
+    body.layout-mac #view-details #grinder-launch-row { border-radius:0 !important; border:1px solid #000 !important; background:#f0f0f0 !important; }
+    body.layout-mac #view-details #edit-launchers-list input { margin-top:0 !important; }
 /* ── Mac OS 1.0 Layout ─────────────────────────────────────────────────── */
     #mac-shell { display:none; flex-direction:column; font-family:'Chicago',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; background:#fff; color:#000; overflow:hidden; -webkit-font-smoothing:none; image-rendering:pixelated; }
-    #app-container.layout-mac #mac-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    #app-container.layout-mac #mac-shell { display:flex !important; position:fixed; top:28px; left:0; right:0; bottom:0; z-index:50; zoom:1.25; }
+    body.layout-mac #mac-gamepage { zoom:1.25; }
     /* Menubar */
     #mac-menubar { height:22px; flex-shrink:0; background:#fff; border-bottom:2px solid #000; display:flex; align-items:stretch; user-select:none; position:relative; z-index:100; }
     .mac-mitem { padding:0 10px; display:flex; align-items:center; font-size:13px; font-weight:bold; cursor:default; white-space:nowrap; color:#000; }
@@ -594,8 +658,8 @@
     #mac-mitem-clock { font-size:12px; font-weight:normal; padding:0 10px; display:flex; align-items:center; color:#000; }
     /* View dropdown */
     .mac-mitem-wrap { position:relative; display:flex; align-items:stretch; }
-    #mac-view-dropdown, #mac-file-dropdown, #mac-playlist-dropdown { display:none; position:absolute; top:100%; left:0; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; min-width:180px; z-index:200; padding:3px 0; }
-    #mac-view-dropdown.open, #mac-file-dropdown.open, #mac-playlist-dropdown.open { display:block; }
+    #mac-view-dropdown, #mac-file-dropdown, #mac-playlist-dropdown, #mac-special-dropdown { display:none; position:absolute; top:100%; left:0; background:#fff; border:2px solid #000; box-shadow:3px 3px 0 #000; min-width:180px; z-index:200; padding:3px 0; }
+    #mac-view-dropdown.open, #mac-file-dropdown.open, #mac-playlist-dropdown.open, #mac-special-dropdown.open { display:block; }
     .mac-ditem { padding:2px 14px 2px 26px; font-size:13px; font-weight:bold; cursor:default; white-space:nowrap; color:#000; position:relative; line-height:1.7; }
     .mac-ditem:hover { background:#000; color:#fff; }
     .mac-ditem.mac-dactive::before { content:'✓'; position:absolute; left:8px; }
@@ -1880,7 +1944,7 @@
     <!-- ── MAC OS 1.0 ───────────────────────────────────────────────────── -->
     <div id="mac-shell">
       <div id="mac-menubar">
-        <span class="mac-mitem" id="mac-mitem-apple">✦</span>
+        <span class="mac-mitem" id="mac-mitem-apple"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" style="display:inline-block;vertical-align:middle;pointer-events:none;"><defs><mask id="cbm"><rect width="16" height="16" fill="white"/><path d="M10.5 3.5 C9.2 6 6.8 10 5.5 12.5" stroke="black" stroke-width="1.7" fill="none" stroke-linecap="round"/></mask></defs><ellipse cx="8" cy="8" rx="4.5" ry="6.5" transform="rotate(35 8 8)" mask="url(#cbm)"/></svg></span>
         <div class="mac-mitem-wrap" id="mac-mitem-file-wrap">
           <span class="mac-mitem" id="mac-mitem-file">File</span>
           <div id="mac-file-dropdown">
@@ -1888,11 +1952,22 @@
             <div class="mac-dsep"></div>
             <div class="mac-ditem" id="mac-file-grinder">Manage with GRINDER</div>
             <div class="mac-ditem" id="mac-file-steam">Manage STEAM Games</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" id="mac-file-fav">Toggle Favourite</div>
+            <div class="mac-ditem" id="mac-file-want">Toggle Want to Play</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" id="mac-file-add-playlist">Add to Playlist…</div>
+            <div class="mac-ditem" id="mac-file-rem-playlist">Remove from Playlist…</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" id="mac-file-edit">Edit Info</div>
+            <div class="mac-ditem" id="mac-file-trailer">Watch / Download Trailer</div>
           </div>
         </div>
         <div class="mac-mitem-wrap" id="mac-mitem-view-wrap">
           <span class="mac-mitem" id="mac-mitem-view">View</span>
           <div id="mac-view-dropdown">
+            <div class="mac-ditem" id="mac-view-refresh">Refresh Library</div>
+            <div class="mac-dsep"></div>
             <div class="mac-ditem mac-dactive" data-mfilter="all">All Games</div>
             <div class="mac-ditem" data-mfilter="installed">Installed</div>
             <div class="mac-ditem" data-mfilter="favs">Favs</div>
@@ -1914,7 +1989,16 @@
           <span class="mac-mitem" id="mac-mitem-playlist">Playlists</span>
           <div id="mac-playlist-dropdown"></div>
         </div>
-        <span class="mac-mitem" id="mac-mitem-special">Special</span>
+        <div class="mac-mitem-wrap" id="mac-mitem-special-wrap">
+          <span class="mac-mitem" id="mac-mitem-special">Special</span>
+          <div id="mac-special-dropdown">
+            <div class="mac-ditem" id="mac-special-tools">Tools</div>
+            <div class="mac-ditem" id="mac-special-connect">Connect</div>
+            <div class="mac-dsep"></div>
+            <div class="mac-ditem" id="mac-special-crema">CREMA</div>
+            <div class="mac-ditem" id="mac-special-emulatte">EmuLatte</div>
+          </div>
+        </div>
         <span id="mac-mitem-spacer"></span>
         <span id="mac-mitem-clock"></span>
       </div>
@@ -2562,11 +2646,14 @@
 
   <!-- ── MODAL: ADD TO PLAYLIST ──────────────────────────────────────────────── -->
   <div id="modal-add-to-playlist" class="modal-overlay">
-    <div class="modal-box" style="max-width:380px;">
+    <div class="modal-box" style="max-width:400px; gap:0;">
       <h3 style="margin:0 0 4px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Add to Playlist</h3>
       <p id="modal-playlist-picker-game" style="margin:0 0 14px; font-size:12px; font-weight:900; color:var(--text_main);"></p>
-      <div id="playlist-picker-list" style="display:flex; flex-direction:column; gap:8px; max-height:320px; overflow-y:auto;"></div>
-      <button id="btn-playlist-picker-close" style="width:100%; margin-top:12px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Close</button>
+      <div id="playlist-picker-list" style="display:flex; flex-direction:column; max-height:280px; overflow-y:auto; border:1px solid var(--border_solid); border-radius:6px; overflow:hidden;"></div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button id="btn-playlist-add-confirm" style="flex:2; font-weight:bold;" disabled>Add Selected</button>
+        <button id="btn-playlist-picker-close" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Close</button>
+      </div>
     </div>
   </div>
 
@@ -2600,11 +2687,14 @@
 
   <!-- ── MODAL: REMOVE FROM PLAYLIST ──────────────────────────────────────── -->
   <div id="modal-remove-from-playlist" class="modal-overlay">
-    <div class="modal-box" style="max-width:380px;">
+    <div class="modal-box" style="max-width:400px; gap:0;">
       <h3 style="margin:0 0 4px; color:var(--accent); text-transform:uppercase; letter-spacing:2px;">Remove from Playlist</h3>
       <p id="remove-from-pl-game" style="margin:0 0 14px; font-size:12px; font-weight:900; color:var(--text_main);"></p>
-      <div id="remove-from-pl-list" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;"></div>
-      <button id="btn-remove-from-pl-close" style="width:100%; margin-top:12px; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec); border-radius:6px; padding:8px; cursor:pointer; font-family:inherit; font-weight:900; font-size:12px; letter-spacing:0.5px;">Close</button>
+      <div id="remove-from-pl-list" style="display:flex; flex-direction:column; max-height:280px; overflow-y:auto; border:1px solid var(--border_solid); border-radius:6px; overflow:hidden;"></div>
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <button id="btn-remove-from-pl-confirm" style="flex:2; font-weight:bold;" disabled>Remove Selected</button>
+        <button id="btn-remove-from-pl-close" style="flex:1; background:transparent; border:1px solid var(--border_solid); color:var(--text_sec);">Close</button>
+      </div>
     </div>
   </div>
 
@@ -2861,7 +2951,7 @@
 
   <!-- Now Playing overlay -->
   <style>
-    #modal-now-playing { z-index: 9000; }
+    #modal-now-playing { z-index: 40000; }
     #np-card {
       position: relative;
       background: var(--bg_menu);

@@ -571,33 +571,34 @@ document.getElementById('btn-gamepage-edit').addEventListener('click', () => {
 async function openPlaylistPickerForGame(game) {
     document.getElementById('modal-playlist-picker-game').textContent = game.Game;
     const gamePlaylistIds = await window.api.getGamePlaylists(game.id);
+    const available = allPlaylists.filter(p => !gamePlaylistIds.includes(p.id));
     const list = document.getElementById('playlist-picker-list');
-    if (!allPlaylists.length) {
-        list.innerHTML = `<p style="text-align:center; padding:16px; color:var(--text_dim); font-size:12px;">No playlists yet — create one first.</p>`;
+    const confirmBtn = document.getElementById('btn-playlist-add-confirm');
+    confirmBtn.disabled = true;
+    if (!available.length) {
+        const msg = !allPlaylists.length ? 'No playlists yet — create one first.' : 'Game is already in all playlists.';
+        list.innerHTML = `<div class="pl-select-row" style="cursor:default;color:var(--text_dim);">${msg}</div>`;
     } else {
-        list.innerHTML = allPlaylists.map(p => {
-            const inList = gamePlaylistIds.includes(p.id);
-            return `<button class="btn-pl-toggle" data-playlist-id="${p.id}" data-in="${inList ? '1' : '0'}"
-                style="padding:10px 12px; background:${inList ? 'var(--accent)' : 'var(--bg_menu)'}; color:${inList ? 'var(--bg)' : 'var(--text_sec)'}; border:1px solid var(--border_solid); border-radius:6px; text-align:left; cursor:pointer; font-family:inherit; font-size:12px; font-weight:900; transition:background 0.15s; width:100%;">
-                ${inList ? '✓ ' : ''}${escHtml(p.name)}</button>`;
-        }).join('');
-        list.querySelectorAll('.btn-pl-toggle').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const plId   = Number(btn.dataset.playlistId);
-                const inList = btn.dataset.in === '1';
-                if (inList) { await window.api.removeGameFromPlaylist(plId, game.id); }
-                else { await window.api.addGameToPlaylist(plId, game.id); }
-                btn.dataset.in = inList ? '0' : '1';
-                btn.style.background = inList ? 'var(--bg_menu)' : 'var(--accent)';
-                btn.style.color      = inList ? 'var(--text_sec)' : 'var(--bg)';
-                btn.textContent = (inList ? '' : '✓ ') + allPlaylists.find(p => p.id === plId)?.name;
-                if (currentPlaylistId !== null) {
-                    currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
-                    applyFilters();
-                }
+        list.innerHTML = available.map(p =>
+            `<div class="pl-select-row" data-id="${p.id}"><span class="pl-row-check">□</span><span>${escHtml(p.name)}</span></div>`
+        ).join('');
+        list.querySelectorAll('.pl-select-row[data-id]').forEach(row => {
+            row.addEventListener('click', () => {
+                row.classList.toggle('pl-selected');
+                row.querySelector('.pl-row-check').textContent = row.classList.contains('pl-selected') ? '■' : '□';
+                confirmBtn.disabled = !list.querySelector('.pl-select-row.pl-selected');
             });
         });
     }
+    confirmBtn.onclick = async () => {
+        const selected = [...list.querySelectorAll('.pl-select-row.pl-selected')];
+        await Promise.all(selected.map(row => window.api.addGameToPlaylist(Number(row.dataset.id), game.id)));
+        if (currentPlaylistId !== null) {
+            currentPlaylistGames = await window.api.getPlaylistGames(currentPlaylistId);
+            applyFilters();
+        }
+        document.getElementById('modal-add-to-playlist').classList.remove('active');
+    };
     document.getElementById('modal-add-to-playlist').classList.add('active');
 }
 
@@ -1000,39 +1001,44 @@ async function openManagePlaylistGames(pl) {
     document.getElementById('modal-manage-playlist-games').classList.add('active');
 }
 
-function openRemoveFromPlaylistModal(game, playlistIds) {
+async function openRemoveFromPlaylistModal(game) {
     document.getElementById('remove-from-pl-game').textContent = game.Game;
-    const matchedPlaylists = allPlaylists.filter(p => playlistIds.includes(p.id));
+    const gamePlaylistIds = await window.api.getGamePlaylists(game.id);
+    const included = allPlaylists.filter(p => gamePlaylistIds.includes(p.id));
     const list = document.getElementById('remove-from-pl-list');
-    if (!matchedPlaylists.length) {
-        list.innerHTML = `<p style="font-size:11px; color:var(--text_dim); text-align:center; margin:12px 0;">Not in any playlist.</p>`;
+    const confirmBtn = document.getElementById('btn-remove-from-pl-confirm');
+    confirmBtn.disabled = true;
+    if (!included.length) {
+        list.innerHTML = `<div class="pl-select-row" style="cursor:default;color:var(--text_dim);">Game is not in any playlist.</div>`;
     } else {
-        list.innerHTML = matchedPlaylists.map(p =>
-            `<div style="display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--bg_menu); border-radius:6px; border:1px solid var(--border);">
-                <span style="flex:1; font-size:12px; font-weight:700; color:var(--text_sec);">${escHtml(p.name)}</span>
-                <button class="btn-do-remove-from-pl" data-playlist-id="${p.id}"
-                    style="padding:2px 8px; background:rgba(239,83,80,0.12); border:1px solid #ef5350; color:#ef5350; border-radius:4px; cursor:pointer; font-size:10px; font-weight:900; font-family:inherit; flex-shrink:0; transition:background 0.15s;" onmouseover="this.style.background='rgba(239,83,80,0.28)';" onmouseout="this.style.background='rgba(239,83,80,0.12)';">Remove</button>
-            </div>`
+        list.innerHTML = included.map(p =>
+            `<div class="pl-select-row" data-id="${p.id}"><span class="pl-row-check">□</span><span>${escHtml(p.name)}</span></div>`
         ).join('');
-        list.querySelectorAll('.btn-do-remove-from-pl').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const plId = Number(btn.dataset.playlistId);
-                await window.api.removeGameFromPlaylist(plId, game.id);
-                if (currentPlaylistId === plId) {
-                    currentPlaylistGames = await window.api.getPlaylistGames(plId);
-                    applyFilters();
-                }
-                const newIds = await window.api.getGamePlaylists(game.id);
-                if (newIds.length === 0) {
-                    document.getElementById('modal-remove-from-playlist').classList.remove('active');
-                    document.getElementById('btn-gamepage-remove-playlist').style.display = 'none';
-                    document.getElementById('btn-split-remove-playlist').style.display = 'none';
-                } else {
-                    openRemoveFromPlaylistModal(game, newIds);
-                }
+        list.querySelectorAll('.pl-select-row[data-id]').forEach(row => {
+            row.addEventListener('click', () => {
+                row.classList.toggle('pl-selected');
+                row.querySelector('.pl-row-check').textContent = row.classList.contains('pl-selected') ? '■' : '□';
+                confirmBtn.disabled = !list.querySelector('.pl-select-row.pl-selected');
             });
         });
     }
+    confirmBtn.onclick = async () => {
+        const selected = [...list.querySelectorAll('.pl-select-row.pl-selected')];
+        await Promise.all(selected.map(async row => {
+            const plId = Number(row.dataset.id);
+            await window.api.removeGameFromPlaylist(plId, game.id);
+            if (currentPlaylistId === plId) {
+                currentPlaylistGames = await window.api.getPlaylistGames(plId);
+                applyFilters();
+            }
+        }));
+        document.getElementById('modal-remove-from-playlist').classList.remove('active');
+        const remaining = await window.api.getGamePlaylists(game.id);
+        if (remaining.length === 0) {
+            document.getElementById('btn-gamepage-remove-playlist')?.style && (document.getElementById('btn-gamepage-remove-playlist').style.display = 'none');
+            document.getElementById('btn-split-remove-playlist')?.style && (document.getElementById('btn-split-remove-playlist').style.display = 'none');
+        }
+    };
     document.getElementById('modal-remove-from-playlist').classList.add('active');
 }
 
@@ -1615,7 +1621,7 @@ function renderSplitDetail(game) {
     favBtn.onclick = async () => {
         game.FAV = game.FAV === 'YES' ? 'NO' : 'YES';
         favBtn.classList.toggle('active', game.FAV === 'YES');
-        await window.api.updateGame(game.id, { FAV: game.FAV });
+        window.api.setGameFlag(String(game.id), 'FAV', game.FAV);
     };
 
     const wantBtn = document.getElementById('btn-split-want');
@@ -1623,7 +1629,7 @@ function renderSplitDetail(game) {
     wantBtn.onclick = async () => {
         game.WANT_TO_PLAY = game.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
         wantBtn.classList.toggle('active', game.WANT_TO_PLAY === 'YES');
-        await window.api.updateGame(game.id, { WANT_TO_PLAY: game.WANT_TO_PLAY });
+        window.api.setGameFlag(String(game.id), 'WANT_TO_PLAY', game.WANT_TO_PLAY);
     };
 
     // Edit button — opens view-details as overlay on top of split pane
@@ -1645,10 +1651,7 @@ function renderSplitDetail(game) {
     window.api.getGamePlaylists(game.id).then(ids => {
         if (ids.length > 0) {
             splitRemovePlaylistBtn.style.display = 'flex';
-            splitRemovePlaylistBtn.onclick = async () => {
-                const currentIds = await window.api.getGamePlaylists(game.id);
-                openRemoveFromPlaylistModal(game, currentIds);
-            };
+            splitRemovePlaylistBtn.onclick = () => openRemoveFromPlaylistModal(game);
         }
     });
 
@@ -2128,7 +2131,7 @@ function _applyMacFilter(src) {
     const s = g => (g.Store || '').toLowerCase();
     switch (_macFilter) {
         case 'installed':  return src.filter(g => g.Installed == 1);
-        case 'favs':       return src.filter(g => g.is_favourite == 1);
+        case 'favs':       return src.filter(g => g.FAV === 'YES');
         case 'want':       return src.filter(g => g.WANT_TO_PLAY === 'YES');
         case 'steam':      return src.filter(g => s(g).includes('steam'));
         case 'epic':       return src.filter(g => s(g).includes('epic'));
@@ -2193,7 +2196,7 @@ function _updateMacSidePanels(game) {
 
 function renderMac() {
     if (!document.getElementById('app-container').classList.contains('layout-mac')) return;
-    let src = _applyMacFilter(_flatFilter(_macSearch));
+    let src = _applyMacFilter(_flatFilter(_macSearch, _macFilter === 'pico8'));
     if (_macPlaylistId !== null && _macPlaylistGameIds) {
         src = src.filter(g => _macPlaylistGameIds.has(g.id));
     }
@@ -2265,7 +2268,7 @@ function openMacGamepage(game) {
         launchBtn.disabled       = false;
         launchBtn.style.opacity  = '1';
         launchBtn.textContent    = '▶ Launch';
-        launchBtn.onclick        = () => { verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); };
+        launchBtn.onclick        = () => { closeMacGamepage(); verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); };
         installBtn.style.display = 'none';
     } else if (canInstall) {
         launchBtn.style.display  = 'none';
@@ -2278,7 +2281,7 @@ function openMacGamepage(game) {
         launchBtn.style.opacity  = game.LaunchCommand ? '1' : '0.4';
         launchBtn.textContent    = '▶ Launch';
         launchBtn.onclick        = game.LaunchCommand
-            ? () => { verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); }
+            ? () => { closeMacGamepage(); verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); }
             : null;
         installBtn.style.display = 'none';
     }
@@ -2321,6 +2324,25 @@ function _macUpdatePlaylistMenu() {
         });
         drop.appendChild(item);
     });
+    const sep2 = document.createElement('div'); sep2.className = 'mac-dsep'; drop.appendChild(sep2);
+    const addPl = document.createElement('div');
+    addPl.className = 'mac-ditem';
+    addPl.textContent = 'Add Playlist…';
+    addPl.addEventListener('click', e => {
+        e.stopPropagation();
+        drop.classList.remove('open');
+        document.getElementById('modal-create-playlist').classList.add('active');
+    });
+    drop.appendChild(addPl);
+    const managePl = document.createElement('div');
+    managePl.className = 'mac-ditem';
+    managePl.textContent = 'Manage Playlists…';
+    managePl.addEventListener('click', e => {
+        e.stopPropagation();
+        drop.classList.remove('open');
+        document.getElementById('modal-playlists-nav').classList.add('active');
+    });
+    drop.appendChild(managePl);
 }
 
 (function () {
@@ -2350,15 +2372,30 @@ function _macUpdatePlaylistMenu() {
         renderMac();
     });
     document.getElementById('mac-finder-closebox').addEventListener('click', () => applyLayoutMode('sidebar'));
-    document.getElementById('mac-mitem-special')?.addEventListener('click', openToolsModal);
-    document.getElementById('mac-mitem-apple')?.addEventListener('click', openToolsModal);
+    // System icon → About
+    document.getElementById('mac-mitem-apple')?.addEventListener('click', e => {
+        e.stopPropagation();
+        _macCloseAllDropdowns();
+        document.getElementById('modal-about').classList.add('active');
+    });
     // File menu dropdown
     document.getElementById('mac-mitem-file').addEventListener('click', e => {
         e.stopPropagation();
         const drop = document.getElementById('mac-file-dropdown');
         const wasOpen = drop.classList.contains('open');
         _macCloseAllDropdowns();
-        if (!wasOpen) drop.classList.add('open');
+        if (!wasOpen) {
+            drop.classList.add('open');
+            // Show "Remove from Playlist…" only if the selected game is in ≥1 playlist
+            const g = _macSelectedGame();
+            const remItem = document.getElementById('mac-file-rem-playlist');
+            remItem.classList.add('mac-ditem-disabled');
+            if (g) {
+                window.api.getGamePlaylists(g.id).then(ids => {
+                    remItem.classList.toggle('mac-ditem-disabled', ids.length === 0);
+                });
+            }
+        }
     });
     document.getElementById('mac-file-addgame').addEventListener('click', e => {
         e.stopPropagation();
@@ -2379,6 +2416,58 @@ function _macUpdatePlaylistMenu() {
         await window.api.syncSteam(steamId, steamKey);
         loadGames();
     });
+    // File menu — game-specific actions (operate on currently selected Finder row)
+    function _macSelectedGame() {
+        const src = _applyMacFilter(_flatFilter(_macSearch, _macFilter === 'pico8'));
+        return src[_macIdx] || null;
+    }
+    document.getElementById('mac-file-fav').addEventListener('click', async e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        const newFav = g.FAV === 'YES' ? 'NO' : 'YES';
+        window.api.setGameFlag(String(g.id), 'FAV', newFav);
+        g.FAV = newFav;
+        loadGames();
+    });
+    document.getElementById('mac-file-want').addEventListener('click', async e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        const newWant = g.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+        window.api.setGameFlag(String(g.id), 'WANT_TO_PLAY', newWant);
+        g.WANT_TO_PLAY = newWant;
+        loadGames();
+    });
+    document.getElementById('mac-file-add-playlist').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        openPlaylistPickerForGame(g);
+    });
+    document.getElementById('mac-file-rem-playlist').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        openRemoveFromPlaylistModal(g);
+    });
+    document.getElementById('mac-file-edit').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        closeMacGamepage();
+        _splitEditActive = true;
+        document.getElementById('main-content').classList.add('split-edit');
+        openDetails(g);
+    });
+    document.getElementById('mac-file-trailer').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-file-dropdown').classList.remove('open');
+        const g = _macSelectedGame(); if (!g) return;
+        currentGameId = g.id;
+        document.getElementById('edit-name').value = g.Game;
+        document.getElementById('btn-watch-trailer').click();
+    });
     // View menu dropdown
     document.getElementById('mac-mitem-view').addEventListener('click', e => {
         e.stopPropagation();
@@ -2386,6 +2475,11 @@ function _macUpdatePlaylistMenu() {
         const wasOpen = drop.classList.contains('open');
         _macCloseAllDropdowns();
         if (!wasOpen) drop.classList.add('open');
+    });
+    document.getElementById('mac-view-refresh').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-view-dropdown').classList.remove('open');
+        document.getElementById('btn-refresh-library').click();
     });
     document.querySelectorAll('.mac-ditem[data-mfilter]').forEach(el => {
         el.addEventListener('click', e => {
@@ -2407,8 +2501,36 @@ function _macUpdatePlaylistMenu() {
         _macCloseAllDropdowns();
         if (!wasOpen) drop.classList.add('open');
     });
+    // Special menu dropdown
+    document.getElementById('mac-mitem-special').addEventListener('click', e => {
+        e.stopPropagation();
+        const drop = document.getElementById('mac-special-dropdown');
+        const wasOpen = drop.classList.contains('open');
+        _macCloseAllDropdowns();
+        if (!wasOpen) drop.classList.add('open');
+    });
+    document.getElementById('mac-special-tools').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-special-dropdown').classList.remove('open');
+        openToolsModal();
+    });
+    document.getElementById('mac-special-connect').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-special-dropdown').classList.remove('open');
+        document.getElementById('btn-open-connect').click();
+    });
+    document.getElementById('mac-special-crema').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-special-dropdown').classList.remove('open');
+        window.api.launchCrema();
+    });
+    document.getElementById('mac-special-emulatte').addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('mac-special-dropdown').classList.remove('open');
+        window.api.launchEmuLatte();
+    });
     function _macCloseAllDropdowns() {
-        ['mac-file-dropdown','mac-view-dropdown','mac-playlist-dropdown'].forEach(id =>
+        ['mac-file-dropdown','mac-view-dropdown','mac-playlist-dropdown','mac-special-dropdown'].forEach(id =>
             document.getElementById(id)?.classList.remove('open'));
     }
     document.addEventListener('click', _macCloseAllDropdowns);
@@ -2427,7 +2549,7 @@ function _macUpdatePlaylistMenu() {
             return;
         }
         if (document.activeElement === document.getElementById('mac-finder-search')) return;
-        const src = _applyMacFilter(_flatFilter(_macSearch));
+        const src = _applyMacFilter(_flatFilter(_macSearch, _macFilter === 'pico8'));
         if (e.key === 'ArrowDown')  { _macIdx = Math.min(_macIdx + 1, src.length - 1); renderMac(); e.preventDefault(); }
         else if (e.key === 'ArrowUp') { _macIdx = Math.max(_macIdx - 1, 0); renderMac(); e.preventDefault(); }
         else if (e.key === 'Enter') {
@@ -2741,11 +2863,11 @@ document.addEventListener('keydown', e => {
     });
 });
 
-function _flatFilter(query) {
+function _flatFilter(query, bypassPicoHide = false) {
     const q = (query || '').toLowerCase();
     const picoSearch = q.includes('pico');
     return allGames.filter(g => {
-        if (_hidePico8 && !picoSearch) {
+        if (_hidePico8 && !picoSearch && !bypassPicoHide) {
             const s = (g.Store||'').toLowerCase();
             if (s.includes('pico-8') || s.includes('pico8')) return false;
         }
@@ -3185,7 +3307,7 @@ function renderKanban() {
             const target = col.dataset.col;
             if (target !== 'want' && target !== 'backlog') return;
             const val = target === 'want' ? 'YES' : 'NO';
-            await window.api.updateGame(id, { WANT_TO_PLAY: val });
+            window.api.setGameFlag(String(id), 'WANT_TO_PLAY', val);
             const g = allGames.find(x => x.id === id);
             if (g) g.WANT_TO_PLAY = val;
             renderKanban();
@@ -4136,10 +4258,7 @@ function openGamepage(game) {
     window.api.getGamePlaylists(game.id).then(ids => {
         if (ids.length > 0) {
             removeFromPlaylistBtn.style.display = 'flex';
-            removeFromPlaylistBtn.onclick = async () => {
-                const currentIds = await window.api.getGamePlaylists(game.id);
-                openRemoveFromPlaylistModal(game, currentIds);
-            };
+            removeFromPlaylistBtn.onclick = () => openRemoveFromPlaylistModal(game);
         }
     });
 
