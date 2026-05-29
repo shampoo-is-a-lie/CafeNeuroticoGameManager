@@ -71,15 +71,15 @@ function openInstallPicker(game, installCmd) {
     document.getElementById('btn-install-pick-cancel').onclick  = close;
 }
 
+function _isGrinderGame(game) {
+    const store = (game.Store || '').toLowerCase();
+    return store.includes('gog') || store.includes('epic') || /heroic:\/\/launch/i.test(game.LaunchCommand || '');
+}
+
 function getInstallCommand(game) {
+    if (_isGrinderGame(game)) return null; // GOG/Epic install via GRINDER, not a URL
     const cmd = game.LaunchCommand || '';
     const store = (game.Store || '').toLowerCase();
-    // Heroic: use the heroic:// URL — Heroic shows install prompt when not installed
-    if (/heroic:\/\/launch/i.test(cmd)) {
-        const m = cmd.match(/heroic:\/\/launch\/[^"\s]+/i);
-        return m ? m[0] : null;
-    }
-    // Steam: derive install URL from SteamAppID — works even when LaunchCommand is empty
     const appId = game.SteamAppID ? String(game.SteamAppID).replace(/\.0+$/, '').trim() : '';
     if (appId && appId !== 'None' && (store.includes('steam') || /steam:\/\/rungameid/i.test(cmd))) {
         return `steam://install/${appId}`;
@@ -179,17 +179,28 @@ document.getElementById('modal-launcher-pick').addEventListener('click', e => {
 });
 
 async function _doLaunch(game, cmd) {
-    // Route heroic:// commands through GRINDER if available and preferred
-    if (game?.GrinderGameId && !game?.prefer_heroic && /heroic:\/\/launch/i.test(cmd)) {
-        const s = await window.api.grinderStatus();
-        if (s.found && s.path) {
-            window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
-            Promise.all([window.api.updateLastPlayed(game.id), window.api.verifyInstallStatus(game.id)]).then(() => loadGames());
-            return;
+    // GOG/Epic: ALWAYS launch via GRINDER — Heroic Games Launcher is never invoked
+    if (_isGrinderGame(game)) {
+        if (game?.GrinderGameId) {
+            const s = await window.api.grinderStatus();
+            if (s.found && s.path) {
+                window.api.launchGame(`"${s.path}" launch ${game.GrinderGameId}`);
+                Promise.all([window.api.updateLastPlayed(game.id), window.api.verifyInstallStatus(game.id)]).then(() => loadGames());
+                return;
+            }
         }
+        window.api.openGrinder(game.Game);
+        return;
     }
     window.api.launchGame(cmd);
     Promise.all([window.api.updateLastPlayed(game.id), window.api.verifyInstallStatus(game.id)]).then(() => loadGames());
+}
+
+function handleInstall(game) {
+    if (_isGrinderGame(game)) { window.api.openGrinder(game.Game); return; }
+    const installCmd = getInstallCommand(game);
+    if (installCmd) { window.api.openInstallUrl(installCmd); return; }
+    if (isManualCategory(game)) openAddCmdDialog(game.id, game.Game);
 }
 
 async function verifyAndLaunch(gameId, launchCmd) {
@@ -1352,16 +1363,12 @@ function renderTable(recent, regular) {
         const tr = document.createElement('tr');
         tr.style.cursor = "pointer";
         let displayStore = game.Store ? game.Store.replace(/EPIC/i, 'Epic').replace(/GOG/i, 'GOG') : '';
-        const storeLc = (game.Store || '').toLowerCase();
-        const isGrinderStore = storeLc.includes('gog') || storeLc.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
         const isInstalled = !!game.LaunchCommand && (game.Installed == null || game.Installed == 1);
         let actionCell;
         if (isInstalled) {
             actionCell = `<button class="primary btn-play" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.play')}</button>`;
-        } else if (isGrinderStore && installCmd) {
-            actionCell = `<button class="btn-install" data-multistore="1" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
-        } else if (isGrinderStore) {
+        } else if (_isGrinderGame(game)) {
             actionCell = `<button class="btn-install" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
         } else if (installCmd) {
             actionCell = `<button class="btn-install" data-url="${installCmd}" data-id="${game.id}" style="padding: 4px 8px;">${t('status.install')}</button>`;
@@ -1573,15 +1580,8 @@ function renderSplitDetail(game) {
         playBtn.style.display = 'inline-flex';
         playBtn.onclick = () => verifyAndLaunch(game.id, game.LaunchCommand);
     } else {
-        const store = (game.Store || '').toLowerCase();
-        const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
-        if (isGrinderStore && installCmd) {
-            playBtn.textContent = '⬇ INSTALL';
-            playBtn.className = 'btn-install-primary';
-            playBtn.style.display = 'inline-flex';
-            playBtn.onclick = () => openInstallPicker(game, installCmd);
-        } else if (isGrinderStore) {
+        if (_isGrinderGame(game)) {
             playBtn.textContent = '⬇ INSTALL';
             playBtn.className = 'btn-install-primary';
             playBtn.style.display = 'inline-flex';
@@ -1877,9 +1877,6 @@ _tbody.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (install.dataset.addcmd) {
             openAddCmdDialog(install.dataset.id, install.dataset.name);
-        } else if (install.dataset.multistore) {
-            const g = allGames.find(x => String(x.id) === install.dataset.id);
-            if (g) openInstallPicker(g, getInstallCommand(g));
         } else if (install.dataset.grinder) {
             window.api.openGrinder(install.dataset.name);
         } else {
@@ -2261,8 +2258,8 @@ function openMacGamepage(game) {
         getLocalizedDescription(game) || '—';
     const launchBtn   = document.getElementById('mgp-btn-launch');
     const installBtn  = document.getElementById('mgp-btn-install');
-    const installCmd  = getInstallCommand(game);
     const isInstalled = game.Installed == 1 || (!!game.LaunchCommand && game.Installed == null);
+    const canInstall  = _isGrinderGame(game) || !!getInstallCommand(game) || isManualCategory(game);
     if (game.LaunchCommand && isInstalled) {
         launchBtn.style.display  = '';
         launchBtn.disabled       = false;
@@ -2270,11 +2267,11 @@ function openMacGamepage(game) {
         launchBtn.textContent    = '▶ Launch';
         launchBtn.onclick        = () => { verifyAndLaunch(game.id, game.LaunchCommand); window.api.updateLastPlayed(game.id); };
         installBtn.style.display = 'none';
-    } else if (installCmd) {
+    } else if (canInstall) {
         launchBtn.style.display  = 'none';
         installBtn.style.display = '';
         installBtn.disabled      = false;
-        installBtn.onclick       = () => { closeMacGamepage(); window.api.openInstallUrl(installCmd); };
+        installBtn.onclick       = () => { closeMacGamepage(); handleInstall(game); };
     } else {
         launchBtn.style.display  = '';
         launchBtn.disabled       = !game.LaunchCommand;
@@ -3711,8 +3708,6 @@ function renderGallery(recent, regular) {
         const imgHtml = imgSrc ? `<img src="${imgSrc}" class="gallery-cover" loading="lazy">` : `<div class="gallery-cover" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:12px;">${t('game.no_cover')}</div>`;
         const _badges = (game.Store ? String(game.Store).split(',') : []).map(s => s.trim()).filter(Boolean).map(s => { const l = getStoreLogo(s); return l ? `<div class="gallery-store-badge" style="-webkit-mask-image:url('${l}');"></div>` : ''; }).join('');
         const badgeHtml = _badges ? `<div class="gallery-store-badges">${_badges}</div>` : '';
-        const stL = (game.Store || '').toLowerCase();
-        const isGrinderStoreG = stL.includes('gog') || stL.includes('epic') || !!game.GrinderGameId;
         const installCmdG = getInstallCommand(game);
         const isInstalled = !!game.LaunchCommand && (game.Installed == null || game.Installed == 1);
         const dotHtml = game.LaunchCommand ? `<div class="install-dot ${isInstalled ? 'is-installed' : 'not-installed'}" title="${isInstalled ? t('status.installed') : t('status.not_installed')}"></div>` : '';
@@ -3725,9 +3720,7 @@ function renderGallery(recent, regular) {
         let actionBtn = '';
         if (isInstalled) {
             actionBtn = `<button class="btn-play-gallery primary" data-cmd="${game.LaunchCommand.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.play')}</button>`;
-        } else if (isGrinderStoreG && installCmdG) {
-            actionBtn = `<button class="btn-install-gallery" data-multistore="1" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
-        } else if (isGrinderStoreG) {
+        } else if (_isGrinderGame(game)) {
             actionBtn = `<button class="btn-install-gallery" data-grinder="1" data-name="${game.Game.replace(/"/g, '&quot;')}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
         } else if (installCmdG) {
             actionBtn = `<button class="btn-install-gallery" data-url="${installCmdG}" data-id="${game.id}" style="margin: 5px; font-size: 12px; padding: 4px;">${t('status.install')}</button>`;
@@ -3785,9 +3778,6 @@ _grid.addEventListener('click', (e) => {
         e.stopPropagation();
         if (install.dataset.addcmd) {
             openAddCmdDialog(install.dataset.id, install.dataset.name);
-        } else if (install.dataset.multistore) {
-            const g = allGames.find(x => String(x.id) === install.dataset.id);
-            if (g) openInstallPicker(g, getInstallCommand(g));
         } else if (install.dataset.grinder) {
             window.api.openGrinder(install.dataset.name);
         } else {
@@ -4055,15 +4045,8 @@ function refreshGamepagePlayBtn(game) {
         playBtn.className = 'primary';
         playBtn.onclick = () => verifyAndLaunch(currentGameId, currentLaunchCmd);
     } else {
-        const store = (game.Store || '').toLowerCase();
-        const isGrinderStore = store.includes('gog') || store.includes('epic') || !!game.GrinderGameId;
         const installCmd = getInstallCommand(game);
-        if (isGrinderStore && installCmd) {
-            playBtn.style.display = 'block';
-            playBtn.innerText = t('status.install');
-            playBtn.className = 'btn-install-primary';
-            playBtn.onclick = () => openInstallPicker(game, installCmd);
-        } else if (isGrinderStore) {
+        if (_isGrinderGame(game)) {
             playBtn.style.display = 'block';
             playBtn.innerText = t('status.install');
             playBtn.className = 'btn-install-primary';
@@ -4360,9 +4343,15 @@ function _renderLauncherList(game) {
     if (launchers.length === 0 && game.LaunchCommand) {
         launchers = [{ label: _guessLabel(game.LaunchCommand), cmd: game.LaunchCommand }];
     }
-    launchers.forEach((l, i) => {
-        list.appendChild(_makeLauncherRow(l.label || '', l.cmd || ''));
-    });
+    if (_isGrinderGame(game)) {
+        // Strip heroic:// commands — GOG/Epic games launch via GRINDER only
+        launchers = launchers.filter(l => !/heroic:\/\/launch/i.test(l.cmd || ''));
+        if (launchers.length === 0) {
+            list.innerHTML = '<p style="font-size:11px; color:var(--text_dim); margin:4px 0; font-style:italic;">Launched via GRINDER. You can add a custom command below if needed.</p>';
+            return;
+        }
+    }
+    launchers.forEach(l => list.appendChild(_makeLauncherRow(l.label || '', l.cmd || '')));
 }
 
 function _makeLauncherRow(label, cmd) {
@@ -5597,36 +5586,16 @@ async function updateGrinderRow(game) {
 
     const grinderGameId = epicMatch ? `epic_${epicMatch[1]}` : `gog_${gogMatch[1]}`;
     const inGrinder = s.installedGames?.includes(grinderGameId);
-
-    if (game.prefer_heroic) {
-        statusEl.textContent = 'Launching via Heroic (by preference)';
-        statusEl.style.color = '#f57c00';
-        toggleBtn.style.display = inGrinder ? '' : 'none';
-        toggleBtn.textContent = 'Switch to GRINDER';
-        toggleBtn.onclick = async () => {
-            await window.api.setGrinderGame(game.id, grinderGameId);
-            const g = allGames.find(x => x.id == game.id);
-            if (g) { g.GrinderGameId = grinderGameId; g.prefer_heroic = 0; }
-            updateGrinderRow({ ...game, GrinderGameId: grinderGameId, prefer_heroic: 0 });
-            await loadGames();
-        };
-    } else if (game.GrinderGameId || inGrinder) {
+    // GOG/Epic always launch via GRINDER — no Heroic toggle
+    toggleBtn.style.display = 'none';
+    openBtn.style.display = '';
+    openBtn.onclick = () => window.api.openGrinder(game.Game);
+    if (game.GrinderGameId || inGrinder) {
         statusEl.textContent = '✓ GRINDER — default launcher';
         statusEl.style.color = '#66bb6a';
-        toggleBtn.textContent = 'Switch to Heroic';
-        toggleBtn.style.display = '';
-        toggleBtn.onclick = async () => {
-            await window.api.setGrinderGame(game.id, null);
-            const g = allGames.find(x => x.id == game.id);
-            if (g) { g.GrinderGameId = null; g.prefer_heroic = 1; }
-            updateGrinderRow({ ...game, GrinderGameId: null, prefer_heroic: 1 });
-            await loadGames();
-        };
     } else {
-        statusEl.textContent = 'Not installed in GRINDER';
+        statusEl.textContent = 'Not yet linked in GRINDER';
         statusEl.style.color = 'var(--text_dim)';
-        openBtn.style.display = '';
-        openBtn.onclick = () => window.api.openGrinder(game.Game);
     }
 }
 
