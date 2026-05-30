@@ -2303,6 +2303,30 @@ function openMacGamepage(game) {
             : null;
         installBtn.style.display = 'none';
     }
+    // Trailer
+    document.getElementById('mgp-btn-trailer').onclick = () => {
+        currentGameId = game.id;
+        document.getElementById('edit-name').value = game.Game;
+        document.getElementById('btn-watch-trailer').click();
+    };
+
+    // Screenshots
+    const macScreens = game.Screenshot ? String(game.Screenshot).split('|').filter(s => s.trim()) : [];
+    const macSsBtn = document.getElementById('mgp-btn-screenshots');
+    macSsBtn.style.display = macScreens.length ? '' : 'none';
+    macSsBtn.onclick = () => {
+        let idx = 0;
+        const ssImg = document.getElementById('slideshow-img');
+        const ssCounter = document.getElementById('slideshow-counter');
+        const modalSs = document.getElementById('modal-slideshow');
+        const update = () => { ssImg.src = getSafePath(macScreens[idx]); ssCounter.innerText = `${idx + 1} / ${macScreens.length}`; };
+        update();
+        modalSs.classList.add('active');
+        document.getElementById('btn-slideshow-prev').onclick = () => { idx = (idx - 1 + macScreens.length) % macScreens.length; update(); };
+        document.getElementById('btn-slideshow-next').onclick = () => { idx = (idx + 1) % macScreens.length; update(); };
+        document.getElementById('btn-slideshow-close').onclick = () => modalSs.classList.remove('active');
+    };
+
     document.getElementById('mac-gamepage').classList.add('open');
 }
 
@@ -2707,6 +2731,8 @@ function openXpGamepage(game) {
     document.querySelectorAll('.xpgp-panel').forEach(p => p.classList.remove('active'));
     document.querySelector('.xpgp-tab[data-tab="general"]').classList.add('active');
     document.getElementById('xpgp-general').classList.add('active');
+    const xpScreens = game.Screenshot ? String(game.Screenshot).split('|').filter(s => s.trim()) : [];
+    document.getElementById('xpgp-screenshots-btn').style.display = xpScreens.length ? '' : 'none';
     document.getElementById('xp-gamepage').classList.add('open');
 }
 
@@ -2825,6 +2851,31 @@ function closeXpGamepage() {
         if (g) { closeXpGamepage(); _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openDetails(g); }
     });
 
+    // Gamepage trailer
+    document.getElementById('xpgp-trailer-btn')?.addEventListener('click', () => {
+        const g = _xpGetGames()[_xpIdx]; if (!g) return;
+        currentGameId = g.id;
+        document.getElementById('edit-name').value = g.Game;
+        document.getElementById('btn-watch-trailer').click();
+    });
+
+    // Gamepage screenshots — wired dynamically per openXpGamepage; button show/hide handled there
+    document.getElementById('xpgp-screenshots-btn')?.addEventListener('click', () => {
+        const g = _xpGetGames()[_xpIdx]; if (!g) return;
+        const screens = g.Screenshot ? String(g.Screenshot).split('|').filter(s => s.trim()) : [];
+        if (!screens.length) return;
+        let idx = 0;
+        const ssImg = document.getElementById('slideshow-img');
+        const ssCounter = document.getElementById('slideshow-counter');
+        const modalSs = document.getElementById('modal-slideshow');
+        const update = () => { ssImg.src = getSafePath(screens[idx]); ssCounter.innerText = `${idx + 1} / ${screens.length}`; };
+        update();
+        modalSs.classList.add('active');
+        document.getElementById('btn-slideshow-prev').onclick = () => { idx = (idx - 1 + screens.length) % screens.length; update(); };
+        document.getElementById('btn-slideshow-next').onclick = () => { idx = (idx + 1) % screens.length; update(); };
+        document.getElementById('btn-slideshow-close').onclick = () => modalSs.classList.remove('active');
+    });
+
     // Tabs
     document.querySelectorAll('.xpgp-tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -2938,6 +2989,10 @@ function renderKDE() {
     document.getElementById('kde-status-count').textContent = games.length + ' item' + (games.length !== 1 ? 's' : '');
     const sel = games[_kdeIdx];
     document.getElementById('kde-status-sel').textContent = sel ? sel.Game : 'Nothing selected';
+    const _scImg = document.getElementById('kde-sidebar-cover-img');
+    const _scPh  = document.getElementById('kde-sidebar-cover-ph');
+    if (sel && sel.CoverArt) { _scImg.src = getSafePath(sel.CoverArt); _scImg.style.display = ''; _scPh.style.display = 'none'; }
+    else { _scImg.style.display = 'none'; _scPh.style.display = ''; }
     document.getElementById('kde-titlebar-title').textContent = `Konqueror — ${labels[_kdeFilter] || 'Games'} (${games.length})`;
     document.getElementById('kde-loc-input').value = `file:/home/user/Games/${labels[_kdeFilter] || _kdeFilter}`;
 
@@ -2970,7 +3025,32 @@ function openKdeGamepage(game) {
     const playBtn = document.getElementById('kdegp-play-btn');
     playBtn.style.display = installed ? '' : 'none';
     playBtn.onclick = () => { gp.classList.remove('open'); verifyAndLaunch(game.id, game.LaunchCommand); };
-    document.getElementById('kdegp-edit-btn').onclick = () => { gp.classList.remove('open'); openDetails(game); };
+    document.getElementById('kdegp-edit-btn').onclick = () => { gp.classList.remove('open'); _splitEditActive = true; document.getElementById('main-content').classList.add('split-edit'); openDetails(game); };
+
+    // Trailer button
+    document.getElementById('kdegp-trailer-btn').onclick = () => {
+        currentGameId = game.id;
+        document.getElementById('edit-name').value = game.Game;
+        document.getElementById('btn-watch-trailer').click();
+    };
+
+    // Screenshots button
+    const screens = game.Screenshot ? String(game.Screenshot).split('|').filter(s => s.trim()) : [];
+    const ssBtn = document.getElementById('kdegp-screenshots-btn');
+    ssBtn.style.display = screens.length ? '' : 'none';
+    ssBtn.onclick = () => {
+        let idx = 0;
+        const ssImg = document.getElementById('slideshow-img');
+        const ssCounter = document.getElementById('slideshow-counter');
+        const modalSs = document.getElementById('modal-slideshow');
+        const update = () => { ssImg.src = getSafePath(screens[idx]); ssCounter.innerText = `${idx + 1} / ${screens.length}`; };
+        update();
+        modalSs.classList.add('active');
+        document.getElementById('btn-slideshow-prev').onclick = () => { idx = (idx - 1 + screens.length) % screens.length; update(); };
+        document.getElementById('btn-slideshow-next').onclick = () => { idx = (idx + 1) % screens.length; update(); };
+        document.getElementById('btn-slideshow-close').onclick = () => modalSs.classList.remove('active');
+    };
+
     gp.classList.add('open');
 }
 
@@ -3089,9 +3169,9 @@ function openKdeGamepage(game) {
     // Clock
     function _kdeClock() {
         const now = new Date();
-        let h = now.getHours(), m = now.getMinutes(), ampm = h >= 12 ? 'PM' : 'AM';
-        h = h % 12 || 12;
-        document.getElementById('kde-clock').innerHTML = `${h}:${String(m).padStart(2,'0')}<br>${ampm}`;
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        document.getElementById('kde-clock').textContent = `${h}:${m}`;
     }
     _kdeClock();
     setInterval(_kdeClock, 15000);

@@ -752,9 +752,9 @@
     #kde-desktop::before { content:''; position:absolute; inset:0; pointer-events:none; background: radial-gradient(ellipse 240% 90% at 130% 90%,transparent 34%,rgba(255,255,255,0.17) 35%,rgba(255,255,255,0.17) 37%,transparent 38%), radial-gradient(ellipse 210% 75% at 125% 82%,transparent 44%,rgba(255,255,255,0.13) 45%,rgba(255,255,255,0.13) 47%,transparent 48%), radial-gradient(ellipse 180% 60% at 118% 74%,transparent 54%,rgba(255,255,255,0.09) 55%,rgba(255,255,255,0.09) 57%,transparent 58%), radial-gradient(ellipse 150% 48% at 112% 66%,transparent 63%,rgba(255,255,255,0.06) 64%,rgba(255,255,255,0.06) 66%,transparent 67%); }
     /* Konqueror window — gray KDE 3 default decoration */
     #kde-window { flex:1; display:flex; flex-direction:column; overflow:hidden; box-shadow:2px 3px 16px rgba(0,0,0,0.7); border:2px solid #888; border-top-color:#ddd; border-left-color:#ddd; border-bottom:none; }
-    #kde-titlebar { height:24px; flex-shrink:0; background:linear-gradient(180deg,#d4d4d4 0%,#c0c0c0 40%,#b4b4b4 100%); display:flex; align-items:center; padding:0 3px 0 5px; gap:3px; user-select:none; border-bottom:1px solid #888; }
+    #kde-titlebar { height:24px; flex-shrink:0; background: radial-gradient(circle at 0 0, rgba(255,255,255,0.22) 0.5px, transparent 0.5px) 0 0 / 2px 2px, linear-gradient(180deg,#7888c8 0%,#5870b8 50%,#4868a8 100%); display:flex; align-items:center; padding:0 3px 0 5px; gap:3px; user-select:none; border-bottom:1px solid #2848a0; }
     #kde-titlebar-icon { font-size:14px; flex-shrink:0; line-height:1; }
-    #kde-titlebar-title { flex:1; font-size:11px; font-weight:bold; color:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-left:3px; }
+    #kde-titlebar-title { flex:1; font-size:11px; font-weight:bold; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-left:3px; text-shadow:0 1px 2px rgba(0,0,0,0.5); }
     .kde-wb { width:17px; height:17px; border:1px solid #888; border-top-color:#ddd; border-left-color:#ddd; background:linear-gradient(180deg,#e0e0e0 0%,#c4c4c4 50%,#b4b4b4 100%); border-radius:1px; cursor:pointer; font-size:9px; color:#000; display:flex; align-items:center; justify-content:center; flex-shrink:0; line-height:1; }
     .kde-wb:hover { background:linear-gradient(180deg,#e0e8ff,#c0cef0,#b0bfe0); border-color:#6080c8; }
     .kde-wb:active { border-top-color:#888; border-left-color:#888; border-bottom-color:#ddd; border-right-color:#ddd; }
@@ -788,7 +788,11 @@
     #kde-body { flex:1; min-height:0; display:flex; overflow:hidden; background:#fff; }
     /* Sidebar: tree + right icon strip */
     #kde-sidebar { width:192px; flex-shrink:0; display:flex; background:#f0f0f0; border-right:1px solid #c0c0c0; }
+    #kde-sidebar-left { flex:1; display:flex; flex-direction:column; overflow:hidden; }
     #kde-tree { flex:1; overflow-y:auto; display:flex; flex-direction:column; scrollbar-width:thin; }
+    #kde-sidebar-cover { flex-shrink:0; aspect-ratio:2/3; width:100%; background:#1a1a1a; border-top:1px solid #c0c0c0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    #kde-sidebar-cover img { width:100%; height:100%; object-fit:contain; display:block; }
+    #kde-sidebar-cover-ph { font-size:36px; color:#555; }
     .kde-tree-root { padding:4px 5px 2px; font-size:11px; color:#000; font-weight:bold; display:flex; align-items:center; gap:4px; }
     .kde-tree-group { padding:4px 5px 1px; font-size:9px; font-weight:bold; color:#6070a0; text-transform:uppercase; letter-spacing:0.8px; }
     .kde-tree-item { padding:2px 5px 2px 14px; font-size:11px; color:#000; cursor:pointer; display:flex; align-items:center; gap:5px; border:1px solid transparent; white-space:nowrap; overflow:hidden; }
@@ -823,23 +827,25 @@
     #kde-status-count { flex:1; }
     .kde-status-sep { width:1px; height:14px; background:#a0a0a0; border-right:1px solid #e0e0e0; }
     /* Panel — medium blue-gray (matches screenshots) */
-    #kde-panel { height:36px; flex-shrink:0; background:linear-gradient(180deg,#8090a8 0%,#6878a0 50%,#5868a0 100%); border-top:2px solid #a0b0c8; display:flex; align-items:center; padding:0 3px; gap:2px; position:relative; }
-    #kde-kmenu-btn { height:30px; padding:0 8px; background:linear-gradient(180deg,#9090b8,#6870b0,#4858a0); border:1px solid #7888b8; border-top-color:#b0b8d0; border-left-color:#b0b8d0; border-radius:1px; color:#fff; font-size:11px; font-weight:bold; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:5px; flex-shrink:0; }
-    #kde-kmenu-btn:hover { background:linear-gradient(180deg,#a0a8c8,#7880c0,#5868b0); }
+    #kde-panel { height:36px; flex-shrink:0; background:linear-gradient(180deg,#d4d4d4 0%,#c0c0c0 40%,#b4b4b4 100%); border-top:2px solid #e8e8e8; display:flex; align-items:center; padding:0 3px; gap:2px; position:relative; }
+    #kde-kmenu-btn { height:30px; width:30px; padding:0; background:none; border:none; border-radius:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    #kde-kmenu-btn:hover { background:rgba(0,0,0,0.1); }
+    #kde-kmenu-btn img { width:24px; height:24px; display:block; }
     #kde-quicklaunch { display:flex; align-items:center; gap:1px; padding:0 3px; border-left:1px solid #4858a0; border-right:1px solid #7888b8; margin:0 2px; }
     .kde-ql-btn { width:26px; height:26px; background:transparent; border:1px solid transparent; border-radius:2px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-    .kde-ql-btn:hover { background:rgba(255,255,255,0.22); border-color:rgba(255,255,255,0.45); }
-    .kde-ql-btn:active { background:rgba(0,0,0,0.15); }
-    #kde-pager { display:flex; align-items:center; gap:2px; padding:0 4px; border-right:1px solid #4858a0; }
-    .kde-pager-d { width:22px; height:16px; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.28); font-size:8px; color:rgba(255,255,255,0.75); display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:1px; }
-    .kde-pager-d:hover { background:rgba(255,255,255,0.25); }
-    .kde-pd-active { background:rgba(0,0,0,0.2) !important; box-shadow:inset 1px 1px 2px rgba(0,0,0,0.4); }
+    .kde-ql-btn:hover { background:rgba(0,0,0,0.1); border-color:rgba(0,0,0,0.2); }
+    .kde-ql-btn:active { background:rgba(0,0,0,0.2); }
+    #kde-pager { display:flex; align-items:center; gap:2px; padding:0 4px; border-right:1px solid #a0a0a0; }
+    .kde-pager-d { width:22px; height:16px; background:rgba(0,0,0,0.08); border:1px solid #a0a0a0; font-size:8px; color:#333; display:flex; align-items:center; justify-content:center; cursor:pointer; border-radius:1px; }
+    .kde-pager-d:hover { background:rgba(0,0,0,0.15); }
+    .kde-pd-active { background:rgba(0,0,0,0.18) !important; box-shadow:inset 1px 1px 2px rgba(0,0,0,0.3); }
     #kde-panel-tasks { flex:1; display:flex; align-items:center; gap:2px; overflow:hidden; margin:0 3px; }
-    .kde-ptask { height:26px; padding:0 8px; background:linear-gradient(180deg,#6878a8,#5868a0); border:1px solid #4858a0; border-top-color:#8898b8; border-left-color:#8898b8; color:#d8e4f8; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; max-width:200px; }
-    .kde-ptask-active { background:linear-gradient(180deg,#4858a0,#5868b0) !important; border-top-color:#3848a0 !important; border-left-color:#3848a0 !important; border-bottom-color:#8898c0 !important; border-right-color:#8898c0 !important; color:#fff !important; box-shadow:inset 0 1px 3px rgba(0,0,0,0.4); }
-    #kde-systray { display:flex; align-items:center; gap:5px; padding:0 5px; border-left:1px solid #4858a0; flex-shrink:0; }
-    .kde-tray-icon { font-size:14px; cursor:default; }
-    #kde-clock { font-size:10px; color:#e0e8ff; text-align:right; line-height:1.3; white-space:nowrap; border-left:1px solid #4858a0; padding-left:6px; }
+    .kde-ptask { height:26px; padding:0 8px; background:linear-gradient(180deg,#d0d0d0,#b8b8b8); border:1px solid #909090; border-top-color:#e0e0e0; border-left-color:#e0e0e0; color:#111; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; overflow:hidden; max-width:200px; }
+    .kde-ptask-active { background:linear-gradient(180deg,#b0b0b0,#c0c0c0) !important; border-top-color:#888 !important; border-left-color:#888 !important; border-bottom-color:#e0e0e0 !important; border-right-color:#e0e0e0 !important; color:#000 !important; box-shadow:inset 0 1px 3px rgba(0,0,0,0.2); }
+    #kde-systray { display:flex; align-items:center; gap:5px; padding:0 5px; border-left:1px solid #a0a0a0; flex-shrink:0; align-self:stretch; }
+    .kde-tray-icon { font-size:14px; cursor:default; align-self:center; }
+    @font-face { font-family:'DSEG7'; src:url('assets/fonts/DSEG7Classic-Regular.ttf') format('truetype'); }
+    #kde-clock { font-family:'DSEG7', monospace; font-size:14px; color:#1a1200; background:#e8dfc0; text-align:center; line-height:1; white-space:nowrap; border:1px solid #b8a880; margin-left:4px; padding:0 8px; height:100%; box-sizing:border-box; display:flex; align-items:center; border-radius:2px; box-shadow:inset 0 1px 4px rgba(0,0,0,0.25); letter-spacing:2px; }
     /* K Menu — single column + dark "KDE 3" strip */
     #kde-kmenu { display:none; position:absolute; bottom:36px; left:3px; width:230px; background:#e8e8e8; border:1px solid #888; border-top-color:#ddd; border-left-color:#ddd; box-shadow:3px -3px 10px rgba(0,0,0,0.5); z-index:100; flex-direction:row; }
     #kde-kmenu.open { display:flex; }
@@ -853,9 +859,9 @@
     /* Gamepage dialog — gray title bar */
     #kde-gamepage { display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-60%); width:520px; max-width:90%; background:#e8e8e8; border:2px solid #888; border-top-color:#ddd; border-left-color:#ddd; box-shadow:3px 5px 18px rgba(0,0,0,0.65); z-index:60; flex-direction:column; overflow:hidden; max-height:82%; }
     #kde-gamepage.open { display:flex; }
-    #kdegp-titlebar { height:24px; flex-shrink:0; background:linear-gradient(180deg,#d4d4d4,#c0c0c0 40%,#b4b4b4); display:flex; align-items:center; padding:0 3px 0 5px; gap:3px; user-select:none; border-bottom:1px solid #888; }
+    #kdegp-titlebar { height:24px; flex-shrink:0; background: radial-gradient(circle at 0 0, rgba(255,255,255,0.22) 0.5px, transparent 0.5px) 0 0 / 2px 2px, linear-gradient(180deg,#7888c8 0%,#5870b8 50%,#4868a8 100%); display:flex; align-items:center; padding:0 3px 0 5px; gap:3px; user-select:none; border-bottom:1px solid #2848a0; }
     #kdegp-title-icon { font-size:14px; flex-shrink:0; }
-    #kdegp-title-text { flex:1; font-size:11px; font-weight:bold; color:#000; padding-left:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #kdegp-title-text { flex:1; font-size:11px; font-weight:bold; color:#fff; padding-left:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 2px rgba(0,0,0,0.5); }
     #kdegp-cap-close { width:17px; height:17px; border:1px solid #888; border-top-color:#ddd; border-left-color:#ddd; background:linear-gradient(180deg,#e0e0e0,#c4c4c4,#b4b4b4); cursor:pointer; color:#000; font-size:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     #kdegp-cap-close:hover { background:linear-gradient(180deg,#f8c0c0,#e09090,#d07070); }
     #kdegp-body { display:flex; gap:12px; padding:12px; flex:1; overflow-y:auto; min-height:0; background:#fff; }
@@ -912,8 +918,8 @@
     body.layout-kde #view-details fieldset { border:1px solid #a0a0a0 !important; border-radius:0 !important; background:#e0e0e8 !important; }
     body.layout-kde #view-details #ui-cover,body.layout-kde #view-details #ui-hero,body.layout-kde #view-details #ui-logo,body.layout-kde #view-details #ui-icon,body.layout-kde #view-details #ui-screenshot { border-radius:0 !important; border:2px inset #a0a0a0 !important; }
     body.layout-kde #np-card { background:#e8e8e8 !important; border:2px solid #888 !important; border-top-color:#ddd !important; border-left-color:#ddd !important; border-radius:0 !important; box-shadow:3px 5px 18px rgba(0,0,0,0.5) !important; color:#000 !important; }
-    body.layout-kde #titlebar { background:linear-gradient(180deg,#7888a8,#5870a0) !important; border-bottom:1px solid #3848a0 !important; }
-    body.layout-kde .titlebar-brand { color:#d8e4f8 !important; }
+    body.layout-kde #titlebar { background:#000 !important; border-bottom:1px solid #333 !important; }
+    body.layout-kde .titlebar-brand { color:#fff !important; }
     body.layout-kde .win-btn { color:#d8e4f8 !important; }
     body.layout-kde .yt-search-item:hover, body.layout-kde #modal-themes .theme-card:hover { transform:none !important; }
 /* ── Windows XP layout ──────────────────────────────────────────────────── */
@@ -2484,6 +2490,8 @@
       <div id="mgp-footer">
         <button class="mac-btn" id="mgp-btn-close">Close</button>
         <button class="mac-btn" id="mgp-btn-edit">Edit Info</button>
+        <button class="mac-btn" id="mgp-btn-trailer">🎬 Trailer</button>
+        <button class="mac-btn" id="mgp-btn-screenshots" style="display:none;">📷 Screenshots</button>
         <button class="mac-btn mac-btn-default" id="mgp-btn-launch">▶ Launch</button>
         <button class="mac-btn mac-btn-default" id="mgp-btn-install" style="display:none;">⬇ Install</button>
       </div>
@@ -2699,6 +2707,8 @@
         </div>
         <div id="xpgp-footer">
           <button class="xp-btn xp-btn-play" id="xpgp-play-btn">&#9654; Play</button>
+          <button class="xp-btn" id="xpgp-trailer-btn">🎬 Trailer</button>
+          <button class="xp-btn" id="xpgp-screenshots-btn" style="display:none;">📷 Screenshots</button>
           <button class="xp-btn" id="xpgp-edit-btn">Edit Info</button>
           <button class="xp-btn xp-btn-primary" id="xpgp-ok-btn">OK</button>
           <button class="xp-btn" id="xpgp-cancel-btn">Cancel</button>
@@ -2788,6 +2798,7 @@
         </div>
         <div id="kde-body">
           <div id="kde-sidebar">
+            <div id="kde-sidebar-left">
             <div id="kde-tree">
               <div class="kde-tree-root">🏠 Home Directory</div>
               <div class="kde-tree-group">Library</div>
@@ -2807,6 +2818,11 @@
               <div class="kde-tree-item kde-ti-sub" data-kfilter="emulation">📁 Emulation</div>
               <div class="kde-tree-item kde-ti-sub" data-kfilter="others">📁 Others</div>
             </div>
+            <div id="kde-sidebar-cover">
+              <img id="kde-sidebar-cover-img" src="" alt="" style="display:none;">
+              <span id="kde-sidebar-cover-ph">🎮</span>
+            </div>
+            </div><!-- end kde-sidebar-left -->
             <div id="kde-sidebar-strip">
               <button class="kde-strip-btn kde-strip-active" title="All Games" id="kde-strip-all">🏠</button>
               <button class="kde-strip-btn" title="Connect &amp; Sync" id="kde-strip-connect">🔌</button>
@@ -2842,18 +2858,9 @@
     </div>
     <div id="kde-panel">
       <button id="kde-kmenu-btn">
-        <svg viewBox="0 0 18 18" width="18" height="18"><polygon points="9,1 11.5,6.5 17.5,7.5 13,12 14.5,18 9,15 3.5,18 5,12 0.5,7.5 6.5,6.5" fill="#f0c030" stroke="#c09000" stroke-width="0.5"/></svg>
-        Mandrake
+        <img src="assets/logos/Legacy_KDE.png" alt="KDE Menu">
       </button>
-      <div id="kde-quicklaunch">
-        <button class="kde-ql-btn" id="kde-ql-all" title="All Games"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M2 10l8-7 8 7v7H12v-4H8v4H2z" fill="#c8a040" stroke="#907020" stroke-width="0.7"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-connect" title="Connect &amp; Sync"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><circle cx="10" cy="10" r="8" stroke="#6699cc" stroke-width="1.8" fill="none"/><ellipse cx="10" cy="10" rx="4" ry="8" stroke="#6699cc" stroke-width="1.4" fill="none"/><line x1="2" y1="10" x2="18" y2="10" stroke="#6699cc" stroke-width="1.4"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-tools" title="Tools &amp; Data"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><circle cx="10" cy="10" r="3" fill="#c0c0c0" stroke="#808080" stroke-width="0.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4 4l1.4 1.4M14.6 14.6l1.4 1.4M4 16l1.4-1.4M14.6 5.4l1.4-1.4" stroke="#b0b0b0" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-refresh" title="Refresh Library"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><path d="M3 10a7 7 0 0 1 7-7 7 7 0 0 1 5 2" stroke="#50b850" stroke-width="2" stroke-linecap="round" fill="none"/><polyline points="12,2 15,5 12,8" stroke="#50b850" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M17 10a7 7 0 0 1-7 7 7 7 0 0 1-5-2" stroke="#50b850" stroke-width="2" stroke-linecap="round" fill="none"/><polyline points="8,18 5,15 8,12" stroke="#50b850" stroke-width="2" stroke-linecap="round" fill="none"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-add" title="Add Game"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><rect x="2" y="4" width="16" height="12" rx="1" fill="#58b058" stroke="#308030" stroke-width="0.7"/><line x1="10" y1="8" x2="10" y2="12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><line x1="8" y1="10" x2="12" y2="10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-crema" title="Launch CREMA"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><rect x="2" y="5" width="16" height="10" rx="2" fill="#7744bb" stroke="#5522aa" stroke-width="0.7"/><circle cx="7" cy="10" r="2" fill="#fff" opacity="0.85"/><circle cx="13" cy="10" r="2" fill="#fff" opacity="0.85"/><rect x="9.5" y="8" width="1" height="4" fill="#ffcc00" rx="0.3"/></svg></button>
-        <button class="kde-ql-btn" id="kde-ql-emulatte" title="Launch EmuLatte"><svg viewBox="0 0 20 20" width="20" height="20" fill="none"><rect x="2" y="4" width="16" height="12" rx="1" fill="#224499" stroke="#113388" stroke-width="0.7"/><rect x="4" y="6" width="12" height="8" rx="0.5" fill="#11cc11" opacity="0.7"/><rect x="5" y="7" width="10" height="6" fill="#000" opacity="0.55"/><text x="10" y="12" text-anchor="middle" font-size="4.5" fill="#22ff22" font-family="monospace">EMU</text></svg></button>
-      </div>
+
       <div id="kde-pager">
         <div class="kde-pager-d kde-pd-active">1</div>
         <div class="kde-pager-d">2</div>
@@ -2915,6 +2922,8 @@
       </div>
       <div id="kdegp-footer">
         <button class="kde-btn kde-btn-play" id="kdegp-play-btn">▶ Play</button>
+        <button class="kde-btn" id="kdegp-trailer-btn">🎬 Trailer</button>
+        <button class="kde-btn" id="kdegp-screenshots-btn" style="display:none">📷 Screenshots</button>
         <button class="kde-btn" id="kdegp-edit-btn">Edit Info</button>
         <button class="kde-btn kde-btn-primary" id="kdegp-ok-btn">OK</button>
         <button class="kde-btn" id="kdegp-cancel-btn">Cancel</button>
