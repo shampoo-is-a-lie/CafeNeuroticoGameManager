@@ -191,7 +191,10 @@
     #app-container.layout-htop          #main-content, #app-container.layout-ranger        #main-content,
     #app-container.layout-bbs           #main-content, #app-container.layout-vi            #main-content,
     #app-container.layout-adventure     #main-content, #app-container.layout-mac           #main-content,
-    #app-container.layout-xp            #main-content, #app-container.layout-kde           #main-content { display:none !important; }
+    #app-container.layout-xp            #main-content, #app-container.layout-kde           #main-content,
+    #app-container.layout-c64           #main-content, #app-container.layout-amiga         #main-content,
+    #app-container.layout-beos          #main-content, #app-container.layout-w95           #main-content,
+    #app-container.layout-nextstep      #main-content { display:none !important; }
     #app-container.layout-datahero      #main-content.split-edit, #app-container.layout-catalog       #main-content.split-edit,
     #app-container.layout-newspaper     #main-content.split-edit, #app-container.layout-streamrows    #main-content.split-edit,
     #app-container.layout-timeline      #main-content.split-edit, #app-container.layout-kanban        #main-content.split-edit,
@@ -199,11 +202,16 @@
     #app-container.layout-bbs           #main-content.split-edit, #app-container.layout-vi            #main-content.split-edit,
     #app-container.layout-adventure     #main-content.split-edit, #app-container.layout-mac           #main-content.split-edit,
     #app-container.layout-xp            #main-content.split-edit,
-    #app-container.layout-kde           #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
+    #app-container.layout-kde           #main-content.split-edit,
+    #app-container.layout-c64           #main-content.split-edit,
+    #app-container.layout-amiga         #main-content.split-edit,
+    #app-container.layout-beos          #main-content.split-edit,
+    #app-container.layout-w95           #main-content.split-edit,
+    #app-container.layout-nextstep      #main-content.split-edit { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; background:var(--bg); }
     #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell,
     #timeline-shell, #kanban-shell,
     #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell,
-    #mac-shell, #xp-shell, #kde-shell { display:none; flex:1; overflow:hidden; }
+    #mac-shell, #xp-shell, #kde-shell, #c64-shell, #amiga-shell, #beos-shell, #w95-shell, #nx-shell { display:none; flex:1; overflow:hidden; }
     #app-container.layout-datahero      #datahero-shell   { display:flex !important; }
     #app-container.layout-catalog       #catalog-shell    { display:flex !important; }
     #app-container.layout-newspaper     #newspaper-shell  { display:flex !important; }
@@ -748,8 +756,7 @@
 /* ── Mandrake Linux 9 / KDE 3 layout ──────────────────────────────────── */
     #kde-shell { display:none; flex-direction:column; font-family:'Bitstream Vera Sans','Liberation Sans',Verdana,Arial,sans-serif; font-size:11px; color:#000; }
     #app-container.layout-kde #kde-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
-    #kde-desktop { flex:1; min-height:0; background:linear-gradient(148deg,#6888bc 0%,#4e70a8 45%,#3a5a90 100%); position:relative; overflow:hidden; display:flex; align-items:stretch; padding:6px 6px 0 6px; box-sizing:border-box; }
-    #kde-desktop::before { content:''; position:absolute; inset:0; pointer-events:none; background: radial-gradient(ellipse 240% 90% at 130% 90%,transparent 34%,rgba(255,255,255,0.17) 35%,rgba(255,255,255,0.17) 37%,transparent 38%), radial-gradient(ellipse 210% 75% at 125% 82%,transparent 44%,rgba(255,255,255,0.13) 45%,rgba(255,255,255,0.13) 47%,transparent 48%), radial-gradient(ellipse 180% 60% at 118% 74%,transparent 54%,rgba(255,255,255,0.09) 55%,rgba(255,255,255,0.09) 57%,transparent 58%), radial-gradient(ellipse 150% 48% at 112% 66%,transparent 63%,rgba(255,255,255,0.06) 64%,rgba(255,255,255,0.06) 66%,transparent 67%); }
+    #kde-desktop { flex:1; min-height:0; background:linear-gradient(180deg,#030886 0%,#000df0 100%); position:relative; overflow:hidden; display:flex; align-items:stretch; padding:6px 6px 0 6px; box-sizing:border-box; }
     /* Konqueror window — gray KDE 3 default decoration */
     #kde-window { flex:1; display:flex; flex-direction:column; overflow:hidden; box-shadow:2px 3px 16px rgba(0,0,0,0.7); border:2px solid #888; border-top-color:#ddd; border-left-color:#ddd; border-bottom:none; }
     #kde-titlebar { height:24px; flex-shrink:0; background: radial-gradient(circle at 0 0, rgba(255,255,255,0.22) 0.5px, transparent 0.5px) 0 0 / 2px 2px, linear-gradient(180deg,#7888c8 0%,#5870b8 50%,#4868a8 100%); display:flex; align-items:center; padding:0 3px 0 5px; gap:3px; user-select:none; border-bottom:1px solid #2848a0; }
@@ -922,6 +929,695 @@
     body.layout-kde .titlebar-brand { color:#fff !important; }
     body.layout-kde .win-btn { color:#d8e4f8 !important; }
     body.layout-kde .yt-search-item:hover, body.layout-kde #modal-themes .theme-card:hover { transform:none !important; }
+/* ── Commodore 64 layout ─────────────────────────────────────────────────── */
+    body.layout-c64 { --bg:#0000aa; --bg_panel:#0000cc; --bg_menu:#0000aa; --accent:#7878f8; --accent_alt:#aaaaff; --accent_menu:#7878f8; --text_main:#7878f8; --text_sec:#aaaaff; --text_dim:#5858c8; --border:#7878f8; --border_solid:#7878f8; }
+    body.layout-c64 #titlebar { background:#000 !important; border-bottom:2px solid #3535c7 !important; }
+    body.layout-c64 .titlebar-brand { color:#7878f8 !important; font-family:'C64',monospace !important; letter-spacing:2px !important; text-transform:uppercase !important; }
+    body.layout-c64 .win-btn { color:#7878f8 !important; }
+    body.layout-c64 .yt-search-item:hover, body.layout-c64 #modal-themes .theme-card:hover { transform:none !important; }
+    /* All modal text uses C64 font */
+    body.layout-c64 .modal-overlay * { font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 .modal-overlay code { font-family:'C64',monospace !important; }
+    body.layout-c64 .modal-overlay { background:rgba(0,0,0,0.75) !important; }
+    /* modal-box */
+    body.layout-c64 .modal-box { background:#0000aa !important; border:2px solid #7878f8 !important; border-radius:0 !important; box-shadow:0 0 0 4px #3535c7, 4px 4px 20px rgba(0,0,0,0.9) !important; color:#7878f8 !important; overflow:hidden !important; }
+    body.layout-c64 .modal-box h2, body.layout-c64 .modal-box h3 { background:#7878f8 !important; color:#0000aa !important; font-size:12px !important; font-weight:normal !important; text-transform:uppercase !important; letter-spacing:2px !important; text-shadow:none !important; padding:6px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:none !important; }
+    body.layout-c64 .modal-box p, body.layout-c64 .modal-box label { color:#7878f8 !important; }
+    body.layout-c64 .modal-box span { color:inherit !important; }
+    body.layout-c64 .modal-box strong { color:#fff !important; }
+    body.layout-c64 .modal-box hr { border-color:#3535c7 !important; }
+    body.layout-c64 .modal-box a { color:#aaaaff !important; }
+    body.layout-c64 .modal-box code { background:#000033 !important; color:#7878f8 !important; border:1px solid #7878f8 !important; padding:1px 4px !important; border-radius:0 !important; }
+    body.layout-c64 .modal-box button, body.layout-c64 .modal-box .btn, body.layout-c64 .modal-box .primary { background:#7878f8 !important; border:none !important; border-radius:0 !important; color:#0000aa !important; font-weight:normal !important; box-shadow:none !important; cursor:pointer !important; padding:4px 14px !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 .modal-box button:hover, body.layout-c64 .modal-box .btn:hover, body.layout-c64 .modal-box .primary:hover { background:#fff !important; color:#0000aa !important; transform:none !important; box-shadow:none !important; }
+    body.layout-c64 .modal-box input, body.layout-c64 .modal-box select, body.layout-c64 .modal-box textarea { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 .modal-box .tool-card { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; }
+    body.layout-c64 .modal-box .tool-card-title { color:#fff !important; }
+    /* Playlist picker */
+    body.layout-c64 .pl-select-row { background:#000033 !important; color:#7878f8 !important; border-bottom:1px solid #3535c7 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 .pl-select-row.pl-selected { background:#7878f8 !important; color:#0000aa !important; }
+    body.layout-c64 .pl-select-row:hover:not(.pl-selected) { background:#0000cc !important; }
+    /* Segmented controls */
+    body.layout-c64 .segmented-control { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; }
+    body.layout-c64 .segmented-btn { background:#000033 !important; border-right:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; box-shadow:none !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 .segmented-btn.active { background:#7878f8 !important; color:#0000aa !important; transform:none !important; }
+    body.layout-c64 .segmented-btn:hover:not(.active) { background:#0000cc !important; transform:none !important; }
+    /* Connect & Tools modal containers */
+    body.layout-c64 #modal-welcome > div, body.layout-c64 #modal-connect > div, body.layout-c64 #modal-tools > div { background:#0000aa !important; border:2px solid #7878f8 !important; border-radius:0 !important; box-shadow:0 0 0 4px #3535c7, 4px 4px 20px rgba(0,0,0,0.9) !important; }
+    body.layout-c64 #modal-connect h3, body.layout-c64 #modal-tools h3 { background:#7878f8 !important; color:#0000aa !important; font-size:11px !important; font-weight:normal !important; text-transform:uppercase !important; letter-spacing:2px !important; text-shadow:none !important; padding:6px 10px !important; margin:-14px -20px 12px !important; width:calc(100% + 40px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:none !important; }
+    body.layout-c64 #connect-cards-container, body.layout-c64 #tools-cards-container { background:#0000aa !important; scrollbar-color:#7878f8 #000033; }
+    body.layout-c64 #modal-connect .tool-card, body.layout-c64 #modal-tools .tool-card { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; }
+    body.layout-c64 #modal-connect .tool-card-title, body.layout-c64 #modal-tools .tool-card-title { color:#fff !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-connect input, body.layout-c64 #modal-connect select { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #modal-connect button, body.layout-c64 #modal-tools button { background:#7878f8 !important; border:none !important; border-radius:0 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; box-shadow:none !important; cursor:pointer !important; }
+    body.layout-c64 #modal-connect button:hover, body.layout-c64 #modal-tools button:hover { background:#fff !important; color:#0000aa !important; transform:none !important; }
+    /* Edit game panel */
+    body.layout-c64 #view-details { background:#0000aa !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #view-details input, body.layout-c64 #view-details textarea, body.layout-c64 #view-details select { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #view-details label, body.layout-c64 #view-details span, body.layout-c64 #view-details p { color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#7878f8 !important; border:none !important; border-radius:0 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; box-shadow:none !important; }
+    body.layout-c64 #view-details fieldset { border:1px solid #7878f8 !important; border-radius:0 !important; background:#000033 !important; }
+    body.layout-c64 #view-details #ui-cover, body.layout-c64 #view-details #ui-hero, body.layout-c64 #view-details #ui-logo, body.layout-c64 #view-details #ui-icon, body.layout-c64 #view-details #ui-screenshot { border-radius:0 !important; border:2px solid #7878f8 !important; }
+    /* Now playing card */
+    body.layout-c64 #np-card { background:#0000aa !important; border:2px solid #7878f8 !important; border-radius:0 !important; box-shadow:0 0 0 4px #3535c7 !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    /* Install picker */
+    body.layout-c64 #btn-install-pick-steam, body.layout-c64 #btn-install-pick-grinder { background:#7878f8 !important; color:#0000aa !important; border:none !important; border-radius:0 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #btn-install-pick-steam:hover, body.layout-c64 #btn-install-pick-grinder:hover { background:#fff !important; }
+    /* Tools modal — inner inputs and all elements */
+    body.layout-c64 #modal-tools > div { font-family:'C64',monospace !important; color:#7878f8 !important; }
+    body.layout-c64 #modal-tools h3 { background:#7878f8 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; letter-spacing:2px !important; }
+    body.layout-c64 #modal-tools input, body.layout-c64 #modal-tools select, body.layout-c64 #modal-tools textarea { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-tools p, body.layout-c64 #modal-tools label, body.layout-c64 #modal-tools span:not(.lsc-label) { color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #modal-tools .lsc-label { color:#aaaaff !important; font-family:'C64',monospace !important; font-size:9px !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-tools hr { border-color:#3535c7 !important; }
+    body.layout-c64 #modal-tools code { background:#000033 !important; color:#7878f8 !important; border:1px solid #7878f8 !important; border-radius:0 !important; }
+    /* Connect modal — inner elements */
+    body.layout-c64 #modal-connect > div { font-family:'C64',monospace !important; color:#7878f8 !important; }
+    body.layout-c64 #modal-connect h3 { background:#7878f8 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; letter-spacing:2px !important; }
+    body.layout-c64 #modal-connect p, body.layout-c64 #modal-connect label, body.layout-c64 #modal-connect span, body.layout-c64 #modal-connect code { color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #modal-connect code { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; }
+    body.layout-c64 #modal-connect hr { border-color:#3535c7 !important; }
+    /* About modal */
+    body.layout-c64 #modal-about .modal-box { text-align:left !important; }
+    body.layout-c64 #modal-about p, body.layout-c64 #modal-about span { color:#7878f8 !important; font-family:'C64',monospace !important; font-size:10px !important; line-height:1.8 !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-about strong { color:#fff !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #modal-about #btn-open-manual { color:#fff !important; }
+    body.layout-c64 #modal-about hr { border-color:#3535c7 !important; }
+    /* Add Game modal */
+    body.layout-c64 #modal-add-game input, body.layout-c64 #modal-add-cmd input, body.layout-c64 #modal-add-cmd textarea { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-add-game p, body.layout-c64 #modal-add-cmd p { color:#7878f8 !important; font-family:'C64',monospace !important; font-size:10px !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-add-cmd code { background:#000033 !important; color:#7878f8 !important; border:1px solid #7878f8 !important; border-radius:0 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #add-cmd-grinder { background:transparent !important; border:1px solid #7878f8 !important; color:#7878f8 !important; border-radius:0 !important; font-family:'C64',monospace !important; }
+    /* Playlists nav modal */
+    body.layout-c64 #modal-playlists-nav h3 { background:#7878f8 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; letter-spacing:2px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; padding:6px 10px !important; box-sizing:border-box !important; }
+    body.layout-c64 .btn-playlist-filter { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; font-weight:normal !important; }
+    body.layout-c64 .btn-playlist-filter:hover { background:#7878f8 !important; color:#0000aa !important; }
+    body.layout-c64 .btn-playlist-manage { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 .btn-playlist-manage:hover { background:#7878f8 !important; color:#0000aa !important; }
+    /* Welcome modal */
+    body.layout-c64 #modal-welcome > div { background:#0000aa !important; border:2px solid #7878f8 !important; border-radius:0 !important; box-shadow:0 0 0 4px #3535c7, 4px 4px 20px rgba(0,0,0,0.9) !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    body.layout-c64 #modal-welcome h2, body.layout-c64 #modal-welcome h3 { background:#7878f8 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; border-radius:0 !important; }
+    body.layout-c64 #modal-welcome p, body.layout-c64 #modal-welcome span, body.layout-c64 #modal-welcome label { color:#7878f8 !important; font-family:'C64',monospace !important; text-transform:uppercase !important; font-size:10px !important; }
+    body.layout-c64 #modal-welcome button { background:#7878f8 !important; border:none !important; border-radius:0 !important; color:#0000aa !important; font-family:'C64',monospace !important; text-transform:uppercase !important; }
+    body.layout-c64 #modal-welcome button:hover { background:#fff !important; }
+    body.layout-c64 #modal-welcome input, body.layout-c64 #modal-welcome select { background:#000033 !important; border:1px solid #7878f8 !important; border-radius:0 !important; color:#7878f8 !important; font-family:'C64',monospace !important; }
+    #c64-shell { display:none; flex-direction:column; font-family:'C64 Pro Mono',monospace; background:#3535c7; }
+    #app-container.layout-c64 #c64-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    #c64-outer { flex:1; min-height:0; display:flex; padding:16px; box-sizing:border-box; background:#3535c7; }
+    #c64-screen { flex:1; background:#0000aa; display:flex; flex-direction:column; overflow:hidden; }
+    #c64-boot { flex-shrink:0; padding:14px 18px 6px; color:#7878f8; font-size:13px; line-height:1.6; text-transform:uppercase; white-space:pre; letter-spacing:0.5px; }
+    #c64-divider { height:1px; background:#7878f8; margin:0 18px 4px; opacity:0.4; flex-shrink:0; }
+    #c64-filter-row { flex-shrink:0; display:flex; gap:0; padding:4px 18px; flex-wrap:wrap; }
+    .c64-flt { font-family:'C64 Pro Mono',monospace; font-size:11px; color:#0000aa; background:#7878f8; padding:2px 10px; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; border:none; margin-right:2px; margin-bottom:2px; }
+    .c64-flt:hover, .c64-flt.c64-flt-active { background:#fff; color:#0000aa; }
+    #c64-dir-header { flex-shrink:0; padding:4px 18px 2px; color:#7878f8; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.7; }
+    #c64-list { flex:1; overflow-y:auto; padding:2px 18px 8px; scrollbar-width:none; }
+    #c64-list::-webkit-scrollbar { display:none; }
+    .c64-row { font-family:'C64 Pro Mono',monospace; font-size:12px; color:#7878f8; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; padding:1px 4px; display:flex; align-items:baseline; gap:0; line-height:1.5; }
+    .c64-row:hover { background:#7878f8; color:#0000aa; }
+    .c64-row.c64-sel { background:#7878f8; color:#0000aa; }
+    .c64-num { width:48px; flex-shrink:0; opacity:0.6; }
+    .c64-name { flex:1; }
+    .c64-store { width:80px; flex-shrink:0; text-align:right; opacity:0.7; }
+    #c64-statusbar { flex-shrink:0; padding:6px 18px 14px; color:#7878f8; font-size:11px; text-transform:uppercase; display:flex; justify-content:space-between; letter-spacing:0.5px; opacity:0.8; }
+    #c64-prompt-line { flex-shrink:0; padding:2px 18px 6px; font-size:13px; color:#7878f8; text-transform:uppercase; display:flex; align-items:center; gap:2px; }
+    #c64-action-bar { flex-shrink:0; display:flex; gap:3px; padding:4px 18px 14px; flex-wrap:wrap; }
+    #c64-cursor { display:inline-block; width:10px; height:14px; background:#7878f8; animation:c64blink 0.8s step-end infinite; vertical-align:middle; margin-left:1px; }
+    @keyframes c64blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    /* C64 gamepage */
+    #c64-gamepage { display:none; position:absolute; inset:0; background:rgba(0,0,0,0.5); z-index:60; align-items:center; justify-content:center; }
+    #c64-gamepage.open { display:flex; }
+    #c64-gpwin { background:#0000aa; border:2px solid #7878f8; width:460px; max-width:calc(100vw - 60px); max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; box-shadow:0 0 0 4px #3535c7, 4px 4px 20px rgba(0,0,0,0.8); font-family:'C64 Pro Mono',monospace; }
+    #c64-gpbar { background:#7878f8; color:#0000aa; font-size:12px; text-transform:uppercase; padding:4px 10px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; letter-spacing:1px; }
+    #c64-gpbar-close { background:none; border:none; color:#0000aa; font-family:'C64 Pro Mono',monospace; font-size:14px; cursor:pointer; padding:0 4px; font-weight:bold; }
+    #c64-gpbody { display:flex; gap:0; flex:1; min-height:0; overflow:hidden; }
+    #c64-gp-cover { width:130px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:14px 10px; gap:8px; border-right:1px solid #7878f8; }
+    #c64-gp-cover-frame { width:110px; aspect-ratio:2/3; border:2px solid #7878f8; background:#000011; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    #c64-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #c64-gp-cover-ph { font-size:28px; }
+    #c64-gp-title { font-size:10px; color:#7878f8; text-align:center; word-break:break-word; text-transform:uppercase; line-height:1.4; }
+    #c64-gp-info { flex:1; overflow-y:auto; padding:12px 14px; scrollbar-width:none; display:flex; flex-direction:column; gap:3px; }
+    #c64-gp-info::-webkit-scrollbar { display:none; }
+    .c64-gp-row { font-size:11px; color:#7878f8; text-transform:uppercase; display:flex; gap:6px; line-height:1.5; }
+    .c64-gp-key { opacity:0.6; width:80px; flex-shrink:0; }
+    .c64-gp-val { flex:1; }
+    #c64-gp-desc { font-size:10px; color:#7878f8; text-transform:uppercase; line-height:1.6; margin-top:8px; opacity:0.8; border-top:1px solid rgba(120,120,248,0.3); padding-top:8px; }
+    #c64-gpfooter { flex-shrink:0; display:flex; gap:2px; padding:8px 10px; border-top:1px solid #7878f8; flex-wrap:wrap; }
+    .c64-btn { font-family:'C64 Pro Mono',monospace; font-size:11px; text-transform:uppercase; background:#7878f8; color:#0000aa; border:none; padding:4px 12px; cursor:pointer; letter-spacing:0.5px; }
+    .c64-btn:hover { background:#fff; }
+    .c64-btn-run { background:#fff; color:#0000aa; }
+    .c64-btn-run:hover { background:#aaaaff; }
+/* ── BeOS / Tracker layout ──────────────────────────────────────────────── */
+    body.layout-beos { --bg:#d4d4d4; --bg_panel:#c4c4c4; --bg_menu:#d4d4d4; --accent:#2855b0; --accent_alt:#f5c200; --accent_menu:#2855b0; --text_main:#000; --text_sec:#222; --text_dim:#555; --border:#808080; --border_solid:#808080; }
+    body.layout-beos #titlebar { background:#1a1a1a !important; border-bottom:2px solid #f5c200 !important; }
+    body.layout-beos .titlebar-brand { color:#f5c200 !important; font-family:'Liberation Sans','Helvetica Neue',Arial,sans-serif !important; letter-spacing:1px !important; }
+    body.layout-beos .win-btn { color:#f5c200 !important; }
+    body.layout-beos .yt-search-item:hover, body.layout-beos #modal-themes .theme-card:hover { transform:none !important; }
+    /* Shell */
+    #beos-shell { display:none; flex-direction:column; font-family:'Liberation Sans','Helvetica Neue',Arial,sans-serif; font-size:12px; background:#2a2a2a; color:#000; }
+    #app-container.layout-beos #beos-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    /* Desktop */
+    #beos-desktop { flex:1; min-height:0; background:#2a2a2a; display:flex; flex-direction:row; padding:8px; gap:8px; box-sizing:border-box; }
+    /* Main area (window + toolstrip) */
+    #beos-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+    /* Main window */
+    #beos-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#d4d4d4; border:3px solid #555; box-shadow:1px 1px 0 #999 inset, 2px 2px 6px rgba(0,0,0,0.5); }
+    /* Title tab */
+    #beos-tab { height:22px; flex-shrink:0; background:linear-gradient(180deg,#f5c200 0%,#d8a800 100%); display:flex; align-items:center; padding:0 4px; gap:3px; border-bottom:2px solid #555; }
+    #beos-tab-left { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+    .beos-tab-stripe { width:3px; height:14px; background:linear-gradient(180deg,#c08000,#e0a800,#c08000); flex-shrink:0; }
+    #beos-close-btn { width:14px; height:14px; background:#d4d4d4; border:1px solid #555; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; flex-shrink:0; }
+    #beos-close-btn:hover { background:#e04040; color:#fff; }
+    #beos-wintitle { flex:1; font-size:12px; font-weight:bold; text-align:center; color:#000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 8px; }
+    #beos-tab-right { display:flex; align-items:center; gap:3px; flex-shrink:0; }
+    .beos-winbtn { width:14px; height:14px; background:#d4d4d4; border:1px solid #555; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:8px; flex-shrink:0; }
+    .beos-winbtn:hover { background:#c0c0c0; }
+    /* Menu bar */
+    #beos-menubar { height:18px; flex-shrink:0; background:#c8c8c8; border-bottom:1px solid #888; display:flex; align-items:center; padding:0 4px; }
+    .beos-mi { font-size:12px; padding:0 8px; cursor:pointer; height:18px; line-height:18px; color:#000; }
+    .beos-mi:hover { background:#2855b0; color:#fff; }
+    /* Content split */
+    #beos-content { flex:1; min-height:0; display:flex; flex-direction:row; }
+    /* Left nav panel */
+    #beos-nav { width:155px; flex-shrink:0; background:#c4c4c4; border-right:2px solid #888; overflow-y:auto; display:flex; flex-direction:column; padding:4px 0; scrollbar-width:thin; }
+    #beos-nav-title { font-size:10px; font-weight:bold; color:#555; padding:4px 8px 2px; text-transform:uppercase; letter-spacing:0.5px; }
+    .beos-nav-item { padding:3px 8px 3px 16px; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden; color:#000; }
+    .beos-nav-item:hover { background:#2855b0; color:#fff; }
+    .beos-nav-item.beos-nav-active { background:#2855b0; color:#fff; }
+    .beos-nav-sep { height:1px; background:#999; margin:4px 8px; }
+    /* Right list area */
+    #beos-list-area { flex:1; min-width:0; display:flex; flex-direction:column; }
+    #beos-col-hdr { flex-shrink:0; background:#c8c8c8; border-bottom:2px solid #888; display:flex; align-items:center; padding:2px 6px; font-size:11px; font-weight:bold; color:#000; }
+    #beos-filelist { flex:1; overflow-y:auto; background:#e0e0e0; scrollbar-width:thin; scrollbar-color:#888 #d0d0d0; }
+    .beos-row { display:flex; align-items:center; padding:2px 6px; cursor:pointer; border-bottom:1px solid #c8c8c8; font-size:12px; color:#000; gap:4px; }
+    .beos-row:hover { background:#c0d0f0; }
+    .beos-row.beos-sel { background:#2855b0; color:#fff; }
+    .beos-row-icon { font-size:12px; flex-shrink:0; }
+    .beos-row-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .beos-row-store { width:90px; flex-shrink:0; font-size:11px; overflow:hidden; white-space:nowrap; }
+    .beos-row-genre { width:100px; flex-shrink:0; font-size:11px; overflow:hidden; white-space:nowrap; }
+    .beos-row-hltb { width:44px; flex-shrink:0; text-align:right; font-size:11px; }
+    /* Status bar */
+    #beos-statusbar { height:18px; flex-shrink:0; background:#c4c4c4; border-top:1px solid #888; display:flex; align-items:center; padding:0 8px; gap:12px; font-size:11px; color:#000; }
+    #beos-status-sep { flex:1; }
+    /* Deskbar */
+    #beos-deskbar { width:130px; flex-shrink:0; background:#c8c8c8; border:2px solid #666; box-shadow:inset 1px 1px 0 #e0e0e0, 2px 2px 6px rgba(0,0,0,0.5); display:flex; flex-direction:column; overflow:hidden; }
+    #beos-db-header { background:#1a1a1a; padding:6px 4px; display:flex; align-items:center; justify-content:center; cursor:pointer; gap:6px; border-bottom:1px solid #f5c200; flex-shrink:0; }
+    #beos-db-header:hover { background:#333; }
+    #beos-db-logo { font-size:18px; }
+    #beos-db-name { color:#f5c200; font-size:11px; font-weight:bold; }
+    #beos-db-items { flex:1; display:flex; flex-direction:column; padding:4px 0; overflow-y:auto; }
+    .beos-db-item { display:flex; align-items:center; gap:6px; padding:4px 8px; cursor:pointer; font-size:11px; color:#000; white-space:nowrap; }
+    .beos-db-item:hover { background:#2855b0; color:#fff; }
+    .beos-db-sep { height:1px; background:#999; margin:3px 6px; }
+    #beos-db-clock { background:#1a1a1a; color:#f5c200; font-size:12px; font-weight:bold; text-align:center; padding:5px 4px; border-top:1px solid #f5c200; flex-shrink:0; }
+    /* Tool strip */
+    #beos-toolstrip { flex-shrink:0; background:#2a2a2a; display:flex; gap:4px; padding:4px 0; flex-wrap:wrap; align-items:center; }
+    .beos-tool { font-size:11px; background:#c8c8c8; border:2px solid #555; color:#000; padding:3px 10px; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:inset 1px 1px 0 #e0e0e0, inset -1px -1px 0 #808080; }
+    .beos-tool:hover { background:#2855b0; color:#fff; box-shadow:none; }
+    .beos-tool:active { box-shadow:inset -1px -1px 0 #e0e0e0, inset 1px 1px 0 #808080; }
+    /* Gamepage "File Info" window */
+    #beos-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; }
+    #beos-gamepage.open { display:flex; }
+    #beos-gp-win { background:#d4d4d4; border:3px solid #555; box-shadow:inset 1px 1px 0 #e8e8e8, 3px 3px 8px rgba(0,0,0,0.5); width:490px; max-width:calc(100vw - 60px); max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; }
+    #beos-gp-tab { height:22px; flex-shrink:0; background:linear-gradient(180deg,#f5c200,#d8a800); display:flex; align-items:center; padding:0 4px; gap:3px; border-bottom:2px solid #555; }
+    #beos-gp-close { width:14px; height:14px; background:#d4d4d4; border:1px solid #555; cursor:pointer; font-size:9px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    #beos-gp-close:hover { background:#e04040; color:#fff; }
+    #beos-gp-wintitle { flex:1; font-size:12px; font-weight:bold; text-align:center; }
+    .beos-gp-btn { width:14px; height:14px; background:#d4d4d4; border:1px solid #555; font-size:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    #beos-gp-body { display:flex; flex:1; min-height:0; overflow:hidden; }
+    #beos-gp-left { width:140px; flex-shrink:0; background:#c8c8c8; border-right:2px solid #888; display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px; }
+    #beos-gp-cover-frame { width:110px; aspect-ratio:2/3; border:2px solid #555; background:#aaa; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 1px 1px 0 #ddd, inset -1px -1px 0 #777; }
+    #beos-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #beos-gp-cover-ph { font-size:28px; }
+    #beos-gp-game-name { font-size:11px; text-align:center; color:#000; word-break:break-word; line-height:1.3; font-weight:bold; }
+    #beos-gp-info { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:4px; background:#dcdcdc; }
+    .beos-info-row { display:flex; font-size:12px; color:#000; gap:8px; line-height:1.6; border-bottom:1px solid #c8c8c8; padding-bottom:2px; }
+    .beos-info-key { width:72px; flex-shrink:0; color:#444; font-weight:bold; font-size:11px; }
+    #beos-gp-desc { font-size:11px; color:#333; margin-top:6px; line-height:1.6; border-top:2px solid #aaa; padding-top:8px; }
+    #beos-gp-footer { flex-shrink:0; display:flex; gap:6px; padding:8px 10px; border-top:2px solid #888; background:#c8c8c8; flex-wrap:wrap; justify-content:flex-end; }
+    .beos-btn { font-family:inherit; font-size:12px; background:#d4d4d4; border:2px solid #555; color:#000; padding:4px 16px; cursor:pointer; box-shadow:inset 1px 1px 0 #e8e8e8, inset -1px -1px 0 #888; }
+    .beos-btn:hover { background:#c0d0f0; box-shadow:none; }
+    .beos-btn:active { box-shadow:inset -1px -1px 0 #e8e8e8, inset 1px 1px 0 #888; }
+    .beos-btn-run { background:#2855b0; color:#fff; border-color:#1a3a90; box-shadow:inset 1px 1px 0 #4070d0, inset -1px -1px 0 #1a3a80; }
+    .beos-btn-run:hover { background:#3060c0; }
+    /* BeOS modal theming */
+    body.layout-beos .modal-overlay * { font-family:'Liberation Sans','Helvetica Neue',Arial,sans-serif !important; }
+    body.layout-beos .modal-overlay { background:rgba(0,0,0,0.55) !important; }
+    body.layout-beos .modal-box { background:#d4d4d4 !important; border:3px solid #555 !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #e8e8e8, 3px 3px 8px rgba(0,0,0,0.5) !important; color:#000 !important; overflow:hidden !important; }
+    body.layout-beos .modal-box h2, body.layout-beos .modal-box h3 { background:linear-gradient(180deg,#f5c200,#d8a800) !important; color:#000 !important; font-size:12px !important; font-weight:bold !important; text-shadow:none !important; padding:4px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:2px solid #555 !important; }
+    body.layout-beos .modal-box p, body.layout-beos .modal-box label { color:#000 !important; }
+    body.layout-beos .modal-box a { color:#2855b0 !important; }
+    body.layout-beos .modal-box code { background:#c0c0c0 !important; color:#000 !important; border:1px solid #888 !important; border-radius:0 !important; }
+    body.layout-beos .modal-box hr { border-color:#aaa !important; }
+    body.layout-beos .modal-box button, body.layout-beos .modal-box .btn, body.layout-beos .modal-box .primary { background:#d4d4d4 !important; border:2px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8, inset -1px -1px 0 #888 !important; cursor:pointer !important; padding:4px 14px !important; }
+    body.layout-beos .modal-box button:hover, body.layout-beos .modal-box .btn:hover { background:#c0d0f0 !important; box-shadow:none !important; transform:none !important; }
+    body.layout-beos .modal-box input, body.layout-beos .modal-box select, body.layout-beos .modal-box textarea { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-beos .modal-box .tool-card { background:#c4c4c4 !important; border:2px solid #888 !important; border-radius:0 !important; }
+    body.layout-beos .modal-box .tool-card-title { color:#000 !important; font-weight:bold !important; }
+    body.layout-beos .segmented-control { background:#c0c0c0 !important; border:2px solid #888 !important; border-radius:0 !important; }
+    body.layout-beos .segmented-btn { background:#d4d4d4 !important; border-right:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8 !important; }
+    body.layout-beos .segmented-btn.active { background:#f5c200 !important; color:#000 !important; transform:none !important; box-shadow:none !important; }
+    body.layout-beos .segmented-btn:hover:not(.active) { background:#c0d0f0 !important; transform:none !important; box-shadow:none !important; }
+    body.layout-beos #modal-welcome > div, body.layout-beos #modal-connect > div, body.layout-beos #modal-tools > div { background:#d4d4d4 !important; border:3px solid #555 !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #e8e8e8, 3px 3px 8px rgba(0,0,0,0.5) !important; }
+    body.layout-beos #modal-connect h3, body.layout-beos #modal-tools h3 { background:linear-gradient(180deg,#f5c200,#d8a800) !important; color:#000 !important; border-bottom:2px solid #555 !important; border-radius:0 !important; }
+    body.layout-beos #connect-cards-container, body.layout-beos #tools-cards-container { background:#d4d4d4 !important; }
+    body.layout-beos #modal-connect .tool-card, body.layout-beos #modal-tools .tool-card { background:#c4c4c4 !important; border:2px solid #888 !important; border-radius:0 !important; }
+    body.layout-beos #modal-connect button, body.layout-beos #modal-tools button { background:#d4d4d4 !important; border:2px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8, inset -1px -1px 0 #888 !important; }
+    body.layout-beos #modal-connect button:hover, body.layout-beos #modal-tools button:hover { background:#c0d0f0 !important; box-shadow:none !important; transform:none !important; }
+    body.layout-beos #modal-connect input { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-beos .btn-playlist-filter { background:#d4d4d4 !important; border:2px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8 !important; }
+    body.layout-beos .btn-playlist-filter:hover { background:#c0d0f0 !important; box-shadow:none !important; }
+    body.layout-beos .pl-select-row { background:#ccc !important; color:#000 !important; border-bottom:1px solid #aaa !important; }
+    body.layout-beos .pl-select-row.pl-selected { background:#2855b0 !important; color:#fff !important; }
+    body.layout-beos #view-details { background:#d4d4d4 !important; color:#000 !important; }
+    body.layout-beos #view-details input, body.layout-beos #view-details textarea, body.layout-beos #view-details select { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-beos #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#d4d4d4 !important; border:2px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8, inset -1px -1px 0 #888 !important; }
+    body.layout-beos #view-details fieldset { border:2px solid #888 !important; border-radius:0 !important; background:#ccc !important; }
+    body.layout-beos #np-card { background:#d4d4d4 !important; border:2px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #e8e8e8 !important; }
+    body.layout-beos #btn-install-pick-steam, body.layout-beos #btn-install-pick-grinder { background:#d4d4d4 !important; border:2px solid #555 !important; border-radius:0 !important; color:#000 !important; }
+/* ── Windows 95 layout ──────────────────────────────────────────────────── */
+    body.layout-w95 { --bg:#c0c0c0; --bg_panel:#c0c0c0; --bg_menu:#c0c0c0; --accent:#000080; --accent_alt:#1084d0; --accent_menu:#000080; --text_main:#000; --text_sec:#000; --text_dim:#808080; --border:#808080; --border_solid:#000; }
+    body.layout-w95 #titlebar { background:#000 !important; border-bottom:2px solid #000080 !important; }
+    body.layout-w95 .titlebar-brand { color:#fff !important; font-family:Tahoma,'MS Sans Serif',Arial,sans-serif !important; }
+    body.layout-w95 .win-btn { color:#fff !important; }
+    body.layout-w95 .yt-search-item:hover, body.layout-w95 #modal-themes .theme-card:hover { transform:none !important; }
+    /* Shell & desktop */
+    #w95-shell { display:none; flex-direction:column; font-family:Tahoma,'MS Sans Serif',Arial,sans-serif; font-size:11px; background:#008080; color:#000; }
+    #app-container.layout-w95 #w95-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    #w95-desktop { flex:1; min-height:0; background:#008080; display:flex; flex-direction:column; padding:4px; box-sizing:border-box; gap:4px; position:relative; }
+    /* Desktop icons */
+    #w95-desktop-icons { display:flex; flex-direction:column; gap:6px; position:absolute; top:8px; left:8px; z-index:1; }
+    .w95-icon { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:2px; width:64px; }
+    .w95-icon-img { font-size:26px; line-height:1; }
+    .w95-icon-label { color:#fff; font-size:11px; text-align:center; background:transparent; padding:1px 3px; word-break:break-word; line-height:1.2; text-shadow:1px 1px 1px #008080; }
+    .w95-icon:focus .w95-icon-label, .w95-icon-label.selected { background:#000080; color:#fff; outline:1px dotted #fff; }
+    /* Explorer window */
+    #w95-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; box-shadow:1px 1px 0 #000, -1px -1px 0 #dfdfdf inset; margin-left:80px; }
+    /* Title bar — solid navy, NO gradient */
+    #w95-titlebar { height:20px; flex-shrink:0; background:#000080; display:flex; align-items:center; padding:2px 3px; gap:2px; }
+    #w95-tb-icon { font-size:12px; flex-shrink:0; margin-right:2px; }
+    #w95-wintitle { flex:1; color:#fff; font-size:12px; font-weight:bold; white-space:nowrap; overflow:hidden; }
+    #w95-winctrls { display:flex; gap:2px; flex-shrink:0; }
+    .w95-wc { width:16px; height:14px; background:#c0c0c0; border:1px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:9px; color:#000; font-weight:bold; box-shadow:inset 1px 1px 0 #dfdfdf; flex-shrink:0; }
+    .w95-wc:hover { background:#d0d0d0; }
+    .w95-wc:active { border-color:#808080 #fff #fff #808080; box-shadow:none; }
+    #w95-wc-close { margin-left:2px; }
+    /* Menu bar */
+    #w95-menubar { height:20px; flex-shrink:0; background:#c0c0c0; border-bottom:1px solid #808080; display:flex; align-items:center; padding:0 2px; }
+    .w95-mi { font-size:11px; padding:2px 8px; cursor:pointer; color:#000; line-height:16px; }
+    .w95-mi:hover { background:#000080; color:#fff; }
+    /* Toolbar */
+    #w95-toolbar { height:26px; flex-shrink:0; background:#c0c0c0; border-bottom:2px solid; border-color:#808080 #fff #fff #808080; display:flex; align-items:center; padding:2px 4px; gap:3px; }
+    .w95-tbtn { height:22px; padding:0 6px; background:#c0c0c0; border:1px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; font-size:11px; display:flex; align-items:center; gap:3px; box-shadow:inset 1px 1px 0 #dfdfdf; white-space:nowrap; }
+    .w95-tbtn:hover { background:#d4d0c8; }
+    .w95-tbtn:active { border-color:#808080 #fff #fff #808080; box-shadow:none; padding:1px 5px 0 7px; }
+    .w95-tb-sep { width:1px; height:18px; background:#808080; margin:0 2px; box-shadow:1px 0 0 #fff; flex-shrink:0; }
+    /* Address bar */
+    #w95-addrbar { height:22px; flex-shrink:0; background:#c0c0c0; border-bottom:1px solid #808080; display:flex; align-items:center; padding:2px 6px; gap:6px; }
+    #w95-addr-label { font-size:11px; color:#000; white-space:nowrap; }
+    #w95-addr-input { flex:1; height:18px; background:#fff; border:2px solid; border-color:#808080 #fff #fff #808080; padding:0 4px; font-family:Tahoma,'MS Sans Serif',Arial,sans-serif; font-size:11px; box-shadow:inset 1px 1px 0 #404040; }
+    /* Split content */
+    #w95-split { flex:1; min-height:0; display:flex; }
+    /* Left tree panel */
+    #w95-tree { width:160px; flex-shrink:0; background:#fff; border-right:2px solid; border-color:#808080 #fff #fff #808080; overflow-y:auto; padding:2px 0; scrollbar-width:thin; }
+    .w95-tree-item { padding:2px 6px 2px 16px; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px; white-space:nowrap; color:#000; }
+    .w95-tree-item:hover { background:#000080; color:#fff; }
+    .w95-tree-item.w95-tree-active { background:#000080; color:#fff; }
+    .w95-tree-sep { height:1px; background:#c0c0c0; margin:2px 4px; }
+    .w95-tree-grp { font-size:10px; font-weight:bold; color:#808080; padding:4px 6px 1px; text-transform:uppercase; letter-spacing:0.5px; }
+    /* Right file list */
+    #w95-list-area { flex:1; min-width:0; display:flex; flex-direction:column; background:#fff; }
+    #w95-col-hdr { flex-shrink:0; background:#c0c0c0; border-bottom:2px solid #808080; display:flex; }
+    .w95-ch { font-size:11px; font-weight:bold; color:#000; padding:2px 6px; border-right:2px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:4px; }
+    .w95-ch:active { border-color:#808080 #fff #fff #808080; }
+    #w95-filelist { flex:1; overflow-y:auto; background:#fff; scrollbar-width:thin; scrollbar-color:#808080 #c0c0c0; }
+    .w95-row { display:flex; align-items:center; padding:1px 6px; cursor:pointer; border-bottom:1px solid transparent; font-size:11px; color:#000; gap:4px; }
+    .w95-row:hover { background:#cce8ff; }
+    .w95-row.w95-sel { background:#000080; color:#fff; }
+    .w95-row-icon { font-size:12px; flex-shrink:0; }
+    .w95-row-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .w95-row-store { width:88px; flex-shrink:0; font-size:11px; }
+    .w95-row-genre { width:100px; flex-shrink:0; font-size:11px; }
+    .w95-row-hltb { width:44px; flex-shrink:0; text-align:right; font-size:11px; }
+    /* Status bar */
+    #w95-statusbar { height:20px; flex-shrink:0; background:#c0c0c0; border-top:2px solid; border-color:#808080 #fff #fff #808080; display:flex; align-items:center; }
+    .w95-sb-pane { height:100%; padding:0 8px; font-size:11px; color:#000; display:flex; align-items:center; border-right:2px solid; border-color:#808080 #fff #fff #808080; }
+    #w95-sb-sep { flex:1; }
+    /* Taskbar */
+    #w95-taskbar { height:28px; flex-shrink:0; background:#c0c0c0; border-top:2px solid; border-color:#fff #808080 #808080 #fff; display:flex; align-items:center; padding:2px 4px; gap:4px; position:relative; z-index:10; }
+    #w95-start-btn { height:22px; padding:0 8px; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; font-size:12px; font-weight:bold; display:flex; align-items:center; gap:4px; box-shadow:inset 1px 1px 0 #dfdfdf; white-space:nowrap; flex-shrink:0; }
+    #w95-start-btn:hover { background:#d4d0c8; }
+    #w95-start-btn:active, #w95-start-btn.open { border-color:#808080 #fff #fff #808080; box-shadow:none; padding:1px 7px 0 9px; }
+    #w95-start-logo { font-size:14px; }
+    .w95-tb-sep2 { width:2px; height:20px; background:#808080; box-shadow:1px 0 0 #fff; flex-shrink:0; }
+    #w95-task-area { flex:1; display:flex; align-items:center; gap:2px; overflow:hidden; }
+    .w95-task-btn { height:22px; padding:0 8px; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; font-size:11px; display:flex; align-items:center; gap:4px; box-shadow:inset 1px 1px 0 #dfdfdf; white-space:nowrap; max-width:160px; overflow:hidden; }
+    .w95-task-btn.w95-task-active { border-color:#808080 #fff #fff #808080; box-shadow:none; background:#d4d0c8; }
+    #w95-systray { display:flex; align-items:center; gap:4px; padding:0 4px 0 6px; border-left:2px solid; border-color:#808080 #fff #fff #808080; flex-shrink:0; height:22px; background:#c0c0c0; }
+    #w95-clock { font-size:11px; color:#000; white-space:nowrap; }
+    /* Start menu */
+    #w95-startmenu { display:none; position:absolute; bottom:28px; left:2px; width:200px; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; box-shadow:2px 2px 4px rgba(0,0,0,0.4); z-index:100; flex-direction:row; }
+    #w95-startmenu.open { display:flex; }
+    #w95-sm-sidebar { width:24px; flex-shrink:0; background:#808080; display:flex; align-items:flex-end; padding-bottom:4px; }
+    #w95-sm-sidebar-text { color:#c0c0c0; font-size:13px; font-weight:bold; writing-mode:vertical-rl; transform:rotate(180deg); letter-spacing:2px; white-space:nowrap; padding:4px 4px; }
+    #w95-sm-items { flex:1; display:flex; flex-direction:column; padding:2px 0; }
+    .w95-sm-item { padding:4px 8px; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:8px; color:#000; white-space:nowrap; }
+    .w95-sm-item:hover { background:#000080; color:#fff; }
+    .w95-sm-sep { height:1px; background:#808080; margin:3px 6px; box-shadow:0 1px 0 #fff; }
+    /* Gamepage "Properties" dialog */
+    #w95-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,0,0.3); align-items:center; justify-content:center; }
+    #w95-gamepage.open { display:flex; }
+    #w95-gp-win { background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; box-shadow:inset 1px 1px 0 #dfdfdf, 2px 2px 6px rgba(0,0,0,0.4); width:400px; max-width:calc(100vw - 60px); max-height:calc(100vh - 100px); display:flex; flex-direction:column; overflow:hidden; font-family:Tahoma,'MS Sans Serif',Arial,sans-serif; }
+    #w95-gp-titlebar { height:20px; flex-shrink:0; background:#000080; display:flex; align-items:center; padding:2px 3px; gap:3px; }
+    #w95-gp-icon { font-size:12px; flex-shrink:0; }
+    #w95-gp-wintitle { flex:1; color:#fff; font-size:12px; font-weight:bold; }
+    #w95-gp-close { width:16px; height:14px; background:#c0c0c0; border:1px solid; border-color:#fff #808080 #808080 #fff; cursor:pointer; font-size:9px; font-weight:bold; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    #w95-gp-close:hover { background:#e04040; color:#fff; }
+    /* Tabs */
+    #w95-gp-tabs { flex-shrink:0; display:flex; padding:4px 4px 0; background:#c0c0c0; border-bottom:2px solid #808080; gap:2px; }
+    .w95-tab { padding:3px 12px; font-size:11px; cursor:pointer; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; border-bottom:none; color:#000; margin-bottom:-2px; position:relative; z-index:1; }
+    .w95-tab.w95-tab-active { background:#c0c0c0; border-bottom:2px solid #c0c0c0; z-index:2; font-weight:bold; }
+    /* Tab panels */
+    .w95-gp-panel { display:none; flex:1; min-height:0; flex-direction:column; padding:8px; overflow-y:auto; gap:4px; }
+    .w95-gp-panel.active { display:flex; }
+    #w95-gp-general { flex-direction:row !important; gap:10px; }
+    #w95-gp-cover-col { width:110px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:6px; }
+    #w95-gp-cover-frame { width:100px; aspect-ratio:2/3; border:2px inset #808080; background:#808080; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    #w95-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #w95-gp-cover-ph { font-size:28px; }
+    #w95-gp-game-name { font-size:11px; font-weight:bold; text-align:center; word-break:break-word; }
+    #w95-gp-info { flex:1; display:flex; flex-direction:column; gap:4px; }
+    .w95-info-row { display:flex; font-size:11px; gap:4px; line-height:1.8; }
+    .w95-info-key { width:72px; flex-shrink:0; color:#000; }
+    .w95-info-sep { height:1px; background:#808080; margin:4px 0; box-shadow:0 1px 0 #fff; }
+    #w95-gp-desc-panel { font-size:11px; color:#000; line-height:1.6; overflow-y:auto; background:#fff; border:2px inset #808080; padding:4px; flex:1; }
+    #w95-gp-footer { flex-shrink:0; display:flex; justify-content:flex-end; gap:6px; padding:8px; border-top:2px solid #808080; background:#c0c0c0; }
+    .w95-btn { font-family:Tahoma,'MS Sans Serif',Arial,sans-serif; font-size:11px; background:#c0c0c0; border:2px solid; border-color:#fff #808080 #808080 #fff; color:#000; padding:4px 16px; cursor:pointer; box-shadow:inset 1px 1px 0 #dfdfdf; min-width:72px; }
+    .w95-btn:hover { background:#d4d0c8; }
+    .w95-btn:active { border-color:#808080 #fff #fff #808080; box-shadow:none; padding:5px 15px 3px 17px; }
+    .w95-btn-play { background:#c0c0c0; font-weight:bold; border-width:3px; }
+    /* Windows 95 modal theming */
+    body.layout-w95 .modal-overlay * { font-family:Tahoma,'MS Sans Serif',Arial,sans-serif !important; }
+    body.layout-w95 .modal-overlay { background:rgba(0,0,0,0.4) !important; }
+    body.layout-w95 .modal-box { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #dfdfdf, 2px 2px 6px rgba(0,0,0,0.4) !important; color:#000 !important; overflow:hidden !important; }
+    body.layout-w95 .modal-box h2, body.layout-w95 .modal-box h3 { background:#000080 !important; color:#fff !important; font-size:12px !important; font-weight:bold !important; text-shadow:none !important; padding:3px 8px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:none !important; }
+    body.layout-w95 .modal-box p, body.layout-w95 .modal-box label { color:#000 !important; }
+    body.layout-w95 .modal-box a { color:#000080 !important; }
+    body.layout-w95 .modal-box code { background:#fff !important; color:#000 !important; border:2px inset #808080 !important; border-radius:0 !important; padding:1px 4px !important; }
+    body.layout-w95 .modal-box hr { border:none !important; border-top:1px solid #808080 !important; box-shadow:0 1px 0 #fff !important; }
+    body.layout-w95 .modal-box button, body.layout-w95 .modal-box .btn, body.layout-w95 .modal-box .primary { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; cursor:pointer !important; padding:4px 14px !important; }
+    body.layout-w95 .modal-box button:hover { background:#d4d0c8 !important; transform:none !important; }
+    body.layout-w95 .modal-box button:active { border-color:#808080 #fff #fff #808080 !important; box-shadow:none !important; }
+    body.layout-w95 .modal-box input, body.layout-w95 .modal-box select, body.layout-w95 .modal-box textarea { background:#fff !important; border:2px inset #808080 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-w95 .modal-box .tool-card { background:#d4d0c8 !important; border:2px inset #808080 !important; border-radius:0 !important; }
+    body.layout-w95 .segmented-control { background:#c0c0c0 !important; border:2px inset #808080 !important; border-radius:0 !important; }
+    body.layout-w95 .segmented-btn { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; }
+    body.layout-w95 .segmented-btn.active { background:#000080 !important; color:#fff !important; transform:none !important; box-shadow:none !important; border-color:#808080 !important; }
+    body.layout-w95 .segmented-btn:hover:not(.active) { background:#d4d0c8 !important; transform:none !important; }
+    body.layout-w95 #modal-welcome > div, body.layout-w95 #modal-connect > div, body.layout-w95 #modal-tools > div { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #dfdfdf, 2px 2px 6px rgba(0,0,0,0.4) !important; }
+    body.layout-w95 #modal-connect h3, body.layout-w95 #modal-tools h3 { background:#000080 !important; color:#fff !important; border-bottom:none !important; border-radius:0 !important; }
+    body.layout-w95 #connect-cards-container, body.layout-w95 #tools-cards-container { background:#c0c0c0 !important; }
+    body.layout-w95 #modal-connect .tool-card, body.layout-w95 #modal-tools .tool-card { background:#d4d0c8 !important; border:2px inset #808080 !important; border-radius:0 !important; }
+    body.layout-w95 #modal-connect button, body.layout-w95 #modal-tools button { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; color:#000 !important; }
+    body.layout-w95 #modal-connect button:hover, body.layout-w95 #modal-tools button:hover { background:#d4d0c8 !important; transform:none !important; }
+    body.layout-w95 #modal-connect input { background:#fff !important; border:2px inset #808080 !important; border-radius:0 !important; }
+    body.layout-w95 .btn-playlist-filter { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; }
+    body.layout-w95 .btn-playlist-filter:hover { background:#000080 !important; color:#fff !important; box-shadow:none !important; }
+    body.layout-w95 .pl-select-row { background:#d4d0c8 !important; color:#000 !important; border-bottom:1px solid #c0c0c0 !important; }
+    body.layout-w95 .pl-select-row.pl-selected { background:#000080 !important; color:#fff !important; }
+    body.layout-w95 #view-details { background:#c0c0c0 !important; color:#000 !important; }
+    body.layout-w95 #view-details input, body.layout-w95 #view-details textarea, body.layout-w95 #view-details select { background:#fff !important; border:2px inset #808080 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-w95 #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; }
+    body.layout-w95 #view-details fieldset { border:2px inset #808080 !important; border-radius:0 !important; background:#d4d0c8 !important; }
+    body.layout-w95 #np-card { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; }
+    body.layout-w95 #btn-install-pick-steam, body.layout-w95 #btn-install-pick-grinder { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; }
+/* ── NeXTSTEP / Workspace Manager layout (vintage gray) ──────────────────── */
+    body.layout-nextstep { --bg:#c8c8c8; --bg_panel:#b4b4b4; --bg_menu:#d0d0d0; --accent:#2244aa; --accent_alt:#3366cc; --accent_menu:#2244aa; --text_main:#000; --text_sec:#222; --text_dim:#666; --border:#888; --border_solid:#555; }
+    body.layout-nextstep #titlebar { background:#1a1a1a !important; border-bottom:2px solid #444 !important; }
+    body.layout-nextstep .titlebar-brand { color:#e0e0e0 !important; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif !important; }
+    body.layout-nextstep .win-btn { color:#aaa !important; }
+    body.layout-nextstep .yt-search-item:hover, body.layout-nextstep #modal-themes .theme-card:hover { transform:none !important; }
+    /* Shell — medium gray desktop, the real NeXTSTEP look */
+    #nx-shell { display:none; flex-direction:column; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#808080; color:#000; }
+    #app-container.layout-nextstep #nx-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    /* Outer: app-menu | main | dock */
+    #nx-outer { flex:1; min-height:0; display:flex; flex-direction:row; background:#808080; }
+    /* Application Menu — left column, always visible */
+    #nx-appmenu { width:148px; flex-shrink:0; display:flex; flex-direction:column; background:#d0d0d0; border-right:1px solid #555; box-shadow:2px 0 4px rgba(0,0,0,0.25); }
+    #nx-am-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; justify-content:center; border-bottom:1px solid #111; }
+    #nx-am-title { color:#e8e8e8; font-size:12px; font-weight:bold; }
+    #nx-am-items { flex:1; overflow-y:auto; scrollbar-width:none; padding:2px 0; }
+    #nx-am-items::-webkit-scrollbar { display:none; }
+    .nx-am-item { padding:4px 10px; font-size:12px; cursor:pointer; color:#000; display:flex; align-items:center; justify-content:space-between; white-space:nowrap; }
+    .nx-am-item:hover { background:#2244aa; color:#fff; }
+    .nx-am-key { font-size:10px; color:#888; }
+    .nx-am-item:hover .nx-am-key { color:#aac; }
+    .nx-am-sep { height:1px; background:#888; margin:3px 8px; }
+    /* Main window area */
+    #nx-main { flex:1; min-width:0; display:flex; flex-direction:column; padding:8px 6px 8px 8px; }
+    /* Workspace window — light gray content */
+    #nx-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#c8c8c8; border:1px solid #555; box-shadow:2px 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 #e8e8e8; }
+    /* Title bar — dark knurled NeXTSTEP texture */
+    #nx-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; padding:0 4px; border-bottom:1px solid #111; }
+    #nx-tb-btns { display:flex; gap:3px; flex-shrink:0; }
+    .nx-tbtn { width:14px; height:14px; border:1px solid #111; cursor:pointer; flex-shrink:0; }
+    #nx-tbtn-close { background:#999; }
+    #nx-tbtn-close:hover { background:#cc4444; }
+    #nx-tbtn-mini { background:#777; }
+    #nx-tbtn-mini:hover { background:#aaa; }
+    #nx-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#e8e8e8; }
+    /* Shelf — light gray, NeXT-style icon tiles */
+    #nx-shelf { flex-shrink:0; background:#b8b8b8; border-bottom:1px solid #888; display:flex; align-items:center; gap:3px; padding:4px 6px; min-height:38px; box-shadow:inset 0 -1px 0 #aaa; }
+    #nx-shelf-label { font-size:10px; color:#555; margin-right:4px; letter-spacing:0.5px; flex-shrink:0; }
+    .nx-shelf-item { display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; padding:2px 4px; border:1px solid transparent; }
+    .nx-shelf-item:hover { background:#d0d0d0; border-color:#888; }
+    .nx-shelf-item.nx-shelf-active { background:#2244aa; border-color:#1a3388; }
+    .nx-shelf-icon { font-size:16px; line-height:1; }
+    .nx-shelf-label { font-size:9px; color:#333; white-space:nowrap; }
+    .nx-shelf-item.nx-shelf-active .nx-shelf-label { color:#fff; }
+    /* Column browser */
+    #nx-browser { flex:1; min-height:0; display:flex; flex-direction:row; }
+    /* Left column — categories, slightly darker gray */
+    #nx-col1 { width:175px; flex-shrink:0; background:#b0b0b0; border-right:2px solid #888; overflow-y:auto; display:flex; flex-direction:column; scrollbar-width:none; }
+    #nx-col1::-webkit-scrollbar { display:none; }
+    #nx-col1-hdr { font-size:10px; font-weight:bold; color:#555; padding:5px 10px 3px; text-transform:uppercase; letter-spacing:0.8px; border-bottom:1px solid #888; flex-shrink:0; background:#a8a8a8; }
+    .nx-cat-item { padding:4px 10px 4px 12px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; color:#000; white-space:nowrap; border-bottom:1px solid #a0a0a0; }
+    .nx-cat-item:hover { background:#c0c0c0; }
+    .nx-cat-item.nx-cat-active { background:#2244aa; color:#fff; }
+    .nx-cat-arrow { font-size:9px; color:#666; }
+    .nx-cat-item.nx-cat-active .nx-cat-arrow { color:#aac; }
+    .nx-cat-sep { height:1px; background:#888; margin:2px 0; }
+    .nx-cat-grp { font-size:10px; font-weight:bold; color:#555; padding:6px 10px 2px; text-transform:uppercase; letter-spacing:0.5px; background:#a8a8a8; }
+    /* Right column — file list, lightest gray */
+    #nx-col2 { flex:1; min-width:0; display:flex; flex-direction:column; background:#d8d8d8; }
+    #nx-col2-hdr { flex-shrink:0; background:#b8b8b8; border-bottom:2px solid #888; display:flex; align-items:center; }
+    .nx-ch { font-size:11px; font-weight:bold; color:#333; padding:3px 8px; border-right:1px solid #888; white-space:nowrap; display:flex; align-items:center; }
+    #nx-filelist { flex:1; overflow-y:auto; background:#d8d8d8; scrollbar-width:thin; scrollbar-color:#888 #c0c0c0; }
+    .nx-row { display:flex; align-items:center; padding:3px 10px; cursor:pointer; border-bottom:1px solid #c4c4c4; font-size:12px; color:#000; gap:6px; }
+    .nx-row:hover { background:#c0c8e0; }
+    .nx-row.nx-sel { background:#2244aa; color:#fff; }
+    .nx-row-icon { font-size:13px; flex-shrink:0; }
+    .nx-row-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nx-row-store { width:80px; flex-shrink:0; font-size:11px; }
+    .nx-row-genre { width:100px; flex-shrink:0; font-size:11px; }
+    .nx-row-hltb { width:44px; flex-shrink:0; text-align:right; font-size:11px; }
+    /* Status bar */
+    #nx-statusbar { flex-shrink:0; height:18px; background:#a8a8a8; border-top:1px solid #888; display:flex; align-items:center; padding:0 10px; gap:16px; font-size:11px; color:#333; }
+    #nx-status-sep { flex:1; }
+    /* Dock — right side, dark (NeXTSTEP Dock was always dark) */
+    #nx-dock { width:72px; flex-shrink:0; background:#1c1c1c; border-left:1px solid #111; display:flex; flex-direction:column; align-items:center; padding:8px 0; gap:4px; overflow-y:auto; scrollbar-width:none; }
+    #nx-dock::-webkit-scrollbar { display:none; }
+    /* NeXT logo tile — the iconic colored letters on black */
+    #nx-dock-logo { width:56px; height:56px; background:#000; border:1px solid #333; display:flex; align-items:center; justify-content:center; margin-bottom:6px; flex-shrink:0; font-size:14px; font-weight:900; text-align:center; letter-spacing:-1px; cursor:pointer; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; line-height:1; }
+    #nx-dock-logo:hover { border-color:#666; }
+    #nx-dock-logo span.r { color:#cc2222; }
+    #nx-dock-logo span.y { color:#ddaa00; }
+    #nx-dock-logo span.c { color:#22aacc; }
+    #nx-dock-logo span.w { color:#ffffff; }
+    #nx-dock-sep { width:44px; height:1px; background:#333; flex-shrink:0; margin:2px 0; }
+    /* Dock icon tiles — NeXT-style gray square tiles with subtle 3D gradient */
+    .nx-dock-btn { width:56px; height:56px; background:linear-gradient(145deg,#c8c8c8 0%,#a0a0a0 60%,#888 100%); border:1px solid #555; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:3px; flex-shrink:0; box-shadow:1px 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 #e0e0e0; }
+    .nx-dock-btn:hover { background:linear-gradient(145deg,#d8d8d8 0%,#b0b0b0 60%,#989898 100%); }
+    .nx-dock-btn:active { background:linear-gradient(145deg,#909090 0%,#b0b0b0 100%); box-shadow:inset 1px 1px 3px rgba(0,0,0,0.3); }
+    .nx-dock-btn-icon { font-size:24px; line-height:1; }
+    .nx-dock-btn-label { font-size:8px; color:#222; text-align:center; line-height:1.1; font-weight:bold; }
+    /* Inspector panel */
+    #nx-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; }
+    #nx-gamepage.open { display:flex; }
+    #nx-gp-win { background:#c8c8c8; border:1px solid #444; box-shadow:3px 3px 12px rgba(0,0,0,0.5), inset 0 1px 0 #e8e8e8; width:440px; max-width:calc(100vw - 80px); max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; }
+    #nx-gp-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; padding:0 5px; gap:4px; border-bottom:1px solid #111; }
+    #nx-gp-close { width:14px; height:14px; background:#999; border:1px solid #111; cursor:pointer; flex-shrink:0; }
+    #nx-gp-close:hover { background:#cc4444; }
+    #nx-gp-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#e8e8e8; }
+    #nx-gp-body { display:flex; flex:1; min-height:0; overflow:hidden; }
+    #nx-gp-left { width:140px; flex-shrink:0; background:#b8b8b8; border-right:1px solid #888; display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px; }
+    #nx-gp-cover-frame { width:110px; aspect-ratio:2/3; border:1px solid #555; background:#888; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 1px 1px 0 #e0e0e0, 1px 1px 4px rgba(0,0,0,0.3); }
+    #nx-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #nx-gp-cover-ph { font-size:28px; }
+    #nx-gp-game-name { font-size:11px; text-align:center; color:#222; word-break:break-word; line-height:1.3; font-weight:bold; }
+    #nx-gp-info { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:2px; background:#d0d0d0; }
+    .nx-info-row { display:flex; font-size:12px; color:#000; gap:8px; line-height:1.7; border-bottom:1px solid #bbb; }
+    .nx-info-key { width:72px; flex-shrink:0; color:#555; }
+    #nx-gp-desc { font-size:11px; color:#444; margin-top:8px; border-top:1px solid #aaa; padding-top:8px; line-height:1.6; }
+    #nx-gp-footer { flex-shrink:0; display:flex; gap:6px; padding:8px 12px; border-top:1px solid #888; background:#b8b8b8; flex-wrap:wrap; justify-content:flex-end; }
+    .nx-btn { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#c8c8c8; border:1px solid #555; color:#000; padding:4px 16px; cursor:pointer; box-shadow:inset 0 1px 0 #e8e8e8, inset 0 -1px 0 #aaa; }
+    .nx-btn:hover { background:#d8d8d8; }
+    .nx-btn:active { box-shadow:inset 1px 1px 3px rgba(0,0,0,0.2); }
+    .nx-btn-run { background:#2244aa; border-color:#1a3388; color:#fff; box-shadow:inset 0 1px 0 #4466cc, inset 0 -1px 0 #112288; }
+    .nx-btn-run:hover { background:#2a55cc; }
+    /* Modal theming — vintage gray NeXTSTEP */
+    body.layout-nextstep .modal-overlay * { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif !important; }
+    body.layout-nextstep .modal-overlay { background:rgba(0,0,0,0.5) !important; }
+    body.layout-nextstep .modal-box { background:#c8c8c8 !important; border:1px solid #444 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.5), inset 0 1px 0 #e8e8e8 !important; color:#000 !important; overflow:hidden !important; }
+    body.layout-nextstep .modal-box h2, body.layout-nextstep .modal-box h3 { background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px) !important; color:#e8e8e8 !important; font-size:12px !important; font-weight:bold !important; text-shadow:none !important; padding:5px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:1px solid #111 !important; }
+    body.layout-nextstep .modal-box p, body.layout-nextstep .modal-box label { color:#000 !important; }
+    body.layout-nextstep .modal-box a { color:#2244aa !important; }
+    body.layout-nextstep .modal-box code { background:#aaa !important; color:#000 !important; border:1px solid #666 !important; border-radius:0 !important; }
+    body.layout-nextstep .modal-box hr { border-color:#999 !important; }
+    body.layout-nextstep .modal-box button, body.layout-nextstep .modal-box .btn, body.layout-nextstep .modal-box .primary { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8, inset 0 -1px 0 #aaa !important; cursor:pointer !important; padding:4px 14px !important; }
+    body.layout-nextstep .modal-box button:hover { background:#d8d8d8 !important; transform:none !important; }
+    body.layout-nextstep .modal-box input, body.layout-nextstep .modal-box select, body.layout-nextstep .modal-box textarea { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep .modal-box .tool-card { background:#b8b8b8 !important; border:1px solid #888 !important; border-radius:0 !important; }
+    body.layout-nextstep .modal-box .tool-card-title { color:#000 !important; font-weight:bold !important; }
+    body.layout-nextstep .segmented-control { background:#b0b0b0 !important; border:1px solid #666 !important; border-radius:0 !important; }
+    body.layout-nextstep .segmented-btn { background:#c0c0c0 !important; border-right:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e0e0e0 !important; }
+    body.layout-nextstep .segmented-btn.active { background:#2244aa !important; color:#fff !important; transform:none !important; box-shadow:none !important; }
+    body.layout-nextstep .segmented-btn:hover:not(.active) { background:#d0d0d0 !important; transform:none !important; }
+    body.layout-nextstep #modal-welcome > div, body.layout-nextstep #modal-connect > div, body.layout-nextstep #modal-tools > div { background:#c8c8c8 !important; border:1px solid #444 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.5) !important; }
+    body.layout-nextstep #modal-connect h3, body.layout-nextstep #modal-tools h3 { background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px) !important; color:#e8e8e8 !important; border-bottom:1px solid #111 !important; border-radius:0 !important; }
+    body.layout-nextstep #connect-cards-container, body.layout-nextstep #tools-cards-container { background:#c8c8c8 !important; }
+    body.layout-nextstep #modal-connect .tool-card, body.layout-nextstep #modal-tools .tool-card { background:#b8b8b8 !important; border:1px solid #888 !important; border-radius:0 !important; }
+    body.layout-nextstep #modal-connect button, body.layout-nextstep #modal-tools button { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
+    body.layout-nextstep #modal-connect button:hover, body.layout-nextstep #modal-tools button:hover { background:#d8d8d8 !important; transform:none !important; }
+    body.layout-nextstep #modal-connect input { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep .btn-playlist-filter { background:#c0c0c0 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e0e0e0 !important; }
+    body.layout-nextstep .btn-playlist-filter:hover { background:#2244aa !important; color:#fff !important; box-shadow:none !important; }
+    body.layout-nextstep .pl-select-row { background:#c8c8c8 !important; color:#000 !important; border-bottom:1px solid #b0b0b0 !important; }
+    body.layout-nextstep .pl-select-row.pl-selected { background:#2244aa !important; color:#fff !important; }
+    body.layout-nextstep #view-details { background:#c8c8c8 !important; color:#000 !important; }
+    body.layout-nextstep #view-details input, body.layout-nextstep #view-details textarea, body.layout-nextstep #view-details select { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
+    body.layout-nextstep #view-details fieldset { border:1px solid #888 !important; border-radius:0 !important; background:#b8b8b8 !important; }
+    body.layout-nextstep #np-card { background:#c8c8c8 !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
+    body.layout-nextstep #btn-install-pick-steam, body.layout-nextstep #btn-install-pick-grinder { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; }
+/* ── Classic Amiga / Workbench 1.3 layout ───────────────────────────────── */
+    body.layout-amiga { --bg:#aaaaaa; --bg_panel:#888; --bg_menu:#888; --accent:#0055aa; --accent_alt:#ff8800; --accent_menu:#0055aa; --text_main:#000; --text_sec:#222; --text_dim:#555; --border:#000; --border_solid:#000; }
+    body.layout-amiga #titlebar { background:#000 !important; border-bottom:2px solid #0055aa !important; }
+    body.layout-amiga .titlebar-brand { color:#fff !important; font-family:'PxPlus IBM VGA8',monospace !important; }
+    body.layout-amiga .win-btn { color:#fff !important; }
+    body.layout-amiga .yt-search-item:hover, body.layout-amiga #modal-themes .theme-card:hover { transform:none !important; }
+    /* Shell */
+    #amiga-shell { display:none; flex-direction:column; font-family:'PxPlus IBM VGA8','Courier New',monospace; font-size:13px; background:#0055aa; image-rendering:pixelated; -webkit-font-smoothing:none; }
+    #app-container.layout-amiga #amiga-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
+    /* Screen bar */
+    #amiga-screenbar { height:18px; flex-shrink:0; background:#000; display:flex; align-items:center; padding:0; }
+    #amiga-sb-back { color:#fff; cursor:pointer; padding:0 8px; line-height:18px; }
+    #amiga-sb-back:hover { background:#0055aa; }
+    #amiga-sb-title { flex:1; color:#fff; text-align:center; font-size:13px; }
+    .amiga-sm { color:#fff; font-size:13px; padding:0 8px; cursor:pointer; line-height:18px; white-space:nowrap; }
+    .amiga-sm:hover { background:#0055aa; }
+    #amiga-sb-depth { color:#fff; cursor:pointer; padding:0 6px; line-height:18px; }
+    /* Desktop */
+    #amiga-desktop { flex:1; min-height:0; background:#0055aa; display:flex; flex-direction:column; padding:8px 8px 4px; gap:6px; box-sizing:border-box; }
+    /* Main window */
+    #amiga-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#aaaaaa; border:2px solid #000; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    /* Window title bar */
+    #amiga-wintitlebar { height:20px; flex-shrink:0; background:#0055aa; display:flex; align-items:center; padding:1px 2px; gap:2px; border-bottom:2px solid #000; }
+    #amiga-close-gadget { width:16px; height:16px; flex-shrink:0; background:#aaaaaa; border:2px solid #000; cursor:pointer; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    #amiga-close-gadget:hover { background:#ff8800; }
+    #amiga-wintitle { flex:1; color:#fff; font-size:13px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; }
+    #amiga-depth-gadgets { display:flex; gap:2px; flex-shrink:0; }
+    .amiga-dg { width:12px; height:16px; background:#aaaaaa; border:2px solid #000; cursor:pointer; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    .amiga-dg:hover { background:#0055aa; }
+    /* Filter bar */
+    #amiga-filterbar { flex-shrink:0; background:#888888; border-bottom:2px solid #000; border-top:1px solid #ccc; display:flex; gap:3px; padding:3px 5px; flex-wrap:wrap; }
+    .amiga-flt { font-family:'PxPlus IBM VGA8',monospace; font-size:11px; background:#aaaaaa; border:2px solid #000; color:#000; padding:1px 8px; cursor:pointer; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    .amiga-flt:hover { background:#0055aa; color:#fff; box-shadow:none; }
+    .amiga-flt.amiga-flt-active { background:#ff8800; color:#000; box-shadow:inset -1px -1px 0 #fff, inset 1px 1px 0 #854000; }
+    /* Column headers */
+    #amiga-col-hdr { flex-shrink:0; background:#888; border-bottom:1px solid #555; border-top:1px solid #ccc; display:flex; align-items:center; padding:1px 6px; font-size:11px; color:#000; }
+    .amiga-ch { overflow:hidden; white-space:nowrap; }
+    /* File list */
+    #amiga-filelist { flex:1; min-height:0; overflow-y:auto; background:#aaaaaa; scrollbar-width:thin; scrollbar-color:#888 #aaa; }
+    .amiga-row { display:flex; align-items:center; padding:1px 6px; cursor:pointer; border-bottom:1px solid #999; color:#000; font-family:'PxPlus IBM VGA8',monospace; font-size:12px; gap:4px; white-space:nowrap; }
+    .amiga-row:hover { background:#0055aa; color:#fff; }
+    .amiga-row.amiga-sel { background:#ff8800; color:#000; }
+    .amiga-row-icon { font-size:12px; flex-shrink:0; }
+    .amiga-row-name { flex:1; overflow:hidden; text-overflow:ellipsis; }
+    .amiga-row-store { width:88px; flex-shrink:0; font-size:10px; overflow:hidden; }
+    .amiga-row-genre { width:100px; flex-shrink:0; font-size:10px; overflow:hidden; }
+    .amiga-row-hltb { width:44px; flex-shrink:0; text-align:right; font-size:10px; }
+    /* Status bar */
+    #amiga-statusbar { height:18px; flex-shrink:0; background:#888; border-top:2px solid #555; border-top-color:#000; display:flex; align-items:center; padding:0 4px; gap:8px; font-size:11px; color:#000; }
+    #amiga-status-sep { flex:1; }
+    #amiga-size-gadget { width:14px; height:14px; background:#aaa; border:2px solid #000; cursor:se-resize; flex-shrink:0; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    /* Tool strip (desktop action icons) */
+    #amiga-toolstrip { flex-shrink:0; background:#0055aa; display:flex; gap:6px; padding:4px 8px 6px; flex-wrap:wrap; align-items:flex-end; }
+    .amiga-tool { display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; background:none; border:none; padding:2px; }
+    .amiga-tool-icon { width:38px; height:34px; background:#aaaaaa; border:2px solid #000; display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    .amiga-tool:hover .amiga-tool-icon { background:#ff8800; }
+    .amiga-tool-label { color:#fff; font-size:9px; font-family:'PxPlus IBM VGA8',monospace; text-align:center; padding:1px 3px; text-transform:uppercase; }
+    .amiga-tool:hover .amiga-tool-label { color:#ff8800; }
+    /* Gamepage "Information" window */
+    #amiga-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,34,0.55); align-items:center; justify-content:center; }
+    #amiga-gamepage.open { display:flex; }
+    #amiga-gp-win { background:#aaaaaa; border:2px solid #000; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555, 3px 3px 10px rgba(0,0,0,0.5); width:480px; max-width:calc(100vw - 60px); max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; font-family:'PxPlus IBM VGA8',monospace; }
+    #amiga-gp-titlebar { height:20px; flex-shrink:0; background:#0055aa; display:flex; align-items:center; padding:1px 2px; gap:2px; border-bottom:2px solid #000; }
+    #amiga-gp-close { width:16px; height:16px; flex-shrink:0; background:#aaa; border:2px solid #000; cursor:pointer; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    #amiga-gp-close:hover { background:#ff8800; }
+    #amiga-gp-wintitle { flex:1; color:#fff; font-size:13px; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .amiga-gp-dg { width:12px; height:16px; background:#aaa; border:2px solid #000; flex-shrink:0; }
+    #amiga-gp-body { display:flex; flex:1; min-height:0; overflow:hidden; }
+    #amiga-gp-left { width:140px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 8px; gap:8px; border-right:2px solid #888; background:#aaaaaa; }
+    #amiga-gp-cover-frame { width:108px; aspect-ratio:2/3; border:2px solid #000; background:#888; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    #amiga-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
+    #amiga-gp-cover-ph { font-size:28px; }
+    #amiga-gp-game-name { font-size:11px; text-align:center; color:#000; word-break:break-word; line-height:1.3; }
+    #amiga-gp-info { flex:1; overflow-y:auto; padding:8px 12px; display:flex; flex-direction:column; gap:2px; background:#bbbbbb; }
+    .amiga-info-row { display:flex; font-size:11px; color:#000; line-height:1.6; gap:6px; }
+    .amiga-info-key { width:72px; flex-shrink:0; color:#333; }
+    #amiga-gp-desc { font-size:10px; color:#333; margin-top:6px; border-top:1px solid #888; padding-top:6px; line-height:1.6; }
+    #amiga-gp-footer { flex-shrink:0; display:flex; gap:4px; padding:6px 8px; border-top:2px solid #000; background:#aaa; flex-wrap:wrap; }
+    .amiga-btn { font-family:'PxPlus IBM VGA8',monospace; font-size:11px; background:#aaaaaa; border:2px solid #000; color:#000; padding:3px 12px; cursor:pointer; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555; }
+    .amiga-btn:hover { background:#0055aa; color:#fff; box-shadow:none; }
+    .amiga-btn-run { background:#0055aa; color:#fff; box-shadow:inset -1px -1px 0 #003, inset 1px 1px 0 #4488dd; }
+    .amiga-btn-run:hover { background:#ff8800; color:#000; box-shadow:none; }
+    /* Amiga modal theming */
+    body.layout-amiga .modal-overlay * { font-family:'PxPlus IBM VGA8',monospace !important; }
+    body.layout-amiga .modal-overlay { background:rgba(0,0,34,0.65) !important; }
+    body.layout-amiga .modal-box { background:#aaaaaa !important; border:2px solid #000 !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555, 3px 3px 10px rgba(0,0,0,0.5) !important; color:#000 !important; overflow:hidden !important; }
+    body.layout-amiga .modal-box h2, body.layout-amiga .modal-box h3 { background:#0055aa !important; color:#fff !important; font-size:13px !important; font-weight:normal !important; text-shadow:none !important; padding:4px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:2px solid #000 !important; }
+    body.layout-amiga .modal-box p, body.layout-amiga .modal-box label { color:#000 !important; }
+    body.layout-amiga .modal-box a { color:#0055aa !important; }
+    body.layout-amiga .modal-box code { background:#888 !important; color:#fff !important; border:1px solid #000 !important; border-radius:0 !important; }
+    body.layout-amiga .modal-box hr { border-color:#888 !important; }
+    body.layout-amiga .modal-box button, body.layout-amiga .modal-box .btn, body.layout-amiga .modal-box .primary { background:#aaaaaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; cursor:pointer !important; padding:3px 12px !important; }
+    body.layout-amiga .modal-box button:hover, body.layout-amiga .modal-box .btn:hover { background:#0055aa !important; color:#fff !important; box-shadow:none !important; transform:none !important; }
+    body.layout-amiga .modal-box input, body.layout-amiga .modal-box select, body.layout-amiga .modal-box textarea { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-amiga .modal-box .tool-card { background:#888 !important; border:2px solid #000 !important; border-radius:0 !important; }
+    body.layout-amiga .modal-box .tool-card-title { color:#fff !important; }
+    body.layout-amiga .segmented-control { background:#888 !important; border:2px solid #000 !important; border-radius:0 !important; }
+    body.layout-amiga .segmented-btn { background:#aaa !important; border-right:1px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; }
+    body.layout-amiga .segmented-btn.active { background:#ff8800 !important; color:#000 !important; transform:none !important; box-shadow:none !important; }
+    body.layout-amiga .segmented-btn:hover:not(.active) { background:#0055aa !important; color:#fff !important; transform:none !important; box-shadow:none !important; }
+    body.layout-amiga #modal-welcome > div, body.layout-amiga #modal-connect > div, body.layout-amiga #modal-tools > div { background:#aaaaaa !important; border:2px solid #000 !important; border-radius:0 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555, 3px 3px 10px rgba(0,0,0,0.5) !important; }
+    body.layout-amiga #modal-connect h3, body.layout-amiga #modal-tools h3 { background:#0055aa !important; color:#fff !important; border-bottom:2px solid #000 !important; border-radius:0 !important; }
+    body.layout-amiga #connect-cards-container, body.layout-amiga #tools-cards-container { background:#aaaaaa !important; }
+    body.layout-amiga #modal-connect .tool-card, body.layout-amiga #modal-tools .tool-card { background:#888 !important; border:2px solid #000 !important; border-radius:0 !important; }
+    body.layout-amiga #modal-connect button, body.layout-amiga #modal-tools button { background:#aaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; }
+    body.layout-amiga #modal-connect button:hover, body.layout-amiga #modal-tools button:hover { background:#0055aa !important; color:#fff !important; box-shadow:none !important; transform:none !important; }
+    body.layout-amiga #modal-connect input, body.layout-amiga #modal-tools input { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-amiga .btn-playlist-filter { background:#aaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; }
+    body.layout-amiga .btn-playlist-filter:hover { background:#0055aa !important; color:#fff !important; box-shadow:none !important; }
+    body.layout-amiga .pl-select-row { background:#bbb !important; color:#000 !important; border-bottom:1px solid #888 !important; }
+    body.layout-amiga .pl-select-row.pl-selected { background:#ff8800 !important; color:#000 !important; }
+    body.layout-amiga #view-details { background:#aaa !important; color:#000 !important; }
+    body.layout-amiga #view-details input, body.layout-amiga #view-details textarea, body.layout-amiga #view-details select { background:#fff !important; border:2px inset #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-amiga #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#aaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; }
+    body.layout-amiga #view-details fieldset { border:2px solid #000 !important; border-radius:0 !important; background:#bbb !important; }
+    body.layout-amiga #np-card { background:#aaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #fff, inset -1px -1px 0 #555 !important; }
+    body.layout-amiga #btn-install-pick-steam, body.layout-amiga #btn-install-pick-grinder { background:#aaa !important; border:2px solid #000 !important; border-radius:0 !important; color:#000 !important; }
 /* ── Windows XP layout ──────────────────────────────────────────────────── */
     body.layout-xp { --xp-blue:#316ac5; --xp-bg:#ece9d8; }
     #xp-shell { display:none; flex-direction:column; font-family:Tahoma,'MS Sans Serif',sans-serif; font-size:11px; }
@@ -2930,6 +3626,611 @@
       </div>
     </div>
   </div>
+  <!-- ── WINDOWS 95 SHELL ───────────────────────────────────────────────── -->
+  <div id="w95-shell">
+    <div id="w95-desktop">
+      <!-- Desktop icons -->
+      <div id="w95-desktop-icons">
+        <div class="w95-icon" id="w95-icon-lib"><div class="w95-icon-img">🖥</div><div class="w95-icon-label">My Games</div></div>
+        <div class="w95-icon" id="w95-icon-crema"><div class="w95-icon-img">🎮</div><div class="w95-icon-label">CREMA</div></div>
+        <div class="w95-icon" id="w95-icon-grinder"><div class="w95-icon-img">⚙️</div><div class="w95-icon-label">GRINDER</div></div>
+        <div class="w95-icon" id="w95-icon-emulatte"><div class="w95-icon-img">👾</div><div class="w95-icon-label">EmuLatte</div></div>
+        <div class="w95-icon" id="w95-icon-recycle"><div class="w95-icon-img">🗑</div><div class="w95-icon-label">Recycle Bin</div></div>
+      </div>
+      <!-- Explorer window -->
+      <div id="w95-window">
+        <div id="w95-titlebar">
+          <span id="w95-tb-icon">🖥</span>
+          <span id="w95-wintitle">Game Library</span>
+          <div id="w95-winctrls">
+            <div class="w95-wc" id="w95-wc-min" title="Minimize">_</div>
+            <div class="w95-wc" id="w95-wc-max" title="Maximize">□</div>
+            <div class="w95-wc" id="w95-wc-close" title="Close">✕</div>
+          </div>
+        </div>
+        <div id="w95-menubar">
+          <span class="w95-mi" id="w95-mi-file">File</span>
+          <span class="w95-mi" id="w95-mi-edit">Edit</span>
+          <span class="w95-mi" id="w95-mi-view">View</span>
+          <span class="w95-mi" id="w95-mi-go">Go</span>
+          <span class="w95-mi" id="w95-mi-fav">Favorites</span>
+          <span class="w95-mi" id="w95-mi-help">Help</span>
+        </div>
+        <div id="w95-toolbar">
+          <button class="w95-tbtn" id="w95-tb-back" disabled>◀ Back</button>
+          <button class="w95-tbtn" id="w95-tb-fwd" disabled>Forward ▶</button>
+          <div class="w95-tb-sep"></div>
+          <button class="w95-tbtn" id="w95-tb-add">🖥 Add Game</button>
+          <button class="w95-tbtn" id="w95-tb-refresh">🔄 Refresh</button>
+          <div class="w95-tb-sep"></div>
+          <button class="w95-tbtn" id="w95-tb-connect">🌐 Connect</button>
+          <button class="w95-tbtn" id="w95-tb-tools">🔧 Tools</button>
+        </div>
+        <div id="w95-addrbar">
+          <span id="w95-addr-label">Address</span>
+          <input id="w95-addr-input" type="text" readonly value="C:\CNGM\Games\All Games">
+        </div>
+        <div id="w95-split">
+          <div id="w95-tree">
+            <div class="w95-tree-grp">Library</div>
+            <div class="w95-tree-item w95-tree-active" data-wf="all">🖥 All Games</div>
+            <div class="w95-tree-item" data-wf="installed">✅ Installed</div>
+            <div class="w95-tree-item" data-wf="favs">⭐ Favourites</div>
+            <div class="w95-tree-item" data-wf="want">🔖 Want to Play</div>
+            <div class="w95-tree-sep"></div>
+            <div class="w95-tree-grp">By Store</div>
+            <div class="w95-tree-item" data-wf="steam">🎮 Steam</div>
+            <div class="w95-tree-item" data-wf="gog">🟣 GOG</div>
+            <div class="w95-tree-item" data-wf="epic">🔵 Epic</div>
+            <div class="w95-tree-item" data-wf="flatpak">📦 Flatpak</div>
+            <div class="w95-tree-item" data-wf="pico8">🕹 PICO-8</div>
+            <div class="w95-tree-item" data-wf="itch">🎲 itch.io</div>
+            <div class="w95-tree-item" data-wf="others">📁 Others</div>
+          </div>
+          <div id="w95-list-area">
+            <div id="w95-col-hdr">
+              <span class="w95-ch" style="width:20px;flex-shrink:0;padding:2px;"></span>
+              <span class="w95-ch" style="flex:1;">Name</span>
+              <span class="w95-ch" style="width:88px;">Store</span>
+              <span class="w95-ch" style="width:100px;">Genre</span>
+              <span class="w95-ch" style="width:44px;text-align:right;">HLTB</span>
+            </div>
+            <div id="w95-filelist"></div>
+          </div>
+        </div>
+        <div id="w95-statusbar">
+          <div class="w95-sb-pane" id="w95-status-count">0 object(s)</div>
+          <div id="w95-sb-sep"></div>
+          <div class="w95-sb-pane" id="w95-status-sel"></div>
+        </div>
+      </div>
+      <!-- Taskbar -->
+      <div id="w95-taskbar">
+        <button id="w95-start-btn"><span id="w95-start-logo">⊞</span> Start</button>
+        <div class="w95-tb-sep2"></div>
+        <div id="w95-task-area">
+          <div class="w95-task-btn w95-task-active">🖥 Game Library</div>
+        </div>
+        <div id="w95-systray">
+          <span>🔊</span>
+          <div id="w95-clock">12:00</div>
+        </div>
+      </div>
+      <!-- Start menu -->
+      <div id="w95-startmenu">
+        <div id="w95-sm-sidebar"><div id="w95-sm-sidebar-text">Windows 95</div></div>
+        <div id="w95-sm-items">
+          <div class="w95-sm-item" id="w95-sm-add">🖥 Add Game</div>
+          <div class="w95-sm-item" id="w95-sm-playlists">📋 Playlists</div>
+          <div class="w95-sm-sep"></div>
+          <div class="w95-sm-item" id="w95-sm-crema">🎮 CREMA</div>
+          <div class="w95-sm-item" id="w95-sm-grinder">⚙️ GRINDER</div>
+          <div class="w95-sm-item" id="w95-sm-emulatte">👾 EmuLatte</div>
+          <div class="w95-sm-sep"></div>
+          <div class="w95-sm-item" id="w95-sm-connect">🌐 Connect</div>
+          <div class="w95-sm-item" id="w95-sm-tools">🔧 Control Panel</div>
+          <div class="w95-sm-item" id="w95-sm-about">ℹ️ About CNGM</div>
+          <div class="w95-sm-sep"></div>
+          <div class="w95-sm-item" id="w95-sm-exit">🚪 Exit to Library</div>
+        </div>
+      </div>
+    </div>
+    <!-- Properties dialog -->
+    <div id="w95-gamepage">
+      <div id="w95-gp-win">
+        <div id="w95-gp-titlebar">
+          <span id="w95-gp-icon">🖥</span>
+          <span id="w95-gp-wintitle">Game Properties</span>
+          <div id="w95-gp-close">✕</div>
+        </div>
+        <div id="w95-gp-tabs">
+          <div class="w95-tab w95-tab-active" data-w95tab="general">General</div>
+          <div class="w95-tab" data-w95tab="details">Details</div>
+        </div>
+        <!-- General tab -->
+        <div class="w95-gp-panel active" id="w95-gp-general">
+          <div id="w95-gp-cover-col">
+            <div id="w95-gp-cover-frame">
+              <img id="w95-gp-cover-img" src="" alt="" style="display:none;">
+              <span id="w95-gp-cover-ph">🖥</span>
+            </div>
+            <div id="w95-gp-game-name"></div>
+          </div>
+          <div id="w95-gp-info">
+            <div class="w95-info-row"><span class="w95-info-key">Store:</span><span id="w95-gp-store"></span></div>
+            <div class="w95-info-row"><span class="w95-info-key">Genre:</span><span id="w95-gp-genre"></span></div>
+            <div class="w95-info-row"><span class="w95-info-key">Developer:</span><span id="w95-gp-dev"></span></div>
+            <div class="w95-info-row"><span class="w95-info-key">Released:</span><span id="w95-gp-year"></span></div>
+            <div class="w95-info-row"><span class="w95-info-key">HLTB:</span><span id="w95-gp-hltb"></span></div>
+            <div class="w95-info-sep"></div>
+            <div class="w95-info-row"><span class="w95-info-key">Status:</span><span id="w95-gp-status"></span></div>
+          </div>
+        </div>
+        <!-- Details tab -->
+        <div class="w95-gp-panel" id="w95-gp-details">
+          <div id="w95-gp-desc-panel"></div>
+          <div class="w95-info-row" style="margin-top:6px;"><span class="w95-info-key">Proton:</span><span id="w95-gp-proton"></span></div>
+          <div class="w95-info-row"><span class="w95-info-key">Metacritic:</span><span id="w95-gp-meta"></span></div>
+        </div>
+        <div id="w95-gp-footer">
+          <button class="w95-btn" id="w95-gp-screenshots" style="display:none">📷 Screenshots</button>
+          <button class="w95-btn" id="w95-gp-trailer">🎬 Trailer</button>
+          <button class="w95-btn" id="w95-gp-edit">Edit Info</button>
+          <button class="w95-btn" id="w95-gp-cancel">Cancel</button>
+          <button class="w95-btn w95-btn-play" id="w95-gp-play">▶ Launch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── NeXTSTEP / WORKSPACE MANAGER SHELL ─────────────────────────────── -->
+  <div id="nx-shell">
+    <div id="nx-outer">
+      <!-- Application Menu — left vertical column, always visible (vintage NeXTSTEP) -->
+      <div id="nx-appmenu">
+        <div id="nx-am-titlebar"><span id="nx-am-title">CNGM</span></div>
+        <div id="nx-am-items">
+          <div class="nx-am-item" id="nx-am-info">Info… <span class="nx-am-key">⌘I</span></div>
+          <div class="nx-am-sep"></div>
+          <div class="nx-am-item" id="nx-am-add">Add Game <span class="nx-am-key">⌘N</span></div>
+          <div class="nx-am-item" id="nx-am-connect">Connect… <span class="nx-am-key">⌘C</span></div>
+          <div class="nx-am-item" id="nx-am-tools">Tools… <span class="nx-am-key">⌘T</span></div>
+          <div class="nx-am-item" id="nx-am-playlists">Playlists <span class="nx-am-key">⌘P</span></div>
+          <div class="nx-am-item" id="nx-am-refresh">Refresh <span class="nx-am-key">⌘R</span></div>
+          <div class="nx-am-sep"></div>
+          <div class="nx-am-item" id="nx-am-crema">CREMA</div>
+          <div class="nx-am-item" id="nx-am-grinder">GRINDER</div>
+          <div class="nx-am-item" id="nx-am-emulatte">EmuLatte</div>
+          <div class="nx-am-sep"></div>
+          <div class="nx-am-item" id="nx-am-exit">Close <span class="nx-am-key">⌘W</span></div>
+        </div>
+      </div>
+      <div id="nx-main">
+        <div id="nx-window">
+          <!-- Title bar with NeXT pinstripe texture -->
+          <div id="nx-titlebar">
+            <div id="nx-tb-btns">
+              <div class="nx-tbtn" id="nx-tbtn-close" title="Close"></div>
+              <div class="nx-tbtn" id="nx-tbtn-mini" title="Miniaturize"></div>
+            </div>
+            <span id="nx-wintitle">Workspace Manager</span>
+          </div>
+          <!-- Shelf (quick filter icons) -->
+          <div id="nx-shelf">
+            <span id="nx-shelf-label">shelf</span>
+            <div class="nx-shelf-item nx-shelf-active" data-ns="all"><span class="nx-shelf-icon">🖥</span><span class="nx-shelf-label">All</span></div>
+            <div class="nx-shelf-item" data-ns="installed"><span class="nx-shelf-icon">✅</span><span class="nx-shelf-label">Installed</span></div>
+            <div class="nx-shelf-item" data-ns="favs"><span class="nx-shelf-icon">⭐</span><span class="nx-shelf-label">Favs</span></div>
+            <div class="nx-shelf-item" data-ns="steam"><span class="nx-shelf-icon">🎮</span><span class="nx-shelf-label">Steam</span></div>
+            <div class="nx-shelf-item" data-ns="gog"><span class="nx-shelf-icon">🟣</span><span class="nx-shelf-label">GOG</span></div>
+            <div class="nx-shelf-item" data-ns="epic"><span class="nx-shelf-icon">🔵</span><span class="nx-shelf-label">Epic</span></div>
+            <div class="nx-shelf-item" data-ns="flatpak"><span class="nx-shelf-icon">📦</span><span class="nx-shelf-label">Flatpak</span></div>
+            <div class="nx-shelf-item" data-ns="pico8"><span class="nx-shelf-icon">🕹</span><span class="nx-shelf-label">PICO-8</span></div>
+            <div class="nx-shelf-item" data-ns="itch"><span class="nx-shelf-icon">🎲</span><span class="nx-shelf-label">itch.io</span></div>
+            <div class="nx-shelf-item" data-ns="others"><span class="nx-shelf-icon">📁</span><span class="nx-shelf-label">Others</span></div>
+          </div>
+          <!-- Column browser -->
+          <div id="nx-browser">
+            <!-- Left column: categories -->
+            <div id="nx-col1">
+              <div id="nx-col1-hdr">Library</div>
+              <div class="nx-cat-item nx-cat-active" data-nc="all">All Games <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="installed">Installed <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="favs">Favourites <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="want">Want to Play <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-sep"></div>
+              <div class="nx-cat-grp">By Store</div>
+              <div class="nx-cat-item" data-nc="steam">Steam <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="gog">GOG <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="epic">Epic <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="flatpak">Flatpak <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="pico8">PICO-8 <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="itch">itch.io <span class="nx-cat-arrow">▶</span></div>
+              <div class="nx-cat-item" data-nc="others">Others <span class="nx-cat-arrow">▶</span></div>
+            </div>
+            <!-- Right column: file list -->
+            <div id="nx-col2">
+              <div id="nx-col2-hdr">
+                <span class="nx-ch" style="width:20px;flex-shrink:0;padding:4px 4px;"></span>
+                <span class="nx-ch" style="flex:1;">Name</span>
+                <span class="nx-ch" style="width:80px;">Store</span>
+                <span class="nx-ch" style="width:100px;">Genre</span>
+                <span class="nx-ch" style="width:44px;text-align:right;">HLTB</span>
+              </div>
+              <div id="nx-filelist"></div>
+            </div>
+          </div>
+          <!-- Status bar -->
+          <div id="nx-statusbar">
+            <span id="nx-status-count">0 items</span>
+            <span id="nx-status-sep"></span>
+            <span id="nx-status-sel"></span>
+          </div>
+        </div>
+      </div>
+      <!-- Dock (right) -->
+      <div id="nx-dock">
+        <div id="nx-dock-logo" title="About CNGM"><span class="r">N</span><span class="y">e</span><span class="c">X</span><span class="w">T</span></div>
+        <div id="nx-dock-sep"></div>
+        <div class="nx-dock-btn" id="nx-dk-add"><div class="nx-dock-btn-icon">🖥</div><div class="nx-dock-btn-label">Add Game</div></div>
+        <div class="nx-dock-btn" id="nx-dk-refresh"><div class="nx-dock-btn-icon">🔄</div><div class="nx-dock-btn-label">Refresh</div></div>
+        <div class="nx-dock-btn" id="nx-dk-connect"><div class="nx-dock-btn-icon">🌐</div><div class="nx-dock-btn-label">Connect</div></div>
+        <div class="nx-dock-btn" id="nx-dk-tools"><div class="nx-dock-btn-icon">🔧</div><div class="nx-dock-btn-label">Tools</div></div>
+        <div id="nx-dock-sep"></div>
+        <div class="nx-dock-btn" id="nx-dk-crema"><div class="nx-dock-btn-icon">🎮</div><div class="nx-dock-btn-label">CREMA</div></div>
+        <div class="nx-dock-btn" id="nx-dk-grinder"><div class="nx-dock-btn-icon">⚙️</div><div class="nx-dock-btn-label">GRINDER</div></div>
+        <div class="nx-dock-btn" id="nx-dk-emulatte"><div class="nx-dock-btn-icon">👾</div><div class="nx-dock-btn-label">EmuLatte</div></div>
+        <div id="nx-dock-sep"></div>
+        <div class="nx-dock-btn" id="nx-dk-playlists"><div class="nx-dock-btn-icon">📋</div><div class="nx-dock-btn-label">Playlists</div></div>
+        <div class="nx-dock-btn" id="nx-dk-about"><div class="nx-dock-btn-icon">ℹ️</div><div class="nx-dock-btn-label">About</div></div>
+      </div>
+    </div>
+    <!-- Inspector panel -->
+    <div id="nx-gamepage">
+      <div id="nx-gp-win">
+        <div id="nx-gp-titlebar">
+          <div id="nx-gp-close" title="Close"></div>
+          <span id="nx-gp-wintitle">Inspector</span>
+        </div>
+        <div id="nx-gp-body">
+          <div id="nx-gp-left">
+            <div id="nx-gp-cover-frame">
+              <img id="nx-gp-cover-img" src="" alt="" style="display:none;">
+              <span id="nx-gp-cover-ph">🖥</span>
+            </div>
+            <div id="nx-gp-game-name"></div>
+          </div>
+          <div id="nx-gp-info">
+            <div class="nx-info-row"><span class="nx-info-key">Store</span><span id="nx-gp-store"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">Genre</span><span id="nx-gp-genre"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">Developer</span><span id="nx-gp-dev"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">Released</span><span id="nx-gp-year"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">HLTB</span><span id="nx-gp-hltb"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">Proton</span><span id="nx-gp-proton"></span></div>
+            <div class="nx-info-row"><span class="nx-info-key">Status</span><span id="nx-gp-status"></span></div>
+            <div id="nx-gp-desc"></div>
+          </div>
+        </div>
+        <div id="nx-gp-footer">
+          <button class="nx-btn" id="nx-gp-screenshots" style="display:none">📷 Screenshots</button>
+          <button class="nx-btn" id="nx-gp-trailer">🎬 Trailer</button>
+          <button class="nx-btn" id="nx-gp-edit">Edit Info</button>
+          <button class="nx-btn" id="nx-gp-cancel">Cancel</button>
+          <button class="nx-btn nx-btn-run" id="nx-gp-play">▶ Launch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BeOS / TRACKER SHELL ───────────────────────────────────────────── -->
+  <div id="beos-shell">
+    <div id="beos-desktop">
+      <div id="beos-main">
+        <div id="beos-window">
+          <!-- Title tab (yellow gold) -->
+          <div id="beos-tab">
+            <div id="beos-tab-left">
+              <div class="beos-tab-stripe"></div>
+              <div class="beos-tab-stripe"></div>
+              <div id="beos-close-btn">✕</div>
+            </div>
+            <span id="beos-wintitle">Game Library — All Games</span>
+            <div id="beos-tab-right">
+              <div class="beos-winbtn" title="Minimize">_</div>
+              <div class="beos-winbtn" title="Zoom">□</div>
+            </div>
+          </div>
+          <!-- Menu bar -->
+          <div id="beos-menubar">
+            <span class="beos-mi" id="beos-mi-file">File</span>
+            <span class="beos-mi" id="beos-mi-edit">Edit</span>
+            <span class="beos-mi" id="beos-mi-view">View</span>
+            <span class="beos-mi" id="beos-mi-tools">Tools</span>
+            <span class="beos-mi" id="beos-mi-connect">Connect</span>
+          </div>
+          <!-- Content -->
+          <div id="beos-content">
+            <!-- Left nav panel -->
+            <div id="beos-nav">
+              <div id="beos-nav-title">Library</div>
+              <div class="beos-nav-item beos-nav-active" data-bf="all">📂 All Games</div>
+              <div class="beos-nav-item" data-bf="installed">✅ Installed</div>
+              <div class="beos-nav-item" data-bf="favs">⭐ Favourites</div>
+              <div class="beos-nav-item" data-bf="want">🔖 Want to Play</div>
+              <div class="beos-nav-sep"></div>
+              <div id="beos-nav-title" style="font-size:10px;font-weight:bold;color:#555;padding:4px 8px 2px;text-transform:uppercase;letter-spacing:.5px;">By Store</div>
+              <div class="beos-nav-item" data-bf="steam">🎮 Steam</div>
+              <div class="beos-nav-item" data-bf="gog">🟣 GOG</div>
+              <div class="beos-nav-item" data-bf="epic">🔵 Epic</div>
+              <div class="beos-nav-item" data-bf="flatpak">📦 Flatpak</div>
+              <div class="beos-nav-item" data-bf="pico8">🕹 PICO-8</div>
+              <div class="beos-nav-item" data-bf="itch">🎲 itch.io</div>
+              <div class="beos-nav-item" data-bf="others">📁 Others</div>
+            </div>
+            <!-- File list -->
+            <div id="beos-list-area">
+              <div id="beos-col-hdr">
+                <span class="beos-row-icon" style="flex-shrink:0;width:20px;"></span>
+                <span class="beos-row-name">Name</span>
+                <span class="beos-row-store">Store</span>
+                <span class="beos-row-genre">Genre</span>
+                <span class="beos-row-hltb">HLTB</span>
+              </div>
+              <div id="beos-filelist"></div>
+            </div>
+          </div>
+          <!-- Status bar -->
+          <div id="beos-statusbar">
+            <span id="beos-status-count">0 items</span>
+            <span id="beos-status-sep"></span>
+            <span id="beos-status-sel"></span>
+          </div>
+        </div>
+        <!-- Tool strip -->
+        <div id="beos-toolstrip">
+          <button class="beos-tool" id="beos-t-add">🖥 Add Game</button>
+          <button class="beos-tool" id="beos-t-refresh">🔄 Refresh</button>
+          <button class="beos-tool" id="beos-t-crema">🎮 CREMA</button>
+          <button class="beos-tool" id="beos-t-grinder">⚙️ GRINDER</button>
+          <button class="beos-tool" id="beos-t-emulatte">👾 EmuLatte</button>
+          <button class="beos-tool" id="beos-t-playlists">📋 Playlists</button>
+          <button class="beos-tool" id="beos-t-about">ℹ️ About</button>
+        </div>
+      </div>
+      <!-- Deskbar (right) -->
+      <div id="beos-deskbar">
+        <div id="beos-db-header">
+          <span id="beos-db-logo">🍃</span>
+          <span id="beos-db-name">BeOS</span>
+        </div>
+        <div id="beos-db-items">
+          <div class="beos-db-item" id="beos-db-add">🖥 Add Game</div>
+          <div class="beos-db-item" id="beos-db-connect">🌐 Connect</div>
+          <div class="beos-db-item" id="beos-db-tools">🔧 Tools</div>
+          <div class="beos-db-sep"></div>
+          <div class="beos-db-item" id="beos-db-crema">🎮 CREMA</div>
+          <div class="beos-db-item" id="beos-db-grinder">⚙️ GRINDER</div>
+          <div class="beos-db-item" id="beos-db-emulatte">👾 EmuLatte</div>
+          <div class="beos-db-sep"></div>
+          <div class="beos-db-item" id="beos-db-playlists">📋 Playlists</div>
+          <div class="beos-db-item" id="beos-db-about">ℹ️ About</div>
+        </div>
+        <div id="beos-db-clock">12:00</div>
+      </div>
+    </div>
+    <!-- BeOS gamepage "File Info" dialog -->
+    <div id="beos-gamepage">
+      <div id="beos-gp-win">
+        <div id="beos-gp-tab">
+          <div id="beos-gp-close">✕</div>
+          <span id="beos-gp-wintitle">File Info</span>
+          <div class="beos-gp-btn">□</div>
+        </div>
+        <div id="beos-gp-body">
+          <div id="beos-gp-left">
+            <div id="beos-gp-cover-frame">
+              <img id="beos-gp-cover-img" src="" alt="" style="display:none;">
+              <span id="beos-gp-cover-ph">🖥</span>
+            </div>
+            <div id="beos-gp-game-name"></div>
+          </div>
+          <div id="beos-gp-info">
+            <div class="beos-info-row"><span class="beos-info-key">Store</span><span id="beos-gp-store"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">Genre</span><span id="beos-gp-genre"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">Developer</span><span id="beos-gp-dev"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">Released</span><span id="beos-gp-year"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">HLTB</span><span id="beos-gp-hltb"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">Proton</span><span id="beos-gp-proton"></span></div>
+            <div class="beos-info-row"><span class="beos-info-key">Status</span><span id="beos-gp-status"></span></div>
+            <div id="beos-gp-desc"></div>
+          </div>
+        </div>
+        <div id="beos-gp-footer">
+          <button class="beos-btn" id="beos-gp-screenshots" style="display:none">📷 Screenshots</button>
+          <button class="beos-btn" id="beos-gp-trailer">🎬 Trailer</button>
+          <button class="beos-btn" id="beos-gp-edit">Edit Info</button>
+          <button class="beos-btn" id="beos-gp-close-btn">Cancel</button>
+          <button class="beos-btn beos-btn-run" id="beos-gp-play">▶ Launch</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CLASSIC AMIGA / WORKBENCH 1.3 SHELL ────────────────────────────── -->
+  <div id="amiga-shell">
+    <div id="amiga-screenbar">
+      <span id="amiga-sb-back">&#9664;</span>
+      <span id="amiga-sb-title">Workbench Screen</span>
+      <span class="amiga-sm" id="amiga-sm-tools">Tools</span>
+      <span class="amiga-sm" id="amiga-sm-connect">Connect</span>
+      <span class="amiga-sm" id="amiga-sm-add">Add Game</span>
+      <span class="amiga-sm" id="amiga-sm-about">About</span>
+      <span id="amiga-sb-depth">&#9635;</span>
+    </div>
+    <div id="amiga-desktop">
+      <div id="amiga-window">
+        <div id="amiga-wintitlebar">
+          <div id="amiga-close-gadget"></div>
+          <span id="amiga-wintitle">Game Library : All Games</span>
+          <div id="amiga-depth-gadgets">
+            <div class="amiga-dg"></div>
+            <div class="amiga-dg"></div>
+          </div>
+        </div>
+        <div id="amiga-filterbar">
+          <button class="amiga-flt amiga-flt-active" data-af="all">All</button>
+          <button class="amiga-flt" data-af="installed">Installed</button>
+          <button class="amiga-flt" data-af="favs">Favs</button>
+          <button class="amiga-flt" data-af="steam">Steam</button>
+          <button class="amiga-flt" data-af="gog">GOG</button>
+          <button class="amiga-flt" data-af="epic">Epic</button>
+          <button class="amiga-flt" data-af="flatpak">Flatpak</button>
+          <button class="amiga-flt" data-af="pico8">PICO-8</button>
+          <button class="amiga-flt" data-af="itch">itch.io</button>
+          <button class="amiga-flt" data-af="others">Others</button>
+        </div>
+        <div id="amiga-col-hdr">
+          <span class="amiga-ch" style="flex:1;">Name</span>
+          <span class="amiga-ch" style="width:88px;flex-shrink:0;">Store</span>
+          <span class="amiga-ch" style="width:100px;flex-shrink:0;">Genre</span>
+          <span class="amiga-ch" style="width:44px;flex-shrink:0;text-align:right;">HLTB</span>
+        </div>
+        <div id="amiga-filelist"></div>
+        <div id="amiga-statusbar">
+          <span id="amiga-status-count">0 items</span>
+          <span id="amiga-status-sep"></span>
+          <span id="amiga-status-sel"></span>
+          <div id="amiga-size-gadget"></div>
+        </div>
+      </div>
+      <div id="amiga-toolstrip">
+        <button class="amiga-tool" id="amiga-t-add"><div class="amiga-tool-icon">🖥</div><div class="amiga-tool-label">Add Game</div></button>
+        <button class="amiga-tool" id="amiga-t-refresh"><div class="amiga-tool-icon">🔄</div><div class="amiga-tool-label">Refresh</div></button>
+        <button class="amiga-tool" id="amiga-t-crema"><div class="amiga-tool-icon">🎮</div><div class="amiga-tool-label">CREMA</div></button>
+        <button class="amiga-tool" id="amiga-t-grinder"><div class="amiga-tool-icon">⚙️</div><div class="amiga-tool-label">GRINDER</div></button>
+        <button class="amiga-tool" id="amiga-t-emulatte"><div class="amiga-tool-icon">👾</div><div class="amiga-tool-label">EmuLatte</div></button>
+        <button class="amiga-tool" id="amiga-t-playlists"><div class="amiga-tool-icon">📋</div><div class="amiga-tool-label">Playlists</div></button>
+      </div>
+    </div>
+    <!-- Amiga gamepage "Information" window -->
+    <div id="amiga-gamepage">
+      <div id="amiga-gp-win">
+        <div id="amiga-gp-titlebar">
+          <div id="amiga-gp-close"></div>
+          <span id="amiga-gp-wintitle">Information</span>
+          <div class="amiga-gp-dg"></div>
+          <div class="amiga-gp-dg"></div>
+        </div>
+        <div id="amiga-gp-body">
+          <div id="amiga-gp-left">
+            <div id="amiga-gp-cover-frame">
+              <img id="amiga-gp-cover-img" src="" alt="" style="display:none;">
+              <span id="amiga-gp-cover-ph">🖥</span>
+            </div>
+            <div id="amiga-gp-game-name"></div>
+          </div>
+          <div id="amiga-gp-info">
+            <div class="amiga-info-row"><span class="amiga-info-key">Store</span><span id="amiga-gp-store"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">Genre</span><span id="amiga-gp-genre"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">Dev</span><span id="amiga-gp-dev"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">Year</span><span id="amiga-gp-year"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">HLTB</span><span id="amiga-gp-hltb"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">Proton</span><span id="amiga-gp-proton"></span></div>
+            <div class="amiga-info-row"><span class="amiga-info-key">Status</span><span id="amiga-gp-status"></span></div>
+            <div id="amiga-gp-desc"></div>
+          </div>
+        </div>
+        <div id="amiga-gp-footer">
+          <button class="amiga-btn amiga-btn-run" id="amiga-gp-play">&#9654; Run</button>
+          <button class="amiga-btn" id="amiga-gp-trailer">Trailer</button>
+          <button class="amiga-btn" id="amiga-gp-screenshots" style="display:none">Screenshots</button>
+          <button class="amiga-btn" id="amiga-gp-edit">Edit Info</button>
+          <button class="amiga-btn" id="amiga-gp-close">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMMODORE 64 SHELL ──────────────────────────────────────────────── -->
+  <div id="c64-shell">
+    <div id="c64-outer">
+      <div id="c64-screen">
+        <div id="c64-boot">    **** COMMODORE 64 BASIC V2 ****
+
+ 64K RAM SYSTEM  38911 BASIC BYTES FREE
+
+READY.
+LOAD "GAME LIBRARY",8,1
+LOADING...READY.</div>
+        <div id="c64-divider"></div>
+        <div id="c64-filter-row">
+          <button class="c64-flt c64-flt-active" data-c64f="all">ALL</button>
+          <button class="c64-flt" data-c64f="installed">INSTALLED</button>
+          <button class="c64-flt" data-c64f="favs">FAVS</button>
+          <button class="c64-flt" data-c64f="steam">STEAM</button>
+          <button class="c64-flt" data-c64f="gog">GOG</button>
+          <button class="c64-flt" data-c64f="epic">EPIC</button>
+          <button class="c64-flt" data-c64f="flatpak">FLATPAK</button>
+          <button class="c64-flt" data-c64f="pico8">PICO-8</button>
+          <button class="c64-flt" data-c64f="itch">ITCH.IO</button>
+          <button class="c64-flt" data-c64f="others">OTHERS</button>
+        </div>
+        <div id="c64-dir-header">  BLOCKS  NAME                            TYPE</div>
+        <div id="c64-list"></div>
+        <div id="c64-statusbar">
+          <span id="c64-blocks-free">38911 BLOCKS FREE.</span>
+          <span id="c64-sel-label">NOTHING SELECTED</span>
+        </div>
+        <div id="c64-prompt-line">READY.<span id="c64-cursor"></span></div>
+        <div id="c64-action-bar">
+          <button class="c64-btn" id="c64-act-add">+ ADD GAME</button>
+          <button class="c64-btn" id="c64-act-connect">CONNECT</button>
+          <button class="c64-btn" id="c64-act-tools">TOOLS</button>
+          <button class="c64-btn" id="c64-act-refresh">REFRESH LIB</button>
+          <button class="c64-btn" id="c64-act-crema">CREMA</button>
+          <button class="c64-btn" id="c64-act-emulatte">EMULATTE</button>
+          <button class="c64-btn" id="c64-act-grinder">GRINDER</button>
+          <button class="c64-btn" id="c64-act-playlists">PLAYLISTS</button>
+          <button class="c64-btn" id="c64-act-about">ABOUT</button>
+        </div>
+      </div>
+    </div>
+    <!-- C64 gamepage dialog -->
+    <div id="c64-gamepage">
+      <div id="c64-gpwin">
+        <div id="c64-gpbar">
+          <span id="c64-gp-bartitle">*** GAME PROPERTIES ***</span>
+          <button id="c64-gpbar-close">X</button>
+        </div>
+        <div id="c64-gpbody">
+          <div id="c64-gp-cover">
+            <div id="c64-gp-cover-frame">
+              <img id="c64-gp-cover-img" src="" alt="" style="display:none;">
+              <span id="c64-gp-cover-ph">■</span>
+            </div>
+            <div id="c64-gp-title"></div>
+          </div>
+          <div id="c64-gp-info">
+            <div class="c64-gp-row"><span class="c64-gp-key">STORE</span><span class="c64-gp-val" id="c64-gp-store"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">GENRE</span><span class="c64-gp-val" id="c64-gp-genre"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">DEV</span><span class="c64-gp-val" id="c64-gp-dev"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">YEAR</span><span class="c64-gp-val" id="c64-gp-year"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">HLTB</span><span class="c64-gp-val" id="c64-gp-hltb"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">PROTON</span><span class="c64-gp-val" id="c64-gp-proton"></span></div>
+            <div class="c64-gp-row"><span class="c64-gp-key">STATUS</span><span class="c64-gp-val" id="c64-gp-status"></span></div>
+            <div id="c64-gp-desc"></div>
+          </div>
+        </div>
+        <div id="c64-gpfooter">
+          <button class="c64-btn c64-btn-run" id="c64-gp-play">RUN</button>
+          <button class="c64-btn" id="c64-gp-trailer">LOAD TRAILER</button>
+          <button class="c64-btn" id="c64-gp-screenshots" style="display:none">LIST SCREENS</button>
+          <button class="c64-btn" id="c64-gp-edit">POKE INFO</button>
+          <button class="c64-btn" id="c64-gp-close">SYS 64738</button>
+        </div>
+      </div>
+    </div>
+  </div>
   </div><!-- /#app-container -->
 
   <!-- ── FLAT DETAIL OVERLAY — shown when clicking a game from any flat layout ─ -->
@@ -3336,6 +4637,11 @@
             <button class="segmented-btn lsc-full" data-val="mac">Mac OS 1.0</button>
             <button class="segmented-btn lsc-full" data-val="xp">Windows XP</button>
             <button class="segmented-btn lsc-full" data-val="kde">Mandrake Linux 9</button>
+            <button class="segmented-btn lsc-full" data-val="c64">Commodore 64</button>
+            <button class="segmented-btn lsc-full" data-val="amiga">Amiga Workbench</button>
+            <button class="segmented-btn lsc-full" data-val="beos">BeOS / Tracker</button>
+            <button class="segmented-btn lsc-full" data-val="w95">Windows 95</button>
+            <button class="segmented-btn lsc-full" data-val="nextstep">NeXTSTEP</button>
           </div>
         </div>
 
