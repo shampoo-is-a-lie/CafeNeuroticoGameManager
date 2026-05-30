@@ -1352,155 +1352,154 @@
     body.layout-w95 #view-details fieldset { border:2px inset #808080 !important; border-radius:0 !important; background:#d4d0c8 !important; }
     body.layout-w95 #np-card { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 1px 1px 0 #dfdfdf !important; }
     body.layout-w95 #btn-install-pick-steam, body.layout-w95 #btn-install-pick-grinder { background:#c0c0c0 !important; border:2px solid !important; border-color:#fff #808080 #808080 #fff !important; border-radius:0 !important; color:#000 !important; }
-/* ── NeXTSTEP / Workspace Manager layout (vintage gray) ──────────────────── */
-    body.layout-nextstep { --bg:#c8c8c8; --bg_panel:#b4b4b4; --bg_menu:#d0d0d0; --accent:#2244aa; --accent_alt:#3366cc; --accent_menu:#2244aa; --text_main:#000; --text_sec:#222; --text_dim:#666; --border:#888; --border_solid:#555; }
-    body.layout-nextstep #titlebar { background:#1a1a1a !important; border-bottom:2px solid #444 !important; }
-    body.layout-nextstep .titlebar-brand { color:#e0e0e0 !important; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif !important; }
+/* ── NeXTSTEP / Workspace Manager layout (from screenshot reference) ─────── */
+    body.layout-nextstep { --bg:#ffffff; --bg_panel:#e8e8e8; --bg_menu:#f0f0f0; --accent:#2244aa; --accent_alt:#3366cc; --accent_menu:#2244aa; --text_main:#000; --text_sec:#222; --text_dim:#666; --border:#aaa; --border_solid:#666; }
+    body.layout-nextstep #titlebar { background:#000 !important; border-bottom:2px solid #444 !important; }
+    body.layout-nextstep .titlebar-brand { color:#ddd !important; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif !important; }
     body.layout-nextstep .win-btn { color:#aaa !important; }
     body.layout-nextstep .yt-search-item:hover, body.layout-nextstep #modal-themes .theme-card:hover { transform:none !important; }
-    /* Shell — medium gray desktop, the real NeXTSTEP look */
-    #nx-shell { display:none; flex-direction:column; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#808080; color:#000; }
+    /* ── Shell: purple-blue desktop matching the reference screenshot */
+    #nx-shell { display:none; flex-direction:column; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#5a5a90; color:#000; }
     #app-container.layout-nextstep #nx-shell { display:flex !important; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:50; }
-    /* Outer: app-menu | main | dock */
-    #nx-outer { flex:1; min-height:0; display:flex; flex-direction:row; background:#808080; }
-    /* Application Menu — left column, always visible */
-    #nx-appmenu { width:148px; flex-shrink:0; display:flex; flex-direction:column; background:#d0d0d0; border-right:1px solid #555; box-shadow:2px 0 4px rgba(0,0,0,0.25); }
-    #nx-am-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; justify-content:center; border-bottom:1px solid #111; }
-    #nx-am-title { color:#e8e8e8; font-size:12px; font-weight:bold; }
-    #nx-am-items { flex:1; overflow-y:auto; scrollbar-width:none; padding:2px 0; }
+    #nx-outer { flex:1; min-height:0; display:flex; flex-direction:row; background:#5a5a90; gap:0; }
+    /* ── Application Menu: floating window on left, white body with dark title */
+    #nx-appmenu { width:144px; flex-shrink:0; display:flex; flex-direction:column; background:#f5f5f5; border:1px solid #888; border-top:none; border-left:none; box-shadow:2px 0 6px rgba(0,0,0,0.35); margin:10px 0 10px 10px; }
+    #nx-am-titlebar { height:20px; flex-shrink:0; background:repeating-linear-gradient(180deg,#a8a8a8 0px,#a8a8a8 1px,#929292 1px,#929292 2px); display:flex; align-items:center; justify-content:center; border-bottom:1px solid #666; }
+    #nx-am-title { color:#000; font-size:12px; font-weight:bold; }
+    #nx-am-items { flex:1; overflow-y:auto; scrollbar-width:none; }
     #nx-am-items::-webkit-scrollbar { display:none; }
-    .nx-am-item { padding:4px 10px; font-size:12px; cursor:pointer; color:#000; display:flex; align-items:center; justify-content:space-between; white-space:nowrap; }
+    .nx-am-item { padding:3px 8px 3px 12px; font-size:12px; cursor:pointer; color:#000; display:flex; align-items:center; justify-content:space-between; white-space:nowrap; line-height:1.5; }
     .nx-am-item:hover { background:#2244aa; color:#fff; }
-    .nx-am-key { font-size:10px; color:#888; }
+    .nx-am-key { font-size:11px; color:#888; margin-left:8px; }
     .nx-am-item:hover .nx-am-key { color:#aac; }
-    .nx-am-sep { height:1px; background:#888; margin:3px 8px; }
-    /* Main window area */
-    #nx-main { flex:1; min-width:0; display:flex; flex-direction:column; padding:8px 6px 8px 8px; }
-    /* Workspace window — light gray content */
-    #nx-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#c8c8c8; border:1px solid #555; box-shadow:2px 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 #e8e8e8; }
-    /* Title bar — dark knurled NeXTSTEP texture */
-    #nx-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; padding:0 4px; border-bottom:1px solid #111; }
+    .nx-am-sep { height:1px; background:#ccc; margin:1px 0; }
+    /* ── Main area */
+    #nx-main { flex:1; min-width:0; display:flex; flex-direction:column; padding:10px 6px 10px 8px; }
+    /* ── File Viewer window */
+    #nx-window { flex:1; min-height:0; display:flex; flex-direction:column; background:#fff; border:1px solid #555; box-shadow:2px 2px 8px rgba(0,0,0,0.5); }
+    /* Title bar: medium gray knurling, BLACK text (matches screenshot) */
+    #nx-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#adadad 0px,#adadad 1px,#979797 1px,#979797 2px); display:flex; align-items:center; padding:0 4px; border-bottom:1px solid #666; }
     #nx-tb-btns { display:flex; gap:3px; flex-shrink:0; }
-    .nx-tbtn { width:14px; height:14px; border:1px solid #111; cursor:pointer; flex-shrink:0; }
-    #nx-tbtn-close { background:#999; }
+    .nx-tbtn { width:13px; height:13px; border:1px solid #555; cursor:pointer; flex-shrink:0; background:#888; }
     #nx-tbtn-close:hover { background:#cc4444; }
-    #nx-tbtn-mini { background:#777; }
-    #nx-tbtn-mini:hover { background:#aaa; }
-    #nx-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#e8e8e8; }
-    /* Shelf — light gray, NeXT-style icon tiles */
-    #nx-shelf { flex-shrink:0; background:#b8b8b8; border-bottom:1px solid #888; display:flex; align-items:center; gap:3px; padding:4px 6px; min-height:38px; box-shadow:inset 0 -1px 0 #aaa; }
-    #nx-shelf-label { font-size:10px; color:#555; margin-right:4px; letter-spacing:0.5px; flex-shrink:0; }
-    .nx-shelf-item { display:flex; flex-direction:column; align-items:center; gap:1px; cursor:pointer; padding:2px 4px; border:1px solid transparent; }
-    .nx-shelf-item:hover { background:#d0d0d0; border-color:#888; }
-    .nx-shelf-item.nx-shelf-active { background:#2244aa; border-color:#1a3388; }
-    .nx-shelf-icon { font-size:16px; line-height:1; }
-    .nx-shelf-label { font-size:9px; color:#333; white-space:nowrap; }
-    .nx-shelf-item.nx-shelf-active .nx-shelf-label { color:#fff; }
-    /* Column browser */
+    #nx-tbtn-mini:hover { background:#bbbbbb; }
+    #nx-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#000; }
+    /* ── Icon view shelf: white bg, shows game cover art tiles */
+    #nx-iconshelf { flex-shrink:0; background:#fff; border-bottom:2px solid #aaa; display:flex; flex-direction:row; align-items:flex-start; gap:0; padding:8px 10px; overflow-x:auto; min-height:110px; max-height:110px; scrollbar-width:thin; scrollbar-color:#aaa #f0f0f0; }
+    #nx-iconshelf::-webkit-scrollbar { height:8px; }
+    #nx-iconshelf::-webkit-scrollbar-track { background:#f0f0f0; }
+    #nx-iconshelf::-webkit-scrollbar-thumb { background:#aaa; }
+    .nx-icon-tile { display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 6px; cursor:pointer; min-width:72px; max-width:72px; flex-shrink:0; }
+    .nx-icon-tile:hover { background:#dde8ff; }
+    .nx-icon-tile.nx-icon-sel { background:#2244aa; }
+    .nx-icon-frame { width:64px; height:64px; overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .nx-icon-img { width:64px; height:64px; object-fit:cover; display:block; }
+    .nx-icon-ph { width:64px; height:64px; background:linear-gradient(145deg,#e8e8e8 0%,#c0c0c0 60%,#aaaaaa 100%); border:1px solid #888; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .nx-icon-name { font-size:10px; color:#000; text-align:center; width:68px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.2; }
+    .nx-icon-tile.nx-icon-sel .nx-icon-name { color:#fff; }
+    /* ── Column browser */
     #nx-browser { flex:1; min-height:0; display:flex; flex-direction:row; }
-    /* Left column — categories, slightly darker gray */
-    #nx-col1 { width:175px; flex-shrink:0; background:#b0b0b0; border-right:2px solid #888; overflow-y:auto; display:flex; flex-direction:column; scrollbar-width:none; }
-    #nx-col1::-webkit-scrollbar { display:none; }
-    #nx-col1-hdr { font-size:10px; font-weight:bold; color:#555; padding:5px 10px 3px; text-transform:uppercase; letter-spacing:0.8px; border-bottom:1px solid #888; flex-shrink:0; background:#a8a8a8; }
-    .nx-cat-item { padding:4px 10px 4px 12px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; color:#000; white-space:nowrap; border-bottom:1px solid #a0a0a0; }
-    .nx-cat-item:hover { background:#c0c0c0; }
+    /* Left column: filter categories */
+    #nx-col1 { width:165px; flex-shrink:0; background:#f0f0f0; border-right:1px solid #aaa; overflow-y:auto; display:flex; flex-direction:column; scrollbar-width:thin; }
+    #nx-col1-hdr { font-size:10px; font-weight:bold; color:#555; padding:4px 10px 2px; text-transform:uppercase; letter-spacing:0.8px; border-bottom:1px solid #bbb; flex-shrink:0; background:#e0e0e0; }
+    .nx-cat-item { padding:3px 8px 3px 14px; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; color:#000; white-space:nowrap; border-bottom:1px solid #e0e0e0; }
+    .nx-cat-item:hover { background:#dde8ff; }
     .nx-cat-item.nx-cat-active { background:#2244aa; color:#fff; }
-    .nx-cat-arrow { font-size:9px; color:#666; }
+    .nx-cat-arrow { font-size:8px; color:#999; }
     .nx-cat-item.nx-cat-active .nx-cat-arrow { color:#aac; }
-    .nx-cat-sep { height:1px; background:#888; margin:2px 0; }
-    .nx-cat-grp { font-size:10px; font-weight:bold; color:#555; padding:6px 10px 2px; text-transform:uppercase; letter-spacing:0.5px; background:#a8a8a8; }
-    /* Right column — file list, lightest gray */
-    #nx-col2 { flex:1; min-width:0; display:flex; flex-direction:column; background:#d8d8d8; }
-    #nx-col2-hdr { flex-shrink:0; background:#b8b8b8; border-bottom:2px solid #888; display:flex; align-items:center; }
-    .nx-ch { font-size:11px; font-weight:bold; color:#333; padding:3px 8px; border-right:1px solid #888; white-space:nowrap; display:flex; align-items:center; }
-    #nx-filelist { flex:1; overflow-y:auto; background:#d8d8d8; scrollbar-width:thin; scrollbar-color:#888 #c0c0c0; }
-    .nx-row { display:flex; align-items:center; padding:3px 10px; cursor:pointer; border-bottom:1px solid #c4c4c4; font-size:12px; color:#000; gap:6px; }
-    .nx-row:hover { background:#c0c8e0; }
+    .nx-cat-sep { height:1px; background:#ccc; }
+    .nx-cat-grp { font-size:10px; font-weight:bold; color:#666; padding:5px 10px 1px; text-transform:uppercase; letter-spacing:0.5px; background:#e8e8e8; }
+    /* Right column: file list */
+    #nx-col2 { flex:1; min-width:0; display:flex; flex-direction:column; background:#fff; }
+    #nx-col2-hdr { flex-shrink:0; background:#e8e8e8; border-bottom:1px solid #aaa; display:flex; align-items:center; }
+    .nx-ch { font-size:11px; font-weight:bold; color:#444; padding:3px 8px; border-right:1px solid #bbb; white-space:nowrap; display:flex; align-items:center; }
+    #nx-filelist { flex:1; overflow-y:auto; background:#fff; scrollbar-width:thin; scrollbar-color:#aaa #f0f0f0; }
+    .nx-row { display:flex; align-items:center; padding:2px 10px; cursor:pointer; border-bottom:1px solid #eee; font-size:12px; color:#000; gap:6px; }
+    .nx-row:hover { background:#dde8ff; }
     .nx-row.nx-sel { background:#2244aa; color:#fff; }
-    .nx-row-icon { font-size:13px; flex-shrink:0; }
+    .nx-row-icon { font-size:12px; flex-shrink:0; }
     .nx-row-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .nx-row-store { width:80px; flex-shrink:0; font-size:11px; }
     .nx-row-genre { width:100px; flex-shrink:0; font-size:11px; }
     .nx-row-hltb { width:44px; flex-shrink:0; text-align:right; font-size:11px; }
     /* Status bar */
-    #nx-statusbar { flex-shrink:0; height:18px; background:#a8a8a8; border-top:1px solid #888; display:flex; align-items:center; padding:0 10px; gap:16px; font-size:11px; color:#333; }
+    #nx-statusbar { flex-shrink:0; height:18px; background:#e0e0e0; border-top:1px solid #aaa; display:flex; align-items:center; padding:0 10px; gap:16px; font-size:11px; color:#333; }
     #nx-status-sep { flex:1; }
-    /* Dock — right side, dark (NeXTSTEP Dock was always dark) */
-    #nx-dock { width:72px; flex-shrink:0; background:#1c1c1c; border-left:1px solid #111; display:flex; flex-direction:column; align-items:center; padding:8px 0; gap:4px; overflow-y:auto; scrollbar-width:none; }
+    /* ── Dock: dark strip on right with square icon tiles */
+    #nx-dock { width:66px; flex-shrink:0; background:#1a1a2a; display:flex; flex-direction:column; align-items:center; padding:6px 0; gap:4px; overflow-y:auto; scrollbar-width:none; }
     #nx-dock::-webkit-scrollbar { display:none; }
-    /* NeXT logo tile — the iconic colored letters on black */
-    #nx-dock-logo { width:56px; height:56px; background:#000; border:1px solid #333; display:flex; align-items:center; justify-content:center; margin-bottom:6px; flex-shrink:0; font-size:14px; font-weight:900; text-align:center; letter-spacing:-1px; cursor:pointer; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; line-height:1; }
-    #nx-dock-logo:hover { border-color:#666; }
+    #nx-dock-logo { width:52px; height:52px; background:#000; border:1px solid #444; display:flex; align-items:center; justify-content:center; margin-bottom:4px; flex-shrink:0; font-size:13px; font-weight:900; letter-spacing:-1px; cursor:pointer; line-height:1; }
+    #nx-dock-logo:hover { border-color:#888; }
     #nx-dock-logo span.r { color:#cc2222; }
     #nx-dock-logo span.y { color:#ddaa00; }
     #nx-dock-logo span.c { color:#22aacc; }
-    #nx-dock-logo span.w { color:#ffffff; }
-    #nx-dock-sep { width:44px; height:1px; background:#333; flex-shrink:0; margin:2px 0; }
-    /* Dock icon tiles — NeXT-style gray square tiles with subtle 3D gradient */
-    .nx-dock-btn { width:56px; height:56px; background:linear-gradient(145deg,#c8c8c8 0%,#a0a0a0 60%,#888 100%); border:1px solid #555; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:3px; flex-shrink:0; box-shadow:1px 1px 3px rgba(0,0,0,0.5), inset 0 1px 0 #e0e0e0; }
-    .nx-dock-btn:hover { background:linear-gradient(145deg,#d8d8d8 0%,#b0b0b0 60%,#989898 100%); }
-    .nx-dock-btn:active { background:linear-gradient(145deg,#909090 0%,#b0b0b0 100%); box-shadow:inset 1px 1px 3px rgba(0,0,0,0.3); }
-    .nx-dock-btn-icon { font-size:24px; line-height:1; }
-    .nx-dock-btn-label { font-size:8px; color:#222; text-align:center; line-height:1.1; font-weight:bold; }
-    /* Inspector panel */
-    #nx-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; }
+    #nx-dock-logo span.w { color:#fff; }
+    #nx-dock-sep { width:42px; height:1px; background:#333; flex-shrink:0; }
+    /* Dock tiles: white/light square icons, NeXT icon style */
+    .nx-dock-btn { width:52px; height:52px; background:#fff; border:1px solid #999; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; gap:2px; flex-shrink:0; box-shadow:1px 1px 4px rgba(0,0,0,0.5); }
+    .nx-dock-btn:hover { background:#eef2ff; border-color:#2244aa; }
+    .nx-dock-btn-icon { font-size:22px; line-height:1; }
+    .nx-dock-btn-label { font-size:7px; color:#333; text-align:center; line-height:1.1; }
+    .nx-dock-btn:hover .nx-dock-btn-label { color:#2244aa; }
+    /* ── Inspector (gamepage) */
+    #nx-gamepage { display:none; position:absolute; inset:0; z-index:60; background:rgba(0,0,80,0.4); align-items:center; justify-content:center; }
     #nx-gamepage.open { display:flex; }
-    #nx-gp-win { background:#c8c8c8; border:1px solid #444; box-shadow:3px 3px 12px rgba(0,0,0,0.5), inset 0 1px 0 #e8e8e8; width:440px; max-width:calc(100vw - 80px); max-height:calc(100vh - 120px); display:flex; flex-direction:column; overflow:hidden; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; }
-    #nx-gp-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px); display:flex; align-items:center; padding:0 5px; gap:4px; border-bottom:1px solid #111; }
-    #nx-gp-close { width:14px; height:14px; background:#999; border:1px solid #111; cursor:pointer; flex-shrink:0; }
+    #nx-gp-win { background:#fff; border:1px solid #555; box-shadow:3px 3px 12px rgba(0,0,0,0.55); width:460px; max-width:calc(100vw - 80px); max-height:calc(100vh - 100px); display:flex; flex-direction:column; overflow:hidden; }
+    #nx-gp-titlebar { height:22px; flex-shrink:0; background:repeating-linear-gradient(180deg,#adadad 0px,#adadad 1px,#979797 1px,#979797 2px); display:flex; align-items:center; padding:0 5px; gap:4px; border-bottom:1px solid #666; }
+    #nx-gp-close { width:13px; height:13px; background:#888; border:1px solid #555; cursor:pointer; flex-shrink:0; }
     #nx-gp-close:hover { background:#cc4444; }
-    #nx-gp-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#e8e8e8; }
+    #nx-gp-wintitle { flex:1; text-align:center; font-size:12px; font-weight:bold; color:#000; }
     #nx-gp-body { display:flex; flex:1; min-height:0; overflow:hidden; }
-    #nx-gp-left { width:140px; flex-shrink:0; background:#b8b8b8; border-right:1px solid #888; display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px; }
-    #nx-gp-cover-frame { width:110px; aspect-ratio:2/3; border:1px solid #555; background:#888; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:inset 1px 1px 0 #e0e0e0, 1px 1px 4px rgba(0,0,0,0.3); }
+    #nx-gp-left { width:140px; flex-shrink:0; background:#f0f0f0; border-right:1px solid #bbb; display:flex; flex-direction:column; align-items:center; padding:12px 8px; gap:8px; }
+    #nx-gp-cover-frame { width:110px; aspect-ratio:2/3; border:1px solid #888; background:#ccc; overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:1px 1px 4px rgba(0,0,0,0.25); }
     #nx-gp-cover-img { width:100%; height:100%; object-fit:cover; display:block; }
     #nx-gp-cover-ph { font-size:28px; }
-    #nx-gp-game-name { font-size:11px; text-align:center; color:#222; word-break:break-word; line-height:1.3; font-weight:bold; }
-    #nx-gp-info { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:2px; background:#d0d0d0; }
-    .nx-info-row { display:flex; font-size:12px; color:#000; gap:8px; line-height:1.7; border-bottom:1px solid #bbb; }
-    .nx-info-key { width:72px; flex-shrink:0; color:#555; }
-    #nx-gp-desc { font-size:11px; color:#444; margin-top:8px; border-top:1px solid #aaa; padding-top:8px; line-height:1.6; }
-    #nx-gp-footer { flex-shrink:0; display:flex; gap:6px; padding:8px 12px; border-top:1px solid #888; background:#b8b8b8; flex-wrap:wrap; justify-content:flex-end; }
-    .nx-btn { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#c8c8c8; border:1px solid #555; color:#000; padding:4px 16px; cursor:pointer; box-shadow:inset 0 1px 0 #e8e8e8, inset 0 -1px 0 #aaa; }
-    .nx-btn:hover { background:#d8d8d8; }
+    #nx-gp-game-name { font-size:11px; text-align:center; color:#000; word-break:break-word; line-height:1.3; font-weight:bold; }
+    #nx-gp-info { flex:1; overflow-y:auto; padding:10px 14px; display:flex; flex-direction:column; gap:2px; }
+    .nx-info-row { display:flex; font-size:12px; color:#000; gap:8px; line-height:1.8; border-bottom:1px solid #eee; }
+    .nx-info-key { width:72px; flex-shrink:0; color:#666; }
+    #nx-gp-desc { font-size:11px; color:#555; margin-top:8px; border-top:1px solid #ddd; padding-top:8px; line-height:1.6; }
+    #nx-gp-footer { flex-shrink:0; display:flex; gap:6px; padding:8px 12px; border-top:1px solid #bbb; background:#f0f0f0; flex-wrap:wrap; justify-content:flex-end; }
+    .nx-btn { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:12px; background:#e8e8e8; border:1px solid #888; color:#000; padding:4px 16px; cursor:pointer; box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #bbb; }
+    .nx-btn:hover { background:#f0f0f0; }
     .nx-btn:active { box-shadow:inset 1px 1px 3px rgba(0,0,0,0.2); }
-    .nx-btn-run { background:#2244aa; border-color:#1a3388; color:#fff; box-shadow:inset 0 1px 0 #4466cc, inset 0 -1px 0 #112288; }
+    .nx-btn-run { background:#2244aa; border-color:#1a3388; color:#fff; box-shadow:inset 0 1px 0 #4466cc; }
     .nx-btn-run:hover { background:#2a55cc; }
-    /* Modal theming — vintage gray NeXTSTEP */
+    /* ── Modal theming: white windows, gray knurled headers, black text */
     body.layout-nextstep .modal-overlay * { font-family:'Helvetica Neue',Helvetica,Arial,sans-serif !important; }
-    body.layout-nextstep .modal-overlay { background:rgba(0,0,0,0.5) !important; }
-    body.layout-nextstep .modal-box { background:#c8c8c8 !important; border:1px solid #444 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.5), inset 0 1px 0 #e8e8e8 !important; color:#000 !important; overflow:hidden !important; }
-    body.layout-nextstep .modal-box h2, body.layout-nextstep .modal-box h3 { background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px) !important; color:#e8e8e8 !important; font-size:12px !important; font-weight:bold !important; text-shadow:none !important; padding:5px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:1px solid #111 !important; }
+    body.layout-nextstep .modal-overlay { background:rgba(0,0,80,0.45) !important; }
+    body.layout-nextstep .modal-box { background:#fff !important; border:1px solid #555 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.55) !important; color:#000 !important; overflow:hidden !important; }
+    body.layout-nextstep .modal-box h2, body.layout-nextstep .modal-box h3 { background:repeating-linear-gradient(180deg,#adadad 0px,#adadad 1px,#979797 1px,#979797 2px) !important; color:#000 !important; font-size:12px !important; font-weight:bold !important; text-shadow:none !important; padding:4px 10px !important; margin:-30px -30px 16px !important; width:calc(100% + 60px) !important; box-sizing:border-box !important; border-radius:0 !important; border-bottom:1px solid #666 !important; }
     body.layout-nextstep .modal-box p, body.layout-nextstep .modal-box label { color:#000 !important; }
     body.layout-nextstep .modal-box a { color:#2244aa !important; }
-    body.layout-nextstep .modal-box code { background:#aaa !important; color:#000 !important; border:1px solid #666 !important; border-radius:0 !important; }
-    body.layout-nextstep .modal-box hr { border-color:#999 !important; }
-    body.layout-nextstep .modal-box button, body.layout-nextstep .modal-box .btn, body.layout-nextstep .modal-box .primary { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8, inset 0 -1px 0 #aaa !important; cursor:pointer !important; padding:4px 14px !important; }
-    body.layout-nextstep .modal-box button:hover { background:#d8d8d8 !important; transform:none !important; }
-    body.layout-nextstep .modal-box input, body.layout-nextstep .modal-box select, body.layout-nextstep .modal-box textarea { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
-    body.layout-nextstep .modal-box .tool-card { background:#b8b8b8 !important; border:1px solid #888 !important; border-radius:0 !important; }
+    body.layout-nextstep .modal-box code { background:#f0f0f0 !important; color:#000 !important; border:1px solid #bbb !important; border-radius:0 !important; }
+    body.layout-nextstep .modal-box hr { border-color:#ccc !important; }
+    body.layout-nextstep .modal-box button, body.layout-nextstep .modal-box .btn, body.layout-nextstep .modal-box .primary { background:#e8e8e8 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #bbb !important; cursor:pointer !important; padding:4px 14px !important; }
+    body.layout-nextstep .modal-box button:hover { background:#f5f5f5 !important; transform:none !important; }
+    body.layout-nextstep .modal-box input, body.layout-nextstep .modal-box select, body.layout-nextstep .modal-box textarea { background:#fff !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep .modal-box .tool-card { background:#f0f0f0 !important; border:1px solid #bbb !important; border-radius:0 !important; }
     body.layout-nextstep .modal-box .tool-card-title { color:#000 !important; font-weight:bold !important; }
-    body.layout-nextstep .segmented-control { background:#b0b0b0 !important; border:1px solid #666 !important; border-radius:0 !important; }
-    body.layout-nextstep .segmented-btn { background:#c0c0c0 !important; border-right:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e0e0e0 !important; }
+    body.layout-nextstep .segmented-control { background:#e0e0e0 !important; border:1px solid #aaa !important; border-radius:0 !important; }
+    body.layout-nextstep .segmented-btn { background:#ebebeb !important; border-right:1px solid #bbb !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #fff !important; }
     body.layout-nextstep .segmented-btn.active { background:#2244aa !important; color:#fff !important; transform:none !important; box-shadow:none !important; }
-    body.layout-nextstep .segmented-btn:hover:not(.active) { background:#d0d0d0 !important; transform:none !important; }
-    body.layout-nextstep #modal-welcome > div, body.layout-nextstep #modal-connect > div, body.layout-nextstep #modal-tools > div { background:#c8c8c8 !important; border:1px solid #444 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.5) !important; }
-    body.layout-nextstep #modal-connect h3, body.layout-nextstep #modal-tools h3 { background:repeating-linear-gradient(180deg,#2e2e2e 0px,#2e2e2e 1px,#3e3e3e 1px,#3e3e3e 2px) !important; color:#e8e8e8 !important; border-bottom:1px solid #111 !important; border-radius:0 !important; }
-    body.layout-nextstep #connect-cards-container, body.layout-nextstep #tools-cards-container { background:#c8c8c8 !important; }
-    body.layout-nextstep #modal-connect .tool-card, body.layout-nextstep #modal-tools .tool-card { background:#b8b8b8 !important; border:1px solid #888 !important; border-radius:0 !important; }
-    body.layout-nextstep #modal-connect button, body.layout-nextstep #modal-tools button { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
-    body.layout-nextstep #modal-connect button:hover, body.layout-nextstep #modal-tools button:hover { background:#d8d8d8 !important; transform:none !important; }
-    body.layout-nextstep #modal-connect input { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
-    body.layout-nextstep .btn-playlist-filter { background:#c0c0c0 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e0e0e0 !important; }
-    body.layout-nextstep .btn-playlist-filter:hover { background:#2244aa !important; color:#fff !important; box-shadow:none !important; }
-    body.layout-nextstep .pl-select-row { background:#c8c8c8 !important; color:#000 !important; border-bottom:1px solid #b0b0b0 !important; }
+    body.layout-nextstep .segmented-btn:hover:not(.active) { background:#f0f0f0 !important; transform:none !important; }
+    body.layout-nextstep #modal-welcome > div, body.layout-nextstep #modal-connect > div, body.layout-nextstep #modal-tools > div { background:#fff !important; border:1px solid #555 !important; border-radius:0 !important; box-shadow:3px 3px 12px rgba(0,0,0,0.5) !important; }
+    body.layout-nextstep #modal-connect h3, body.layout-nextstep #modal-tools h3 { background:repeating-linear-gradient(180deg,#adadad 0px,#adadad 1px,#979797 1px,#979797 2px) !important; color:#000 !important; border-bottom:1px solid #666 !important; border-radius:0 !important; }
+    body.layout-nextstep #connect-cards-container, body.layout-nextstep #tools-cards-container { background:#fff !important; }
+    body.layout-nextstep #modal-connect .tool-card, body.layout-nextstep #modal-tools .tool-card { background:#f0f0f0 !important; border:1px solid #bbb !important; border-radius:0 !important; }
+    body.layout-nextstep #modal-connect button, body.layout-nextstep #modal-tools button { background:#e8e8e8 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #fff !important; }
+    body.layout-nextstep #modal-connect button:hover, body.layout-nextstep #modal-tools button:hover { background:#f5f5f5 !important; transform:none !important; }
+    body.layout-nextstep #modal-connect input { background:#fff !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep .btn-playlist-filter { background:#e8e8e8 !important; border:1px solid #aaa !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep .btn-playlist-filter:hover { background:#2244aa !important; color:#fff !important; }
+    body.layout-nextstep .pl-select-row { background:#f5f5f5 !important; color:#000 !important; border-bottom:1px solid #e0e0e0 !important; }
     body.layout-nextstep .pl-select-row.pl-selected { background:#2244aa !important; color:#fff !important; }
-    body.layout-nextstep #view-details { background:#c8c8c8 !important; color:#000 !important; }
-    body.layout-nextstep #view-details input, body.layout-nextstep #view-details textarea, body.layout-nextstep #view-details select { background:#fff !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; }
-    body.layout-nextstep #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
-    body.layout-nextstep #view-details fieldset { border:1px solid #888 !important; border-radius:0 !important; background:#b8b8b8 !important; }
-    body.layout-nextstep #np-card { background:#c8c8c8 !important; border:1px solid #666 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #e8e8e8 !important; }
-    body.layout-nextstep #btn-install-pick-steam, body.layout-nextstep #btn-install-pick-grinder { background:#c8c8c8 !important; border:1px solid #555 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep #view-details { background:#fff !important; color:#000 !important; }
+    body.layout-nextstep #view-details input, body.layout-nextstep #view-details textarea, body.layout-nextstep #view-details select { background:#fff !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { background:#e8e8e8 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; box-shadow:inset 0 1px 0 #fff !important; }
+    body.layout-nextstep #view-details fieldset { border:1px solid #bbb !important; border-radius:0 !important; background:#f0f0f0 !important; }
+    body.layout-nextstep #np-card { background:#fff !important; border:1px solid #aaa !important; border-radius:0 !important; color:#000 !important; }
+    body.layout-nextstep #btn-install-pick-steam, body.layout-nextstep #btn-install-pick-grinder { background:#e8e8e8 !important; border:1px solid #888 !important; border-radius:0 !important; color:#000 !important; }
 /* ── Classic Amiga / Workbench 1.3 layout ───────────────────────────────── */
     body.layout-amiga { --bg:#aaaaaa; --bg_panel:#888; --bg_menu:#888; --accent:#0055aa; --accent_alt:#ff8800; --accent_menu:#0055aa; --text_main:#000; --text_sec:#222; --text_dim:#555; --border:#000; --border_solid:#000; }
     body.layout-amiga #titlebar { background:#000 !important; border-bottom:2px solid #0055aa !important; }
@@ -3786,52 +3785,41 @@
   <!-- ── NeXTSTEP / WORKSPACE MANAGER SHELL ─────────────────────────────── -->
   <div id="nx-shell">
     <div id="nx-outer">
-      <!-- Application Menu — left vertical column, always visible (vintage NeXTSTEP) -->
+      <!-- Application Menu: floating window on left, white body (authentic NeXTSTEP) -->
       <div id="nx-appmenu">
-        <div id="nx-am-titlebar"><span id="nx-am-title">CNGM</span></div>
+        <div id="nx-am-titlebar"><span id="nx-am-title">Workspace</span></div>
         <div id="nx-am-items">
-          <div class="nx-am-item" id="nx-am-info">Info… <span class="nx-am-key">⌘I</span></div>
+          <div class="nx-am-item" id="nx-am-info">Info <span class="nx-am-key">▶</span></div>
           <div class="nx-am-sep"></div>
-          <div class="nx-am-item" id="nx-am-add">Add Game <span class="nx-am-key">⌘N</span></div>
-          <div class="nx-am-item" id="nx-am-connect">Connect… <span class="nx-am-key">⌘C</span></div>
-          <div class="nx-am-item" id="nx-am-tools">Tools… <span class="nx-am-key">⌘T</span></div>
-          <div class="nx-am-item" id="nx-am-playlists">Playlists <span class="nx-am-key">⌘P</span></div>
-          <div class="nx-am-item" id="nx-am-refresh">Refresh <span class="nx-am-key">⌘R</span></div>
+          <div class="nx-am-item" id="nx-am-add">Add Game <span class="nx-am-key">n</span></div>
+          <div class="nx-am-item" id="nx-am-connect">Connect… <span class="nx-am-key">c</span></div>
+          <div class="nx-am-item" id="nx-am-tools">Tools… <span class="nx-am-key">t</span></div>
+          <div class="nx-am-item" id="nx-am-playlists">Playlists <span class="nx-am-key">p</span></div>
+          <div class="nx-am-item" id="nx-am-refresh">Refresh <span class="nx-am-key">r</span></div>
           <div class="nx-am-sep"></div>
           <div class="nx-am-item" id="nx-am-crema">CREMA</div>
           <div class="nx-am-item" id="nx-am-grinder">GRINDER</div>
           <div class="nx-am-item" id="nx-am-emulatte">EmuLatte</div>
           <div class="nx-am-sep"></div>
-          <div class="nx-am-item" id="nx-am-exit">Close <span class="nx-am-key">⌘W</span></div>
+          <div class="nx-am-item" id="nx-am-hide">Hide <span class="nx-am-key">h</span></div>
+          <div class="nx-am-item" id="nx-am-exit">Log Out <span class="nx-am-key">q</span></div>
         </div>
       </div>
+      <!-- Main: File Viewer window -->
       <div id="nx-main">
         <div id="nx-window">
-          <!-- Title bar with NeXT pinstripe texture -->
+          <!-- Title bar: medium gray knurling, BLACK text -->
           <div id="nx-titlebar">
             <div id="nx-tb-btns">
-              <div class="nx-tbtn" id="nx-tbtn-close" title="Close"></div>
-              <div class="nx-tbtn" id="nx-tbtn-mini" title="Miniaturize"></div>
+              <div class="nx-tbtn" id="nx-tbtn-close"></div>
+              <div class="nx-tbtn" id="nx-tbtn-mini"></div>
             </div>
-            <span id="nx-wintitle">Workspace Manager</span>
+            <span id="nx-wintitle">File Viewer</span>
           </div>
-          <!-- Shelf (quick filter icons) -->
-          <div id="nx-shelf">
-            <span id="nx-shelf-label">shelf</span>
-            <div class="nx-shelf-item nx-shelf-active" data-ns="all"><span class="nx-shelf-icon">🖥</span><span class="nx-shelf-label">All</span></div>
-            <div class="nx-shelf-item" data-ns="installed"><span class="nx-shelf-icon">✅</span><span class="nx-shelf-label">Installed</span></div>
-            <div class="nx-shelf-item" data-ns="favs"><span class="nx-shelf-icon">⭐</span><span class="nx-shelf-label">Favs</span></div>
-            <div class="nx-shelf-item" data-ns="steam"><span class="nx-shelf-icon">🎮</span><span class="nx-shelf-label">Steam</span></div>
-            <div class="nx-shelf-item" data-ns="gog"><span class="nx-shelf-icon">🟣</span><span class="nx-shelf-label">GOG</span></div>
-            <div class="nx-shelf-item" data-ns="epic"><span class="nx-shelf-icon">🔵</span><span class="nx-shelf-label">Epic</span></div>
-            <div class="nx-shelf-item" data-ns="flatpak"><span class="nx-shelf-icon">📦</span><span class="nx-shelf-label">Flatpak</span></div>
-            <div class="nx-shelf-item" data-ns="pico8"><span class="nx-shelf-icon">🕹</span><span class="nx-shelf-label">PICO-8</span></div>
-            <div class="nx-shelf-item" data-ns="itch"><span class="nx-shelf-icon">🎲</span><span class="nx-shelf-label">itch.io</span></div>
-            <div class="nx-shelf-item" data-ns="others"><span class="nx-shelf-icon">📁</span><span class="nx-shelf-label">Others</span></div>
-          </div>
-          <!-- Column browser -->
+          <!-- Icon shelf: game cover arts as large NeXT-style icon tiles -->
+          <div id="nx-iconshelf"></div>
+          <!-- Column browser: categories (left) + game list (right) -->
           <div id="nx-browser">
-            <!-- Left column: categories -->
             <div id="nx-col1">
               <div id="nx-col1-hdr">Library</div>
               <div class="nx-cat-item nx-cat-active" data-nc="all">All Games <span class="nx-cat-arrow">▶</span></div>
@@ -3848,10 +3836,9 @@
               <div class="nx-cat-item" data-nc="itch">itch.io <span class="nx-cat-arrow">▶</span></div>
               <div class="nx-cat-item" data-nc="others">Others <span class="nx-cat-arrow">▶</span></div>
             </div>
-            <!-- Right column: file list -->
             <div id="nx-col2">
               <div id="nx-col2-hdr">
-                <span class="nx-ch" style="width:20px;flex-shrink:0;padding:4px 4px;"></span>
+                <span class="nx-ch" style="width:18px;flex-shrink:0;padding:3px 3px;"></span>
                 <span class="nx-ch" style="flex:1;">Name</span>
                 <span class="nx-ch" style="width:80px;">Store</span>
                 <span class="nx-ch" style="width:100px;">Genre</span>
@@ -3860,7 +3847,6 @@
               <div id="nx-filelist"></div>
             </div>
           </div>
-          <!-- Status bar -->
           <div id="nx-statusbar">
             <span id="nx-status-count">0 items</span>
             <span id="nx-status-sep"></span>
@@ -3868,7 +3854,7 @@
           </div>
         </div>
       </div>
-      <!-- Dock (right) -->
+      <!-- Dock: dark strip on right, white square icon tiles -->
       <div id="nx-dock">
         <div id="nx-dock-logo" title="About CNGM"><span class="r">N</span><span class="y">e</span><span class="c">X</span><span class="w">T</span></div>
         <div id="nx-dock-sep"></div>
@@ -3889,7 +3875,7 @@
     <div id="nx-gamepage">
       <div id="nx-gp-win">
         <div id="nx-gp-titlebar">
-          <div id="nx-gp-close" title="Close"></div>
+          <div id="nx-gp-close"></div>
           <span id="nx-gp-wintitle">Inspector</span>
         </div>
         <div id="nx-gp-body">

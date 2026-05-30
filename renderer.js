@@ -3394,13 +3394,32 @@ function _nxGetGames() {
 function _nxSetFilter(f) {
     _nxFilter = f; _nxIdx = -1; _nxPlaylistId = null; _nxPlaylistGames = null;
     document.querySelectorAll('.nx-cat-item[data-nc]').forEach(n => n.classList.toggle('nx-cat-active', n.dataset.nc === f));
-    document.querySelectorAll('.nx-shelf-item[data-ns]').forEach(n => n.classList.toggle('nx-shelf-active', n.dataset.ns === f));
     renderNextstep();
 }
 
 function renderNextstep() {
     const games = _nxGetGames();
     if (_nxIdx >= games.length) _nxIdx = games.length - 1;
+
+    // Icon shelf (top, cover art tiles)
+    const shelf = document.getElementById('nx-iconshelf');
+    if (shelf) {
+        shelf.innerHTML = '';
+        games.forEach((g, i) => {
+            const tile = document.createElement('div');
+            tile.className = 'nx-icon-tile' + (i === _nxIdx ? ' nx-icon-sel' : '');
+            const name = escHtml((g.Game||'').substring(0, 14));
+            tile.innerHTML = g.CoverArt
+                ? `<div class="nx-icon-frame"><img class="nx-icon-img" src="${getSafePath(g.CoverArt)}" alt=""></div><div class="nx-icon-name">${name}</div>`
+                : `<div class="nx-icon-frame"><div class="nx-icon-ph">📁</div></div><div class="nx-icon-name">${name}</div>`;
+            tile.addEventListener('click',    () => { _nxIdx = i; renderNextstep(); });
+            tile.addEventListener('dblclick', () => openNxGamepage(g));
+            shelf.appendChild(tile);
+        });
+        if (_nxIdx >= 0) document.querySelectorAll('.nx-icon-tile')[_nxIdx]?.scrollIntoView({ inline: 'nearest' });
+    }
+
+    // Column browser (bottom, list view)
     const list = document.getElementById('nx-filelist');
     if (!list) return;
     list.innerHTML = '';
@@ -3419,6 +3438,8 @@ function renderNextstep() {
         row.addEventListener('dblclick', () => openNxGamepage(g));
         list.appendChild(row);
     });
+    if (_nxIdx >= 0) document.querySelectorAll('.nx-row')[_nxIdx]?.scrollIntoView({ block: 'nearest' });
+
     const sel = games[_nxIdx];
     document.getElementById('nx-status-count').textContent = `${games.length} item${games.length !== 1 ? 's' : ''}`;
     document.getElementById('nx-status-sel').textContent   = sel ? sel.Game : '';
@@ -3479,10 +3500,7 @@ function openNxGamepage(game) {
     document.querySelectorAll('.nx-cat-item[data-nc]').forEach(item => {
         item.addEventListener('click', () => _nxSetFilter(item.dataset.nc));
     });
-    // Shelf quick filters
-    document.querySelectorAll('.nx-shelf-item[data-ns]').forEach(item => {
-        item.addEventListener('click', () => _nxSetFilter(item.dataset.ns));
-    });
+    document.getElementById('nx-am-hide')?.addEventListener('click', () => applyLayoutMode('rail'));
     // Application Menu items
     document.getElementById('nx-am-info')?.addEventListener('click',      () => document.getElementById('modal-about')?.classList.add('active'));
     document.getElementById('nx-am-add')?.addEventListener('click',       () => openAddGameDialog());
