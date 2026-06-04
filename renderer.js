@@ -204,18 +204,22 @@ function handleInstall(game) {
 }
 
 async function verifyAndLaunch(gameId, launchCmd) {
-    const game = allGames.find(g => g.id == gameId);
-    if (game) showNowPlaying(game);
+    try {
+        const game = allGames.find(g => g.id == gameId);
+        if (game) showNowPlaying(game);
 
-    // Multi-launcher: show picker when ≥2 commands are defined
-    let launchers = [];
-    try { launchers = JSON.parse(game?.LaunchCommands || '[]'); } catch(e) {}
-    if (launchers.length >= 2) {
-        showLauncherPicker(game, launchers);
-        return;
-    }
-    const cmd = launchers.length === 1 ? launchers[0].cmd : launchCmd;
-    await _doLaunch(game, cmd);
+        // Multi-launcher: show picker when ≥2 commands are defined
+        let launchers = [];
+        try { launchers = JSON.parse(game?.LaunchCommands || '[]'); } catch(e) {
+            console.warn('[verifyAndLaunch] malformed LaunchCommands JSON for game', gameId);
+        }
+        if (launchers.length >= 2) {
+            showLauncherPicker(game, launchers);
+            return;
+        }
+        const cmd = launchers.length === 1 ? launchers[0].cmd : launchCmd;
+        await _doLaunch(game, cmd);
+    } catch (e) { console.error('[verifyAndLaunch]', e); }
 }
 
 window.api.onInstallStatusUpdated(() => loadGames());
@@ -349,7 +353,8 @@ document.getElementById('topnav-filters-prev')?.addEventListener('click', () => 
 document.getElementById('topnav-filters-next')?.addEventListener('click', () => {
     document.getElementById('topnav-filters')?.scrollBy({ left: 140, behavior: 'smooth' });
 });
-new ResizeObserver(updateTopnavFilterArrows).observe(document.getElementById('topnav-filters') || document.body);
+const _topnavResizeObserver = new ResizeObserver(updateTopnavFilterArrows);
+_topnavResizeObserver.observe(document.getElementById('topnav-filters') || document.body);
 setTimeout(updateTopnavFilterArrows, 200);
 
 // Local variable to hold our gaming history limit preference
@@ -490,11 +495,12 @@ function applyLayoutMode(mode) {
     c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac', 'layout-xp', 'layout-kde', 'layout-c64', 'layout-amiga', 'layout-beos', 'layout-w95', 'layout-nextstep');
     c.classList.add('layout-' + mode);
     // Mirror themed layout classes onto body so CSS variables reach modals outside #app-container
-    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep'];
+    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep', 'htop', 'ranger', 'bbs', 'vi', 'adventure'];
     _themedModes.forEach(m => document.body.classList.remove('layout-' + m));
     if (_themedModes.includes(mode)) document.body.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.val === mode));
+    updateLayoutCatTab(mode);
     localStorage.setItem('cngm_layout_mode', mode);
     window.api.setSetting('layout_mode', mode);
     if (mode === 'commander') {
@@ -531,6 +537,27 @@ function applyLayoutMode(mode) {
 }
 document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(btn =>
     btn.addEventListener('click', () => applyLayoutMode(btn.dataset.val)));
+
+const _layoutCats = {
+    rail:'classic', sidebar:'classic', topnav:'classic', split:'classic', commander:'classic',
+    datahero:'flat', catalog:'flat', newspaper:'flat', streamrows:'flat', timeline:'flat', kanban:'flat',
+    htop:'tty', ranger:'tty', bbs:'tty', vi:'tty', adventure:'tty',
+    mac:'ancient', xp:'ancient', kde:'ancient', c64:'ancient', amiga:'ancient', beos:'ancient', w95:'ancient', nextstep:'ancient'
+};
+function updateLayoutCatTab(mode) {
+    const cat = _layoutCats[mode] || 'classic';
+    document.querySelectorAll('.lsc-cat').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+    document.querySelectorAll('#layout-segmented-control .lsc-group').forEach(g =>
+        g.style.display = g.dataset.cat === cat ? 'contents' : 'none');
+}
+document.querySelectorAll('.lsc-cat').forEach(tab =>
+    tab.addEventListener('click', () => {
+        const cat = tab.dataset.cat;
+        document.querySelectorAll('.lsc-cat').forEach(t => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('#layout-segmented-control .lsc-group').forEach(g =>
+            g.style.display = g.dataset.cat === cat ? 'contents' : 'none');
+    }));
+
 (async () => {
     const saved = await window.api.getSetting('layout_mode') || localStorage.getItem('cngm_layout_mode') || 'rail';
     applyLayoutMode(saved);
@@ -2244,7 +2271,12 @@ function renderMac() {
             `<span class="mac-list-name">${escHtml(g.Game || '')}</span>` +
             `<span class="mac-list-store">${escHtml(store)}</span>` +
             `<span class="mac-list-genre">${escHtml(g.GENRE || '')}</span>`;
-        row.addEventListener('click', () => { _macIdx = i; renderMac(); });
+        row.addEventListener('click', () => {
+            _macIdx = i;
+            list.querySelectorAll('.mac-list-row').forEach((r, j) => r.classList.toggle('mac-selected', j === i));
+            row.scrollIntoView({ block: 'nearest' });
+            _updateMacSidePanels(g);
+        });
         row.addEventListener('dblclick', () => openMacGamepage(g));
         list.appendChild(row);
     });
@@ -7324,16 +7356,26 @@ function closeTools() {
 document.getElementById('btn-close-tools').addEventListener('click', closeTools);
 modalTools.addEventListener('click', e => { if (e.target === modalTools) closeTools(); });
 
+// Pre-cache tool card haystacks once (content is static) so textContent isn't
+// re-traversed on every keypress.
+const _toolsCards = [...document.querySelectorAll('.tools-section')];
+_toolsCards.forEach(card => {
+    card._haystack = ((card.dataset.search || '') + ' ' + card.textContent).toLowerCase();
+});
+const _toolsNoResults = document.getElementById('tools-no-results');
+let _toolsSearchTimer = null;
 document.getElementById('tools-search').addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    let visible = 0;
-    document.querySelectorAll('.tools-section').forEach(card => {
-        const haystack = (card.dataset.search || '') + ' ' + card.textContent.toLowerCase();
-        const show = !q || haystack.includes(q);
-        card.style.display = show ? '' : 'none';
-        if (show) visible++;
-    });
-    document.getElementById('tools-no-results').style.display = visible === 0 ? 'block' : 'none';
+    clearTimeout(_toolsSearchTimer);
+    _toolsSearchTimer = setTimeout(() => {
+        const q = e.target.value.trim().toLowerCase();
+        let visible = 0;
+        _toolsCards.forEach(card => {
+            const show = !q || card._haystack.includes(q);
+            card.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        _toolsNoResults.style.display = visible === 0 ? 'block' : 'none';
+    }, 120);
 });
 
 // Upgraded Batch Fetcher
@@ -7553,10 +7595,20 @@ const THEMES = {
     "NECROMORPH": {bg: "#030808", bg_panel: "rgba(0, 80, 20, 0.60)", bg_menu: "#040a04", accent: "#80ff20", accent_menu: "#60c010", text_main: "#c8ffc0", text_sec: "#70c060", text_dim: "#306020", border: "rgba(128, 255, 32, 0.22)", border_solid: "#0a2808"},
     "CRIMSON PEAK": {bg: "#120508", bg_panel: "rgba(80, 15, 30, 0.75)", bg_menu: "#1a080c", accent: "#d4904a", accent_menu: "#e0b060", text_main: "#f0e0d8", text_sec: "#c0909a", text_dim: "#7a3848", border: "rgba(212, 144, 74, 0.22)", border_solid: "#5a1520"},
     "LAKESIDE CURSE": {bg: "#0c0a08", bg_panel: "rgba(60, 40, 20, 0.72)", bg_menu: "#141008", accent: "#e09030", accent_menu: "#f0b040", text_main: "#f0e8d0", text_sec: "#b09070", text_dim: "#706050", border: "rgba(224, 144, 48, 0.22)", border_solid: "#402808"},
-    "THE BACKROOMS": {bg: "#1a1810", bg_panel: "rgba(220, 200, 100, 0.10)", bg_menu: "#201e14", accent: "#d4c840", accent_menu: "#f0e050", text_main: "#f0e8c8", text_sec: "#b0a870", text_dim: "#706840", border: "rgba(212, 200, 64, 0.22)", border_solid: "#3a3820"}
+    "THE BACKROOMS": {bg: "#1a1810", bg_panel: "rgba(220, 200, 100, 0.10)", bg_menu: "#201e14", accent: "#d4c840", accent_menu: "#f0e050", text_main: "#f0e8c8", text_sec: "#b0a870", text_dim: "#706840", border: "rgba(212, 200, 64, 0.22)", border_solid: "#3a3820"},
+
+    "PAPER": {bg: "#f9f7f4", bg_panel: "rgba(232,228,222,0.75)", bg_menu: "#eeebe6", accent: "#1a1a1a", accent_menu: "#444444", text_main: "#1a1a1a", text_sec: "#444444", text_dim: "#999999", border: "rgba(0,0,0,0.08)", border_solid: "#cccccc"},
+    "SOLARIZED LIGHT": {bg: "#fdf6e3", bg_panel: "rgba(238,232,213,0.80)", bg_menu: "#eee8d5", accent: "#268bd2", accent_menu: "#2aa198", text_main: "#586e75", text_sec: "#657b83", text_dim: "#93a1a1", border: "rgba(38,139,210,0.20)", border_solid: "#cfc9aa"},
+    "CATPPUCCIN LATTE": {bg: "#eff1f5", bg_panel: "rgba(220,224,232,0.80)", bg_menu: "#e6e9ef", accent: "#8839ef", accent_menu: "#ea76cb", text_main: "#4c4f69", text_sec: "#5c5f77", text_dim: "#9ca0b0", border: "rgba(136,57,239,0.16)", border_solid: "#c4c8da"},
+    "GITHUB LIGHT": {bg: "#ffffff", bg_panel: "rgba(234,238,242,0.80)", bg_menu: "#f6f8fa", accent: "#0969da", accent_menu: "#8250df", text_main: "#1f2328", text_sec: "#656d76", text_dim: "#9198a1", border: "rgba(9,105,218,0.15)", border_solid: "#d0d7de"},
+    "GRUVBOX LIGHT": {bg: "#fbf1c7", bg_panel: "rgba(235,219,178,0.80)", bg_menu: "#f2e5bc", accent: "#af3a03", accent_menu: "#b57614", text_main: "#3c3836", text_sec: "#504945", text_dim: "#a89984", border: "rgba(175,58,3,0.18)", border_solid: "#d5c4a1"},
+    "ROSÉ PINE DAWN": {bg: "#faf4ed", bg_panel: "rgba(242,232,228,0.78)", bg_menu: "#f2e9e1", accent: "#b4637a", accent_menu: "#d7827e", text_main: "#575279", text_sec: "#797593", text_dim: "#9893a5", border: "rgba(180,99,122,0.18)", border_solid: "#dfd9e2"},
+    "NORD LIGHT": {bg: "#eceff4", bg_panel: "rgba(216,222,233,0.78)", bg_menu: "#e5e9f0", accent: "#5e81ac", accent_menu: "#81a1c1", text_main: "#2e3440", text_sec: "#3b4252", text_dim: "#7b8899", border: "rgba(94,129,172,0.20)", border_solid: "#c0cad8"},
+    "DAYBREAK": {bg: "#fff9f0", bg_panel: "rgba(255,236,205,0.75)", bg_menu: "#ffefd8", accent: "#c05b18", accent_menu: "#d47820", text_main: "#3a2510", text_sec: "#6a4520", text_dim: "#b08060", border: "rgba(192,91,24,0.18)", border_solid: "#e8c898"}
 };
 
 const THEME_CATEGORIES = {
+    "Light & Minimal": ["PAPER", "SOLARIZED LIGHT", "CATPPUCCIN LATTE", "GITHUB LIGHT", "GRUVBOX LIGHT", "ROSÉ PINE DAWN", "NORD LIGHT", "DAYBREAK"],
     "Originals & System": ["DARK GRAY", "CREMA", "CYBERPUNK", "SNOW", "MOVIESFLIX", "VAPOUR OS", "PSIV BLUE", "GREEN BOX", "WIN XP"],
     "Gaming Legends": ["GAME BOY DMG", "PIP BOY", "SEVASTOPOL", "RIP AND TEAR CLASSIC", "SUPER BROTHERS", "GREEN HILL", "NES", "SNES", "BLOODBORNE", "METROID PRIME", "SILENT HILL", "DIABLO", "HALF-LIFE", "SHOVEL KNIGHT"],
     "Aesthetics": ["EARTHY & ORGANIC", "DOPAMINE BRIGHTS", "RETRO REVIVAL", "VAPORWAVE", "AURORA", "NOIR", "BIOLUMINESCENCE", "BRUTALIST"],

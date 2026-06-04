@@ -86,7 +86,7 @@ function ensureInGrinderDb(id, title, store, appId, installed) {
            .run(id, title, store, appId || null, installed ? 1 : 0);
         gdb.close();
         return true;
-    } catch { return false; }
+    } catch (e) { console.error('[ensureInGrinderDb]', e); return false; }
 }
 
 // Open GRINDER focused on a specific game's setup (called by "Setup with GRINDER" button)
@@ -240,6 +240,24 @@ function findGrinderPath() {
         const f = fs.readdirSync(baseDir).find(n => /^GRINDER\.(AppImage|appimage)$/i.test(n));
         return f ? path.join(baseDir, f) : null;
     } catch { return null; }
+}
+
+// Returns a Map<appId, grinderId> from GRINDER's DB for heroic:// launch routing
+function getGrinderMap() {
+    const home = os.homedir();
+    const candidates = [
+        path.join(home, '.config', 'grinder', 'grinder.db'),
+        path.join(home, '.config', 'GRINDER', 'grinder.db'),
+        path.join(baseDir, 'GRINDERConfig', 'grinder.db'),
+    ];
+    const gdbPath = candidates.find(p => fs.existsSync(p));
+    if (!gdbPath) return new Map();
+    try {
+        const gdb = new Database(gdbPath, { timeout: 5000, readonly: true });
+        const rows = gdb.prepare('SELECT id, app_id FROM games WHERE app_id IS NOT NULL').all();
+        gdb.close();
+        return new Map(rows.map(r => [String(r.app_id), String(r.id)]));
+    } catch (e) { console.error('[getGrinderMap]', e); return new Map(); }
 }
 
 function findCremaPath() {
@@ -1041,7 +1059,7 @@ ipcMain.handle('backup-zip', async (event) => {
             : ['zip', ['-r', filePath, 'GameManagerConfig']];
         const opts = isWin ? {} : { cwd: baseDir };
 
-        execFile(prog, args, opts, (error) => {
+        execFile(prog, args, { ...opts, timeout: 120000 }, (error) => {
             if (error) resolve({ success: false, message: `Backup failed: ${error.message}` });
             else resolve({ success: true, message: "ZIP Backup successfully created!" });
         });
@@ -1126,7 +1144,7 @@ ipcMain.on('launch-game', (event, cmd) => {
         const appId = heroicMatch[2];
         const gMap  = getGrinderMap();
         const gId   = gMap.get(appId);
-        const gPath = _grinderPath || findGrinderPath();
+        const gPath = findGrinderPath();
         if (gId && gPath) {
             spawn(gPath, ['launch', gId], { detached: true, stdio: 'ignore' }).unref();
             return;
@@ -1477,6 +1495,10 @@ async function doItchSync() {
         const caveByGame = {};
         for (const c of caves) caveByGame[c.game_id] = c;
 
+        // Collect async cover-download tasks so they fire after the transaction
+        const coverTasks = [];
+
+        db.transaction(() => {
         for (const game of games) {
             const cave = caveByGame[game.id];
             let launchCmd = null, installed = 0;
@@ -1509,21 +1531,27 @@ async function doItchSync() {
                 gameId = db.prepare("INSERT INTO games (Game,Store,LaunchCommand,Installed) VALUES (?,?,?,?)").run(game.title, 'itch.io', launchCmd, installed).lastInsertRowid;
             }
 
-            // Download cover art if we have a URL and no existing cover
+            // Queue cover art download (must run outside the transaction — it's async)
             const hasCover = (existing?.CoverArt || '');
             if (game.cover_url && !hasCover && gameId) {
-                (async () => {
-                    try {
-                        const res = await session.defaultSession.fetch(game.cover_url, { headers: { 'User-Agent': 'CNGM/1.0' } });
-                        const buf = Buffer.from(await res.arrayBuffer());
-                        const file = `${gameId}_itch_cover.png`;
-                        fs.writeFileSync(path.join(imDir, file), buf);
-                        db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${file}`, gameId);
-                    } catch {}
-                })();
+                coverTasks.push({ url: game.cover_url, gameId });
             }
 
             imported++;
+        }
+        })();
+
+        // Fire cover downloads after transaction commits
+        for (const { url, gameId } of coverTasks) {
+            (async () => {
+                try {
+                    const res = await session.defaultSession.fetch(url, { headers: { 'User-Agent': 'CNGM/1.0' } });
+                    const buf = Buffer.from(await res.arrayBuffer());
+                    const file = `${gameId}_itch_cover.png`;
+                    fs.writeFileSync(path.join(imDir, file), buf);
+                    db.prepare("UPDATE games SET CoverArt=? WHERE id=?").run(`GameManagerConfig/images/${file}`, gameId);
+                } catch (e) { console.error('[itch cover download]', gameId, e.message); }
+            })();
         }
     } catch(e) {
         return { success: false, message: e.message };
@@ -1808,13 +1836,18 @@ ipcMain.handle('launch-and-watch-heroic', async (event) => {
 
     heroicWatchState = { watchers: [], debounceTimer: null, timeoutTimer: null };
 
+    let _heroicSyncing = false;
     const onFileChange = () => {
         clearTimeout(heroicWatchState.debounceTimer);
         heroicWatchState.debounceTimer = setTimeout(async () => {
-            stopHeroicWatch();
-            if (win) win.webContents.send('heroic-watch-status', { phase: 'syncing' });
-            const result = await doHeroicSync();
-            if (win) win.webContents.send('heroic-watch-status', { phase: 'done', success: result.success, message: result.message, count: result.count });
+            if (_heroicSyncing) return;
+            _heroicSyncing = true;
+            try {
+                stopHeroicWatch();
+                if (win) win.webContents.send('heroic-watch-status', { phase: 'syncing' });
+                const result = await doHeroicSync();
+                if (win) win.webContents.send('heroic-watch-status', { phase: 'done', success: result.success, message: result.message, count: result.count });
+            } finally { _heroicSyncing = false; }
         }, 2500);
     };
 
@@ -1844,7 +1877,7 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
         const games = data.response.games;
         const insertStmt = db.prepare("INSERT INTO games (Store, Game, SteamAppID, LaunchCommand, FAV, WANT_TO_PLAY) VALUES (?, ?, ?, ?, 'NO', 'NO')");
 
-        for (const g of games) {
+        db.transaction(() => { for (const g of games) {
             const appid = String(g.appid);
             const name = g.name ? g.name.trim() : 'Unknown Game';
             if (!name) continue;
@@ -1933,7 +1966,7 @@ ipcMain.handle('sync-steam', async (event, steamId, apiKey) => {
                     added++;
                 }
             }
-        }
+        } })();
         return { success: true, count: added, message: `Imported ${added} new games from Steam.\n(Updated ${updated} existing entries).` };
     } catch (err) {
         return { success: false, message: `Steam API Error: ${err.message}` };
@@ -1971,18 +2004,21 @@ ipcMain.handle('sync-gog', async () => {
                 let added = 0;
                 let updated = 0;
                 const insertStmt = db.prepare("INSERT INTO games (Store, Game, FAV, WANT_TO_PLAY) VALUES ('GOG', ?, 'NO', 'NO')");
+                const selectStmt = db.prepare("SELECT * FROM games WHERE LOWER(Game) = LOWER(?)");
+                const updateStmt = db.prepare("UPDATE games SET Store = ? WHERE id = ?");
 
+                db.transaction(() => {
                 for (const product of data.products) {
                     const title = product.title.trim();
                     if (!title) continue;
 
-                    const existing = db.prepare("SELECT * FROM games WHERE LOWER(Game) = LOWER(?)").get(title);
+                    const existing = selectStmt.get(title);
 
                     if (existing) {
                         let stores = existing.Store ? existing.Store.split(',').map(s => s.trim()) : [];
                         if (!stores.some(s => s.toLowerCase() === 'gog')) {
                             stores.push('GOG');
-                            db.prepare("UPDATE games SET Store = ? WHERE id = ?").run(stores.join(', '), existing.id);
+                            updateStmt.run(stores.join(', '), existing.id);
                             updated++;
                         }
                     } else {
@@ -1990,6 +2026,7 @@ ipcMain.handle('sync-gog', async () => {
                         added++;
                     }
                 }
+                })();
                 resolve({ success: true, message: `Imported ${added} new games from GOG!\n(Updated ${updated} existing entries).` });
             } catch (err) { resolve({ success: false, message: `GOG Fetch Error: ${err.message}` }); }
         });
@@ -2586,7 +2623,7 @@ ipcMain.handle('import-csv', async () => {
 
     if (filePaths && filePaths.length > 0) {
         try {
-            const fileContent = fs.readFileSync(filePaths[0], 'utf8');
+            const fileContent = await fs.promises.readFile(filePaths[0], 'utf8');
 
             const rows = [];
             let currentRow = [];
