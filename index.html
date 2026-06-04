@@ -184,13 +184,22 @@
     #app-container.layout-bbs           #icon-rail, #app-container.layout-bbs           #side-panel, #app-container.layout-bbs           #sidebar, #app-container.layout-bbs           #topnav,
     #app-container.layout-vi            #icon-rail, #app-container.layout-vi            #side-panel, #app-container.layout-vi            #sidebar, #app-container.layout-vi            #topnav,
     #app-container.layout-adventure     #icon-rail, #app-container.layout-adventure     #side-panel, #app-container.layout-adventure     #sidebar, #app-container.layout-adventure     #topnav,
+    #app-container.layout-mc            #icon-rail, #app-container.layout-mc            #side-panel, #app-container.layout-mc            #sidebar, #app-container.layout-mc            #topnav,
+    #app-container.layout-nethack       #icon-rail, #app-container.layout-nethack       #side-panel, #app-container.layout-nethack       #sidebar, #app-container.layout-nethack       #topnav,
+    #app-container.layout-irssi         #icon-rail, #app-container.layout-irssi         #side-panel, #app-container.layout-irssi         #sidebar, #app-container.layout-irssi         #topnav,
+    #app-container.layout-qbasic        #icon-rail, #app-container.layout-qbasic        #side-panel, #app-container.layout-qbasic        #sidebar, #app-container.layout-qbasic        #topnav,
+    #app-container.layout-emacs         #icon-rail, #app-container.layout-emacs         #side-panel, #app-container.layout-emacs         #sidebar, #app-container.layout-emacs         #topnav,
+    #app-container.layout-grub          #icon-rail, #app-container.layout-grub          #side-panel, #app-container.layout-grub          #sidebar, #app-container.layout-grub          #topnav,
     #app-container.layout-mac           #icon-rail, #app-container.layout-mac           #side-panel, #app-container.layout-mac           #sidebar, #app-container.layout-mac           #topnav { display:none !important; }
     #app-container.layout-datahero      #main-content, #app-container.layout-catalog       #main-content,
     #app-container.layout-newspaper     #main-content, #app-container.layout-streamrows    #main-content,
     #app-container.layout-timeline      #main-content, #app-container.layout-kanban        #main-content,
     #app-container.layout-htop          #main-content, #app-container.layout-ranger        #main-content,
     #app-container.layout-bbs           #main-content, #app-container.layout-vi            #main-content,
-    #app-container.layout-adventure     #main-content, #app-container.layout-mac           #main-content,
+    #app-container.layout-adventure     #main-content, #app-container.layout-mc            #main-content,
+    #app-container.layout-nethack       #main-content, #app-container.layout-irssi         #main-content,
+    #app-container.layout-qbasic        #main-content, #app-container.layout-emacs         #main-content,
+    #app-container.layout-grub          #main-content, #app-container.layout-mac           #main-content,
     #app-container.layout-xp            #main-content, #app-container.layout-kde           #main-content,
     #app-container.layout-c64           #main-content, #app-container.layout-amiga         #main-content,
     #app-container.layout-beos          #main-content, #app-container.layout-w95           #main-content,
@@ -200,7 +209,10 @@
     #app-container.layout-timeline      #main-content.split-edit, #app-container.layout-kanban        #main-content.split-edit,
     #app-container.layout-htop          #main-content.split-edit, #app-container.layout-ranger        #main-content.split-edit,
     #app-container.layout-bbs           #main-content.split-edit, #app-container.layout-vi            #main-content.split-edit,
-    #app-container.layout-adventure     #main-content.split-edit, #app-container.layout-mac           #main-content.split-edit,
+    #app-container.layout-adventure     #main-content.split-edit, #app-container.layout-mc            #main-content.split-edit,
+    #app-container.layout-nethack       #main-content.split-edit, #app-container.layout-irssi         #main-content.split-edit,
+    #app-container.layout-qbasic        #main-content.split-edit, #app-container.layout-emacs         #main-content.split-edit,
+    #app-container.layout-grub          #main-content.split-edit, #app-container.layout-mac           #main-content.split-edit,
     #app-container.layout-xp            #main-content.split-edit,
     #app-container.layout-kde           #main-content.split-edit,
     #app-container.layout-c64           #main-content.split-edit,
@@ -211,6 +223,7 @@
     #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell,
     #timeline-shell, #kanban-shell,
     #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell,
+    #mc-shell, #nethack-shell, #irssi-shell, #qbasic-shell, #emacs-shell, #grub-shell,
     #mac-shell, #xp-shell, #kde-shell, #c64-shell, #amiga-shell, #beos-shell, #w95-shell, #nx-shell { display:none; flex:1; overflow:hidden; }
     #app-container.layout-datahero      #datahero-shell   { display:flex !important; }
     #app-container.layout-catalog       #catalog-shell    { display:flex !important; }
@@ -223,6 +236,12 @@
     #app-container.layout-bbs           #bbs-shell        { display:flex !important; }
     #app-container.layout-vi            #vi-shell         { display:flex !important; }
     #app-container.layout-adventure     #adventure-shell  { display:flex !important; }
+    #app-container.layout-mc            #mc-shell         { display:flex !important; }
+    #app-container.layout-nethack       #nethack-shell    { display:flex !important; }
+    #app-container.layout-irssi         #irssi-shell      { display:flex !important; }
+    #app-container.layout-qbasic        #qbasic-shell     { display:flex !important; }
+    #app-container.layout-emacs         #emacs-shell      { display:flex !important; }
+    #app-container.layout-grub          #grub-shell       { display:flex !important; }
     /* shared flat input */
     .flat-input-wrap { position:relative; display:flex; align-items:center; }
     .flat-input { background:rgba(0,0,0,0.3); border:1px solid var(--border_solid); color:var(--text_main); font-family:'Raleway',sans-serif; font-size:11px; padding:5px 24px 5px 10px; border-radius:0; width:100%; }
@@ -454,59 +473,210 @@
     #adv-input-row { flex-shrink:0; border-top:1px solid #0a3d0a; padding:8px 16px; display:flex; align-items:center; gap:6px; }
     .adv-pr { color:#33ff33; font-size:12px; } #adv-input { background:transparent; border:none; color:#33ff33; font-family:inherit; font-size:12px; flex:1; outline:none; caret-color:#33ff33; }
 
+    /* ── MC (Midnight Commander) ────────────────────────────────────────────── */
+    #mc-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#000080; color:#aaaaaa; }
+    #mc-menubar { flex-shrink:0; background:#00aaaa; color:#000; font-size:10px; padding:2px 8px; display:flex; gap:16px; user-select:none; }
+    .mc-mitem { cursor:pointer; padding:0 4px; }
+    .mc-mitem:hover { background:#000080; color:#fff; }
+    .mc-mitem span { text-decoration:underline; }
+    #mc-panels { flex:1; display:flex; overflow:hidden; min-height:0; gap:1px; }
+    .mc-panel { display:flex; flex-direction:column; overflow:hidden; border:1px solid #00aaaa; background:#000080; }
+    #mc-left { width:160px; flex-shrink:0; }
+    #mc-right { flex:1; min-width:0; }
+    .mc-panel-title { background:#00aaaa; color:#000; font-size:9px; padding:1px 8px; text-align:center; flex-shrink:0; font-weight:bold; letter-spacing:1px; }
+    .mc-panel-body { flex:1; overflow-y:auto; scrollbar-width:none; }
+    .mc-panel-body::-webkit-scrollbar { display:none; }
+    .mc-item { padding:1px 6px; font-size:10px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; gap:6px; }
+    .mc-item:hover { background:#00aaaa; color:#000; }
+    .mc-item.mc-sel { background:#00aaaa; color:#000; font-weight:bold; }
+    .mc-item.mc-active { color:#ffff00; }
+    .mc-item-tag { color:#00aaaa; width:32px; flex-shrink:0; font-size:9px; }
+    .mc-item.mc-sel .mc-item-tag { color:#000080; }
+    .mc-sep { height:1px; background:#0055aa; margin:2px 6px; }
+    #mc-right .mc-item { display:flex; align-items:center; }
+    .mc-game-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+    .mc-game-store { width:60px; flex-shrink:0; font-size:9px; color:#55aaff; }
+    .mc-sel .mc-game-store { color:#000; }
+    .mc-game-hltb { width:40px; flex-shrink:0; font-size:9px; color:#00ff00; text-align:right; }
+    .mc-sel .mc-game-hltb { color:#000; }
+    #mc-info { flex-shrink:0; background:#000055; border-top:1px solid #0055aa; padding:2px 10px; font-size:9px; color:#55aaff; min-height:18px; }
+    #mc-fkeys { flex-shrink:0; display:flex; background:#000; border-top:1px solid #0055aa; }
+    .mc-fkey { flex:1; text-align:center; font-size:9px; padding:2px 1px; cursor:pointer; white-space:nowrap; overflow:hidden; border-right:none; color:#aaa; }
+    .mc-fkey:hover { background:#001a55; }
+    .mc-fkey .fk { color:#000; background:#00aaaa; padding:0 2px; margin-right:2px; font-size:8px; }
+
+    /* ── NETHACK ─────────────────────────────────────────────────────────────── */
+    #nethack-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#000; color:#aaa; }
+    #nethack-status { flex-shrink:0; padding:3px 10px; background:#000; border-bottom:1px solid #222; font-size:9px; color:#888; display:flex; gap:14px; flex-wrap:wrap; }
+    .nh-stat { } .nh-stat b { color:#ffff00; }
+    #nethack-msgs { flex-shrink:0; padding:3px 10px; font-size:10px; color:#aaa; background:#000; border-bottom:1px solid #111; min-height:18px; }
+    #nethack-body { flex:1; overflow-y:auto; padding:4px 8px; }
+    .nh-item { display:flex; padding:1px 2px; font-size:10px; cursor:pointer; line-height:1.6; }
+    .nh-item:hover { background:#111; }
+    .nh-item.nh-sel { background:#1a1a00; }
+    .nh-key { width:22px; flex-shrink:0; color:#ffff00; }
+    .nh-sel .nh-key { color:#fff; }
+    .nh-sym { width:16px; flex-shrink:0; color:#00aa00; }
+    .nh-sel .nh-sym { color:#55ff55; }
+    .nh-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .nh-sel .nh-name { color:#fff; }
+    .nh-store { width:60px; flex-shrink:0; font-size:9px; color:#5555ff; }
+    .nh-genre { width:90px; flex-shrink:0; font-size:9px; color:#555; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .nh-hltb { width:38px; flex-shrink:0; font-size:9px; color:#aa5500; text-align:right; }
+    #nethack-cmdline { flex-shrink:0; background:#000; border-top:1px solid #1a1a1a; padding:3px 10px; font-size:10px; display:flex; align-items:center; gap:6px; min-height:22px; }
+    #nethack-cmd-prefix { color:#ffff00; }
+    #nethack-cmd-input { background:transparent; border:none; color:#aaa; font-family:inherit; font-size:inherit; outline:none; flex:1; }
+    #nethack-hint { flex-shrink:0; padding:2px 10px; font-size:9px; color:#333; background:#000; border-top:1px solid #111; }
+
+    /* ── IRSSI ───────────────────────────────────────────────────────────────── */
+    #irssi-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#1a1a1a; color:#c8c8c8; }
+    #irssi-topbar { flex-shrink:0; background:#333; border-bottom:1px solid #444; padding:2px 10px; font-size:9px; color:#888; display:flex; justify-content:space-between; }
+    #irssi-main { flex:1; display:flex; overflow:hidden; min-height:0; }
+    #irssi-sidebar { width:120px; flex-shrink:0; background:#111; border-right:1px solid #2a2a2a; overflow-y:auto; scrollbar-width:none; }
+    #irssi-sidebar::-webkit-scrollbar { display:none; }
+    .irssi-chan { padding:2px 8px; font-size:9px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#555; }
+    .irssi-chan:hover { color:#fff; }
+    .irssi-chan.irssi-active { color:#00aaaa; background:#1a1a1a; }
+    .irssi-chan.irssi-activity { color:#ffff00; }
+    .irssi-chan-sep { height:1px; background:#1a1a1a; margin:3px 0; }
+    #irssi-messages { flex:1; overflow-y:auto; padding:0; }
+    .irssi-line { display:flex; padding:1px 10px; font-size:10px; cursor:pointer; align-items:baseline; gap:6px; line-height:1.7; }
+    .irssi-line:hover { background:#222; }
+    .irssi-line.irssi-sel { background:#1a2a1a; }
+    .irssi-ts { color:#555; font-size:9px; flex-shrink:0; width:42px; }
+    .irssi-nick { color:#00aaaa; flex-shrink:0; width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+    .irssi-sel .irssi-nick { color:#55ffff; }
+    .irssi-sep-char { color:#444; flex-shrink:0; }
+    .irssi-msg { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .irssi-msg-meta { font-size:9px; color:#555; }
+    #irssi-statusbar { flex-shrink:0; background:#555; color:#000; font-size:9px; padding:2px 10px; display:flex; gap:14px; justify-content:space-between; font-weight:bold; }
+    #irssi-input-row { flex-shrink:0; background:#1a1a1a; border-top:1px solid #2a2a2a; padding:3px 10px; display:flex; align-items:center; gap:6px; font-size:10px; }
+    #irssi-prompt { color:#00aaaa; }
+    #irssi-input { background:transparent; border:none; color:#c8c8c8; font-family:inherit; font-size:inherit; outline:none; flex:1; }
+
+    /* ── QBASIC ──────────────────────────────────────────────────────────────── */
+    #qbasic-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#0000aa; color:#ffffff; }
+    #qbasic-menubar { flex-shrink:0; background:#aaaaaa; color:#000; font-size:10px; padding:2px 6px; display:flex; gap:2px; user-select:none; }
+    .qb-mitem { cursor:pointer; padding:1px 8px; }
+    .qb-mitem:hover { background:#000080; color:#fff; }
+    .qb-mitem span { text-decoration:underline; }
+    #qbasic-titlebar { flex-shrink:0; background:#0000aa; color:#ffff00; font-size:10px; padding:2px 10px; text-align:center; border-bottom:1px solid #0000dd; }
+    #qbasic-body { flex:1; overflow-y:auto; padding:4px 10px; }
+    .qb-line { display:flex; font-size:10px; padding:1px 2px; cursor:pointer; align-items:center; gap:8px; }
+    .qb-line:hover { background:#0000cc; }
+    .qb-line.qb-sel { background:#ffffff; color:#0000aa; }
+    .qb-linenum { width:40px; flex-shrink:0; color:#5555ff; font-size:9px; text-align:right; }
+    .qb-sel .qb-linenum { color:#0000aa; }
+    .qb-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .qb-store { width:60px; flex-shrink:0; font-size:9px; color:#55aaff; }
+    .qb-sel .qb-store { color:#0000aa; }
+    .qb-genre { width:90px; flex-shrink:0; font-size:9px; color:#55aaff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .qb-sel .qb-genre { color:#0000aa; }
+    .qb-hltb { width:40px; flex-shrink:0; font-size:9px; color:#00ff00; text-align:right; }
+    .qb-sel .qb-hltb { color:#0000aa; }
+    #qbasic-searchbar { flex-shrink:0; background:#0000aa; border-top:1px solid #0000dd; padding:3px 10px; font-size:10px; display:flex; align-items:center; gap:6px; min-height:22px; color:#55aaff; }
+    #qbasic-search { background:transparent; border:none; color:#fff; font-family:inherit; font-size:inherit; outline:none; flex:1; caret-color:#fff; }
+    #qbasic-statusbar { flex-shrink:0; background:#aaaaaa; color:#000; font-size:9px; padding:2px 10px; display:flex; justify-content:space-between; }
+
+    /* ── EMACS ───────────────────────────────────────────────────────────────── */
+    #emacs-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#1c1c1c; color:#d4d4d4; }
+    #emacs-header { flex-shrink:0; background:#2a2a2a; border-bottom:1px solid #3a3a3a; padding:3px 14px; font-size:9px; color:#888; display:flex; justify-content:space-between; }
+    #emacs-buffer { flex:1; overflow-y:auto; padding:2px 0; }
+    .emacs-line { display:flex; font-size:10px; padding:1px 0; cursor:pointer; align-items:baseline; }
+    .emacs-line:hover { background:#252525; }
+    .emacs-line.emacs-sel { background:#2d4d6a; }
+    .emacs-lnum { width:52px; flex-shrink:0; text-align:right; padding-right:12px; color:#4a4a4a; font-size:9px; user-select:none; }
+    .emacs-sel .emacs-lnum { color:#6688aa; }
+    .emacs-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#d4d4d4; }
+    .emacs-sel .emacs-name { color:#fff; }
+    .emacs-store { width:64px; flex-shrink:0; font-size:9px; color:#888; }
+    .emacs-genre { width:100px; flex-shrink:0; font-size:9px; color:#666; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .emacs-hltb { width:44px; flex-shrink:0; font-size:9px; color:#c586c0; }
+    #emacs-modeline { flex-shrink:0; background:#5c568c; color:#fff; font-size:9px; padding:2px 10px; display:flex; align-items:center; gap:10px; font-weight:bold; letter-spacing:0.3px; user-select:none; }
+    #emacs-ml-flags { color:#c8c8ff; }
+    #emacs-ml-name { flex:1; color:#fff; }
+    #emacs-ml-mode { color:#c8c8ff; }
+    #emacs-ml-pos { color:#c8c8ff; font-size:8px; }
+    #emacs-minibuf { flex-shrink:0; background:#1c1c1c; border-top:1px solid #2a2a2a; padding:3px 10px; font-size:10px; display:flex; align-items:center; gap:4px; min-height:22px; }
+    #emacs-mb-prefix { color:#c586c0; }
+    #emacs-mb-input { background:transparent; border:none; color:#d4d4d4; font-family:inherit; font-size:inherit; outline:none; flex:1; }
+
+    /* ── GRUB ────────────────────────────────────────────────────────────────── */
+    #grub-shell { flex-direction:column; font-family:var(--tty-font),'Fira Code','Courier New',monospace; background:#000; color:#fff; align-items:center; justify-content:center; }
+    #grub-inner { width:min(640px, 95%); display:flex; flex-direction:column; gap:0; }
+    #grub-header { text-align:center; margin-bottom:18px; }
+    #grub-title { font-size:14px; color:#fff; letter-spacing:1px; }
+    #grub-subtitle { font-size:10px; color:#aaa; margin-top:4px; }
+    #grub-box { border:1px solid #555; background:#000; }
+    #grub-box-title { background:#555; color:#000; font-size:9px; padding:1px 10px; letter-spacing:1px; font-weight:bold; }
+    #grub-list { min-height:200px; max-height:280px; overflow-y:auto; scrollbar-width:none; }
+    #grub-list::-webkit-scrollbar { display:none; }
+    .grub-entry { padding:2px 12px; font-size:10px; cursor:pointer; display:flex; align-items:center; gap:10px; }
+    .grub-entry:hover { background:#222; }
+    .grub-entry.grub-sel { background:#007bff; color:#fff; }
+    .grub-arrow { width:12px; flex-shrink:0; color:#007bff; }
+    .grub-sel .grub-arrow { color:#fff; }
+    .grub-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .grub-meta { font-size:9px; color:#777; flex-shrink:0; }
+    .grub-sel .grub-meta { color:#cce; }
+    #grub-footer { margin-top:8px; font-size:9px; color:#555; display:flex; justify-content:space-between; }
+    #grub-hint { text-align:center; }
+    #grub-search-row { padding:4px 10px; border-top:1px solid #222; display:none; font-size:10px; color:#777; }
+    #grub-search { background:transparent; border:none; color:#fff; font-family:inherit; font-size:inherit; outline:none; width:calc(100% - 14px); }
+
     /* ── TTY Layouts — modal theming ────────────────────────────────────────── */
     /* Shared structural base: font, no border-radius, no box-shadow */
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-overlay { background:rgba(0,0,0,0.88) !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect > div,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools > div { border-radius:0 !important; box-shadow:none !important; font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box h2,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box h3,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect h3,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools h3 { font-family:inherit !important; letter-spacing:1px !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box input,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box select,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box textarea,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect input,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools input[type="text"],
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools input[type="password"] { border-radius:0 !important; font-family:inherit !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box button,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box .primary,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect button,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools button { border-radius:0 !important; box-shadow:none !important; font-family:inherit !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box button:hover,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .modal-box .primary:hover,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect button:hover,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools button:hover { transform:none !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-connect .tool-card,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #modal-tools .tool-card { border-radius:0 !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .segmented-btn { border-radius:0 !important; box-shadow:none !important; font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .segmented-btn:last-child { border-right:none !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .segmented-btn.active { border-color:transparent !important; transform:none !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .segmented-btn:hover:not(.active) { transform:none !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .lsc-cat { font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #connect-cards-container::-webkit-scrollbar,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #tools-cards-container::-webkit-scrollbar { width:6px; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-overlay { background:rgba(0,0,0,0.88) !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect > div,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools > div { border-radius:0 !important; box-shadow:none !important; font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box h2,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box h3,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect h3,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools h3 { font-family:inherit !important; letter-spacing:1px !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box input,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box select,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box textarea,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect input,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools input[type="text"],
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools input[type="password"] { border-radius:0 !important; font-family:inherit !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box button,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box .primary,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect button,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools button { border-radius:0 !important; box-shadow:none !important; font-family:inherit !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box button:hover,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .modal-box .primary:hover,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect button:hover,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools button:hover { transform:none !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-connect .tool-card,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #modal-tools .tool-card { border-radius:0 !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .segmented-btn { border-radius:0 !important; box-shadow:none !important; font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .segmented-btn:last-child { border-right:none !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .segmented-btn.active { border-color:transparent !important; transform:none !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .segmented-btn:hover:not(.active) { transform:none !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .lsc-cat { font-family:var(--tty-font),'Fira Code','Courier New',monospace !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #connect-cards-container::-webkit-scrollbar,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #tools-cards-container::-webkit-scrollbar { width:6px; }
     /* Shared edit-game structural base */
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details { font-family:'PxPlus IBM VGA8','Fira Code','Courier New',monospace !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details input,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details textarea { border-radius:0 !important; font-family:inherit !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details button { border-radius:0 !important; box-shadow:none !important; font-family:inherit !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details button:hover { transform:none !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details fieldset { border-radius:0 !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details fieldset legend span { border-radius:0 !important; font-family:inherit !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #ui-cover,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #ui-hero,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #ui-logo,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #ui-icon,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #ui-screenshot,
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #view-details #grinder-launch-row { border-radius:0 !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details { font-family:'PxPlus IBM VGA8','Fira Code','Courier New',monospace !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details input,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details textarea { border-radius:0 !important; font-family:inherit !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details button { border-radius:0 !important; box-shadow:none !important; font-family:inherit !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details button:hover { transform:none !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details fieldset { border-radius:0 !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details fieldset legend span { border-radius:0 !important; font-family:inherit !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #ui-cover,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #ui-hero,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #ui-logo,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #ui-icon,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #ui-screenshot,
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #view-details #grinder-launch-row { border-radius:0 !important; }
     /* Shared titlebar */
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) #titlebar { background:#000 !important; border-bottom:1px solid #222 !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .titlebar-brand { color:#fff !important; font-family:'PxPlus IBM VGA8','Fira Code',monospace !important; letter-spacing:1px !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .win-btn { font-family:'PxPlus IBM VGA8','Fira Code',monospace !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .win-btn:hover { background-color:rgba(255,255,255,0.12) !important; color:#fff !important; }
-    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure) .win-close:hover { background-color:#8b0000 !important; color:#fff !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) #titlebar { background:#000 !important; border-bottom:1px solid #222 !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .titlebar-brand { color:#fff !important; font-family:'PxPlus IBM VGA8','Fira Code',monospace !important; letter-spacing:1px !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .win-btn { font-family:'PxPlus IBM VGA8','Fira Code',monospace !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .win-btn:hover { background-color:rgba(255,255,255,0.12) !important; color:#fff !important; }
+    :is(body.layout-htop,body.layout-ranger,body.layout-bbs,body.layout-vi,body.layout-adventure,body.layout-mc,body.layout-nethack,body.layout-irssi,body.layout-qbasic,body.layout-emacs,body.layout-grub) .win-close:hover { background-color:#8b0000 !important; color:#fff !important; }
 
     /* ── HTOP — amber accent, blue selection ──────────────────────────────── */
     body.layout-htop .modal-box,
@@ -703,9 +873,222 @@
     body.layout-adventure #view-details #ui-cover, body.layout-adventure #view-details #ui-hero, body.layout-adventure #view-details #ui-logo, body.layout-adventure #view-details #ui-icon, body.layout-adventure #view-details #ui-screenshot,
     body.layout-adventure #view-details #grinder-launch-row { border:1px solid #051a05 !important; background:#000 !important; }
 
+    /* ── MC — navy blue, cyan accent ──────────────────────────────────────── */
+    body.layout-mc .modal-box,
+    body.layout-mc #modal-connect > div,
+    body.layout-mc #modal-tools > div { background:#000055 !important; border:1px solid #00aaaa !important; color:#aaaaaa !important; }
+    body.layout-mc .modal-box h2, body.layout-mc .modal-box h3,
+    body.layout-mc #modal-connect h3, body.layout-mc #modal-tools h3 { color:#00aaaa !important; }
+    body.layout-mc .modal-box p, body.layout-mc .modal-box label, body.layout-mc .modal-box span,
+    body.layout-mc #modal-connect p, body.layout-mc #modal-connect code,
+    body.layout-mc #modal-tools p, body.layout-mc #modal-tools code { color:#aaaaaa !important; }
+    body.layout-mc .modal-box input, body.layout-mc .modal-box select, body.layout-mc .modal-box textarea,
+    body.layout-mc #modal-connect input, body.layout-mc #modal-tools input[type="text"], body.layout-mc #modal-tools input[type="password"] { border:1px solid #0055aa !important; background:#000080 !important; color:#fff !important; }
+    body.layout-mc .modal-box button, body.layout-mc .modal-box .primary,
+    body.layout-mc #modal-connect button, body.layout-mc #modal-tools button { border:1px solid #0055aa !important; background:#000080 !important; color:#aaa !important; }
+    body.layout-mc .modal-box button:hover, body.layout-mc .modal-box .primary:hover,
+    body.layout-mc #modal-connect button:hover, body.layout-mc #modal-tools button:hover { background:#000055 !important; color:#00aaaa !important; border-color:#00aaaa !important; }
+    body.layout-mc #modal-connect .tool-card, body.layout-mc #modal-tools .tool-card { background:#000080 !important; border:1px solid #0055aa !important; }
+    body.layout-mc #modal-connect .tool-card-title, body.layout-mc #modal-tools .tool-card-title,
+    body.layout-mc .tool-card-title { color:#00aaaa !important; }
+    body.layout-mc .segmented-control { border:1px solid #0055aa !important; background:#000080 !important; }
+    body.layout-mc .segmented-btn { border-right:1px solid #0055aa !important; background:#000080 !important; color:#5555ff !important; }
+    body.layout-mc .segmented-btn.active { background:#000055 !important; color:#00aaaa !important; }
+    body.layout-mc .segmented-btn:hover:not(.active) { background:#000066 !important; color:#fff !important; }
+    body.layout-mc .lsc-cat { border-color:#0055aa !important; color:#5555ff !important; }
+    body.layout-mc .lsc-cat:hover { border-color:#00aaaa !important; color:#00aaaa !important; }
+    body.layout-mc .lsc-cat.active { background:#00aaaa !important; color:#000 !important; border-color:#00aaaa !important; }
+    body.layout-mc #connect-cards-container, body.layout-mc #tools-cards-container { scrollbar-width:thin; scrollbar-color:#00aaaa #000080; }
+    body.layout-mc .win-btn { color:#5555ff !important; }
+    body.layout-mc #view-details { background:#000055 !important; color:#aaa !important; }
+    body.layout-mc #view-details label { color:#00aaaa !important; }
+    body.layout-mc #view-details input, body.layout-mc #view-details textarea { border:1px solid #0055aa !important; background:#000080 !important; color:#fff !important; }
+    body.layout-mc #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #0055aa !important; background:#000080 !important; color:#aaa !important; }
+    body.layout-mc #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#000055 !important; color:#00aaaa !important; border-color:#00aaaa !important; }
+    body.layout-mc #view-details fieldset { border:1px solid #0055aa !important; }
+    body.layout-mc #view-details fieldset legend span { background:#000055 !important; color:#00aaaa !important; }
+    body.layout-mc #view-details #ui-cover, body.layout-mc #view-details #ui-hero, body.layout-mc #view-details #ui-logo, body.layout-mc #view-details #ui-icon, body.layout-mc #view-details #ui-screenshot,
+    body.layout-mc #view-details #grinder-launch-row { border:1px solid #0055aa !important; background:#000080 !important; }
+
+    /* ── NETHACK — black, gold keys, green cursor ──────────────────────────── */
+    body.layout-nethack .modal-box,
+    body.layout-nethack #modal-connect > div,
+    body.layout-nethack #modal-tools > div { background:#000 !important; border:1px solid #555 !important; color:#aaa !important; }
+    body.layout-nethack .modal-box h2, body.layout-nethack .modal-box h3,
+    body.layout-nethack #modal-connect h3, body.layout-nethack #modal-tools h3 { color:#ffff00 !important; }
+    body.layout-nethack .modal-box p, body.layout-nethack .modal-box label, body.layout-nethack .modal-box span,
+    body.layout-nethack #modal-connect p, body.layout-nethack #modal-connect code,
+    body.layout-nethack #modal-tools p, body.layout-nethack #modal-tools code { color:#aaa !important; }
+    body.layout-nethack .modal-box input, body.layout-nethack .modal-box select, body.layout-nethack .modal-box textarea,
+    body.layout-nethack #modal-connect input, body.layout-nethack #modal-tools input[type="text"], body.layout-nethack #modal-tools input[type="password"] { border:1px solid #333 !important; background:#111 !important; color:#aaa !important; }
+    body.layout-nethack .modal-box button, body.layout-nethack .modal-box .primary,
+    body.layout-nethack #modal-connect button, body.layout-nethack #modal-tools button { border:1px solid #333 !important; background:#111 !important; color:#666 !important; }
+    body.layout-nethack .modal-box button:hover, body.layout-nethack .modal-box .primary:hover,
+    body.layout-nethack #modal-connect button:hover, body.layout-nethack #modal-tools button:hover { background:#1a1a00 !important; color:#ffff00 !important; border-color:#ffff00 !important; }
+    body.layout-nethack #modal-connect .tool-card, body.layout-nethack #modal-tools .tool-card { background:#111 !important; border:1px solid #222 !important; }
+    body.layout-nethack .tool-card-title { color:#ffff00 !important; }
+    body.layout-nethack .segmented-btn { background:#111 !important; color:#555 !important; border-right:1px solid #222 !important; }
+    body.layout-nethack .segmented-btn.active { background:#1a1a00 !important; color:#ffff00 !important; }
+    body.layout-nethack .segmented-btn:hover:not(.active) { background:#151500 !important; color:#aaa !important; }
+    body.layout-nethack .lsc-cat { border-color:#333 !important; color:#555 !important; }
+    body.layout-nethack .lsc-cat:hover { border-color:#ffff00 !important; color:#ffff00 !important; }
+    body.layout-nethack .lsc-cat.active { background:#ffff00 !important; color:#000 !important; border-color:#ffff00 !important; }
+    body.layout-nethack #connect-cards-container, body.layout-nethack #tools-cards-container { scrollbar-width:thin; scrollbar-color:#ffff00 #111; }
+    body.layout-nethack .win-btn { color:#555 !important; }
+    body.layout-nethack #view-details { background:#000 !important; color:#aaa !important; }
+    body.layout-nethack #view-details label { color:#ffff00 !important; }
+    body.layout-nethack #view-details input, body.layout-nethack #view-details textarea { border:1px solid #333 !important; background:#111 !important; color:#aaa !important; }
+    body.layout-nethack #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #333 !important; background:#111 !important; color:#666 !important; }
+    body.layout-nethack #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#1a1a00 !important; color:#ffff00 !important; border-color:#ffff00 !important; }
+    body.layout-nethack #view-details fieldset { border:1px solid #222 !important; }
+    body.layout-nethack #view-details fieldset legend span { background:#000 !important; color:#ffff00 !important; }
+    body.layout-nethack #view-details #ui-cover, body.layout-nethack #view-details #ui-hero, body.layout-nethack #view-details #ui-logo, body.layout-nethack #view-details #ui-icon, body.layout-nethack #view-details #ui-screenshot,
+    body.layout-nethack #view-details #grinder-launch-row { border:1px solid #222 !important; background:#111 !important; }
+
+    /* ── IRSSI — dark, cyan nicks, yellow activity ─────────────────────────── */
+    body.layout-irssi .modal-box,
+    body.layout-irssi #modal-connect > div,
+    body.layout-irssi #modal-tools > div { background:#111 !important; border:1px solid #444 !important; color:#c8c8c8 !important; }
+    body.layout-irssi .modal-box h2, body.layout-irssi .modal-box h3,
+    body.layout-irssi #modal-connect h3, body.layout-irssi #modal-tools h3 { color:#00aaaa !important; }
+    body.layout-irssi .modal-box p, body.layout-irssi .modal-box label, body.layout-irssi .modal-box span,
+    body.layout-irssi #modal-connect p, body.layout-irssi #modal-connect code,
+    body.layout-irssi #modal-tools p, body.layout-irssi #modal-tools code { color:#c8c8c8 !important; }
+    body.layout-irssi .modal-box input, body.layout-irssi .modal-box select, body.layout-irssi .modal-box textarea,
+    body.layout-irssi #modal-connect input, body.layout-irssi #modal-tools input[type="text"], body.layout-irssi #modal-tools input[type="password"] { border:1px solid #333 !important; background:#1a1a1a !important; color:#c8c8c8 !important; }
+    body.layout-irssi .modal-box button, body.layout-irssi .modal-box .primary,
+    body.layout-irssi #modal-connect button, body.layout-irssi #modal-tools button { border:1px solid #333 !important; background:#1a1a1a !important; color:#666 !important; }
+    body.layout-irssi .modal-box button:hover, body.layout-irssi .modal-box .primary:hover,
+    body.layout-irssi #modal-connect button:hover, body.layout-irssi #modal-tools button:hover { background:#1a2a2a !important; color:#00aaaa !important; border-color:#00aaaa !important; }
+    body.layout-irssi #modal-connect .tool-card, body.layout-irssi #modal-tools .tool-card { background:#1a1a1a !important; border:1px solid #2a2a2a !important; }
+    body.layout-irssi .tool-card-title { color:#00aaaa !important; }
+    body.layout-irssi .segmented-btn { background:#1a1a1a !important; color:#555 !important; border-right:1px solid #2a2a2a !important; }
+    body.layout-irssi .segmented-btn.active { background:#1a2a2a !important; color:#00aaaa !important; }
+    body.layout-irssi .segmented-btn:hover:not(.active) { background:#222 !important; color:#c8c8c8 !important; }
+    body.layout-irssi .lsc-cat { border-color:#333 !important; color:#555 !important; }
+    body.layout-irssi .lsc-cat:hover { border-color:#00aaaa !important; color:#00aaaa !important; }
+    body.layout-irssi .lsc-cat.active { background:#00aaaa !important; color:#000 !important; border-color:#00aaaa !important; }
+    body.layout-irssi #connect-cards-container, body.layout-irssi #tools-cards-container { scrollbar-width:thin; scrollbar-color:#00aaaa #1a1a1a; }
+    body.layout-irssi .win-btn { color:#555 !important; }
+    body.layout-irssi #view-details { background:#111 !important; color:#c8c8c8 !important; }
+    body.layout-irssi #view-details label { color:#00aaaa !important; }
+    body.layout-irssi #view-details input, body.layout-irssi #view-details textarea { border:1px solid #333 !important; background:#1a1a1a !important; color:#c8c8c8 !important; }
+    body.layout-irssi #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #333 !important; background:#1a1a1a !important; color:#666 !important; }
+    body.layout-irssi #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#1a2a2a !important; color:#00aaaa !important; border-color:#00aaaa !important; }
+    body.layout-irssi #view-details fieldset { border:1px solid #2a2a2a !important; }
+    body.layout-irssi #view-details fieldset legend span { background:#111 !important; color:#00aaaa !important; }
+    body.layout-irssi #view-details #ui-cover, body.layout-irssi #view-details #ui-hero, body.layout-irssi #view-details #ui-logo, body.layout-irssi #view-details #ui-icon, body.layout-irssi #view-details #ui-screenshot,
+    body.layout-irssi #view-details #grinder-launch-row { border:1px solid #2a2a2a !important; background:#1a1a1a !important; }
+
+    /* ── QBASIC — bright blue, white on blue ───────────────────────────────── */
+    body.layout-qbasic .modal-box,
+    body.layout-qbasic #modal-connect > div,
+    body.layout-qbasic #modal-tools > div { background:#0000aa !important; border:1px solid #aaaaaa !important; color:#ffffff !important; }
+    body.layout-qbasic .modal-box h2, body.layout-qbasic .modal-box h3,
+    body.layout-qbasic #modal-connect h3, body.layout-qbasic #modal-tools h3 { color:#ffff00 !important; }
+    body.layout-qbasic .modal-box p, body.layout-qbasic .modal-box label, body.layout-qbasic .modal-box span,
+    body.layout-qbasic #modal-connect p, body.layout-qbasic #modal-connect code,
+    body.layout-qbasic #modal-tools p, body.layout-qbasic #modal-tools code { color:#fff !important; }
+    body.layout-qbasic .modal-box input, body.layout-qbasic .modal-box select, body.layout-qbasic .modal-box textarea,
+    body.layout-qbasic #modal-connect input, body.layout-qbasic #modal-tools input[type="text"], body.layout-qbasic #modal-tools input[type="password"] { border:1px solid #55aaff !important; background:#000055 !important; color:#fff !important; }
+    body.layout-qbasic .modal-box button, body.layout-qbasic .modal-box .primary,
+    body.layout-qbasic #modal-connect button, body.layout-qbasic #modal-tools button { border:1px solid #5555ff !important; background:#000080 !important; color:#aaaaaa !important; }
+    body.layout-qbasic .modal-box button:hover, body.layout-qbasic .modal-box .primary:hover,
+    body.layout-qbasic #modal-connect button:hover, body.layout-qbasic #modal-tools button:hover { background:#ffffff !important; color:#0000aa !important; border-color:#fff !important; }
+    body.layout-qbasic #modal-connect .tool-card, body.layout-qbasic #modal-tools .tool-card { background:#000080 !important; border:1px solid #5555ff !important; }
+    body.layout-qbasic .tool-card-title { color:#ffff00 !important; }
+    body.layout-qbasic .segmented-btn { background:#000080 !important; color:#5555ff !important; border-right:1px solid #5555ff !important; }
+    body.layout-qbasic .segmented-btn.active { background:#ffffff !important; color:#0000aa !important; }
+    body.layout-qbasic .segmented-btn:hover:not(.active) { background:#000055 !important; color:#fff !important; }
+    body.layout-qbasic .lsc-cat { border-color:#5555ff !important; color:#5555ff !important; }
+    body.layout-qbasic .lsc-cat:hover { border-color:#ffff00 !important; color:#ffff00 !important; }
+    body.layout-qbasic .lsc-cat.active { background:#ffff00 !important; color:#0000aa !important; border-color:#ffff00 !important; }
+    body.layout-qbasic #connect-cards-container, body.layout-qbasic #tools-cards-container { scrollbar-width:thin; scrollbar-color:#5555ff #000080; }
+    body.layout-qbasic .win-btn { color:#aaaaaa !important; }
+    body.layout-qbasic #view-details { background:#0000aa !important; color:#fff !important; }
+    body.layout-qbasic #view-details label { color:#ffff00 !important; }
+    body.layout-qbasic #view-details input, body.layout-qbasic #view-details textarea { border:1px solid #55aaff !important; background:#000055 !important; color:#fff !important; }
+    body.layout-qbasic #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #5555ff !important; background:#000080 !important; color:#aaa !important; }
+    body.layout-qbasic #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#fff !important; color:#0000aa !important; border-color:#fff !important; }
+    body.layout-qbasic #view-details fieldset { border:1px solid #5555ff !important; }
+    body.layout-qbasic #view-details fieldset legend span { background:#0000aa !important; color:#ffff00 !important; }
+    body.layout-qbasic #view-details #ui-cover, body.layout-qbasic #view-details #ui-hero, body.layout-qbasic #view-details #ui-logo, body.layout-qbasic #view-details #ui-icon, body.layout-qbasic #view-details #ui-screenshot,
+    body.layout-qbasic #view-details #grinder-launch-row { border:1px solid #5555ff !important; background:#000080 !important; }
+
+    /* ── EMACS — dark charcoal, purple mode-line ───────────────────────────── */
+    body.layout-emacs .modal-box,
+    body.layout-emacs #modal-connect > div,
+    body.layout-emacs #modal-tools > div { background:#1c1c1c !important; border:1px solid #3a3a3a !important; color:#d4d4d4 !important; }
+    body.layout-emacs .modal-box h2, body.layout-emacs .modal-box h3,
+    body.layout-emacs #modal-connect h3, body.layout-emacs #modal-tools h3 { color:#c586c0 !important; }
+    body.layout-emacs .modal-box p, body.layout-emacs .modal-box label, body.layout-emacs .modal-box span,
+    body.layout-emacs #modal-connect p, body.layout-emacs #modal-connect code,
+    body.layout-emacs #modal-tools p, body.layout-emacs #modal-tools code { color:#d4d4d4 !important; }
+    body.layout-emacs .modal-box input, body.layout-emacs .modal-box select, body.layout-emacs .modal-box textarea,
+    body.layout-emacs #modal-connect input, body.layout-emacs #modal-tools input[type="text"], body.layout-emacs #modal-tools input[type="password"] { border:1px solid #3a3a3a !important; background:#252525 !important; color:#d4d4d4 !important; }
+    body.layout-emacs .modal-box button, body.layout-emacs .modal-box .primary,
+    body.layout-emacs #modal-connect button, body.layout-emacs #modal-tools button { border:1px solid #3a3a3a !important; background:#252525 !important; color:#888 !important; }
+    body.layout-emacs .modal-box button:hover, body.layout-emacs .modal-box .primary:hover,
+    body.layout-emacs #modal-connect button:hover, body.layout-emacs #modal-tools button:hover { background:#2d2d4a !important; color:#c586c0 !important; border-color:#c586c0 !important; }
+    body.layout-emacs #modal-connect .tool-card, body.layout-emacs #modal-tools .tool-card { background:#252525 !important; border:1px solid #2a2a2a !important; }
+    body.layout-emacs .tool-card-title { color:#c586c0 !important; }
+    body.layout-emacs .segmented-btn { background:#252525 !important; color:#666 !important; border-right:1px solid #3a3a3a !important; }
+    body.layout-emacs .segmented-btn.active { background:#2d4d6a !important; color:#c586c0 !important; }
+    body.layout-emacs .segmented-btn:hover:not(.active) { background:#2a2a2a !important; color:#d4d4d4 !important; }
+    body.layout-emacs .lsc-cat { border-color:#3a3a3a !important; color:#666 !important; }
+    body.layout-emacs .lsc-cat:hover { border-color:#c586c0 !important; color:#c586c0 !important; }
+    body.layout-emacs .lsc-cat.active { background:#c586c0 !important; color:#1c1c1c !important; border-color:#c586c0 !important; }
+    body.layout-emacs #connect-cards-container, body.layout-emacs #tools-cards-container { scrollbar-width:thin; scrollbar-color:#c586c0 #252525; }
+    body.layout-emacs .win-btn { color:#555 !important; }
+    body.layout-emacs #view-details { background:#1c1c1c !important; color:#d4d4d4 !important; }
+    body.layout-emacs #view-details label { color:#c586c0 !important; }
+    body.layout-emacs #view-details input, body.layout-emacs #view-details textarea { border:1px solid #3a3a3a !important; background:#252525 !important; color:#d4d4d4 !important; }
+    body.layout-emacs #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #3a3a3a !important; background:#252525 !important; color:#888 !important; }
+    body.layout-emacs #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#2d2d4a !important; color:#c586c0 !important; border-color:#c586c0 !important; }
+    body.layout-emacs #view-details fieldset { border:1px solid #2a2a2a !important; }
+    body.layout-emacs #view-details fieldset legend span { background:#1c1c1c !important; color:#c586c0 !important; }
+    body.layout-emacs #view-details #ui-cover, body.layout-emacs #view-details #ui-hero, body.layout-emacs #view-details #ui-logo, body.layout-emacs #view-details #ui-icon, body.layout-emacs #view-details #ui-screenshot,
+    body.layout-emacs #view-details #grinder-launch-row { border:1px solid #2a2a2a !important; background:#252525 !important; }
+
+    /* ── GRUB — black, blue selection, white text ──────────────────────────── */
+    body.layout-grub .modal-box,
+    body.layout-grub #modal-connect > div,
+    body.layout-grub #modal-tools > div { background:#000 !important; border:1px solid #555 !important; color:#fff !important; }
+    body.layout-grub .modal-box h2, body.layout-grub .modal-box h3,
+    body.layout-grub #modal-connect h3, body.layout-grub #modal-tools h3 { color:#55aaff !important; }
+    body.layout-grub .modal-box p, body.layout-grub .modal-box label, body.layout-grub .modal-box span,
+    body.layout-grub #modal-connect p, body.layout-grub #modal-connect code,
+    body.layout-grub #modal-tools p, body.layout-grub #modal-tools code { color:#fff !important; }
+    body.layout-grub .modal-box input, body.layout-grub .modal-box select, body.layout-grub .modal-box textarea,
+    body.layout-grub #modal-connect input, body.layout-grub #modal-tools input[type="text"], body.layout-grub #modal-tools input[type="password"] { border:1px solid #444 !important; background:#111 !important; color:#fff !important; }
+    body.layout-grub .modal-box button, body.layout-grub .modal-box .primary,
+    body.layout-grub #modal-connect button, body.layout-grub #modal-tools button { border:1px solid #444 !important; background:#111 !important; color:#aaa !important; }
+    body.layout-grub .modal-box button:hover, body.layout-grub .modal-box .primary:hover,
+    body.layout-grub #modal-connect button:hover, body.layout-grub #modal-tools button:hover { background:#007bff !important; color:#fff !important; border-color:#007bff !important; }
+    body.layout-grub #modal-connect .tool-card, body.layout-grub #modal-tools .tool-card { background:#111 !important; border:1px solid #333 !important; }
+    body.layout-grub .tool-card-title { color:#55aaff !important; }
+    body.layout-grub .segmented-btn { background:#111 !important; color:#555 !important; border-right:1px solid #2a2a2a !important; }
+    body.layout-grub .segmented-btn.active { background:#007bff !important; color:#fff !important; }
+    body.layout-grub .segmented-btn:hover:not(.active) { background:#1a1a1a !important; color:#fff !important; }
+    body.layout-grub .lsc-cat { border-color:#444 !important; color:#666 !important; }
+    body.layout-grub .lsc-cat:hover { border-color:#55aaff !important; color:#55aaff !important; }
+    body.layout-grub .lsc-cat.active { background:#007bff !important; color:#fff !important; border-color:#007bff !important; }
+    body.layout-grub #connect-cards-container, body.layout-grub #tools-cards-container { scrollbar-width:thin; scrollbar-color:#007bff #111; }
+    body.layout-grub .win-btn { color:#555 !important; }
+    body.layout-grub #view-details { background:#000 !important; color:#fff !important; }
+    body.layout-grub #view-details label { color:#55aaff !important; }
+    body.layout-grub #view-details input, body.layout-grub #view-details textarea { border:1px solid #444 !important; background:#111 !important; color:#fff !important; }
+    body.layout-grub #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game) { border:1px solid #444 !important; background:#111 !important; color:#aaa !important; }
+    body.layout-grub #view-details button:not(#btn-delete-cover):not(#btn-delete-hero):not(#btn-delete-logo):not(#btn-delete-icon):not(#btn-delete-screenshot):not(#btn-delete-trailer):not(#btn-delete-game):hover { background:#007bff !important; color:#fff !important; border-color:#007bff !important; }
+    body.layout-grub #view-details fieldset { border:1px solid #333 !important; }
+    body.layout-grub #view-details fieldset legend span { background:#000 !important; color:#55aaff !important; }
+    body.layout-grub #view-details #ui-cover, body.layout-grub #view-details #ui-hero, body.layout-grub #view-details #ui-logo, body.layout-grub #view-details #ui-icon, body.layout-grub #view-details #ui-screenshot,
+    body.layout-grub #view-details #grinder-launch-row { border:1px solid #333 !important; background:#111 !important; }
+
     /* ── Layout zoom ─────────────────────────────────────────────────────────── */
     #datahero-shell, #catalog-shell, #newspaper-shell, #streamrows-shell, #timeline-shell, #kanban-shell,
-    #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell { zoom: 1.25; }
+    #htop-shell, #ranger-shell, #bbs-shell, #vi-shell, #adventure-shell,
+    #mc-shell, #nethack-shell, #irssi-shell, #qbasic-shell, #emacs-shell, #grub-shell { zoom: 1.25; }
 
     /* ── FLAT DETAIL OVERLAY ─────────────────────────────────────────────────── */
     #flat-detail-overlay { display:none; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9998; flex-direction:column; background:#080808; }
@@ -3291,6 +3674,133 @@
       </div>
     </div>
 
+    <!-- ── MC ───────────────────────────────────────────────────────────────── -->
+    <div id="mc-shell">
+      <div id="mc-menubar">
+        <span class="mc-mitem"><span>L</span>eft</span>
+        <span class="mc-mitem"><span>F</span>ile</span>
+        <span class="mc-mitem"><span>C</span>ommand</span>
+        <span class="mc-mitem"><span>O</span>ptions</span>
+        <span class="mc-mitem"><span>R</span>ight</span>
+      </div>
+      <div id="mc-panels">
+        <div class="mc-panel" id="mc-left">
+          <div class="mc-panel-title" id="mc-left-title">Categories</div>
+          <div class="mc-panel-body" id="mc-left-body"></div>
+        </div>
+        <div class="mc-panel" id="mc-right">
+          <div class="mc-panel-title" id="mc-right-title">Games</div>
+          <div class="mc-panel-body" id="mc-right-body"></div>
+        </div>
+      </div>
+      <div id="mc-info"></div>
+      <div id="mc-fkeys">
+        <div class="mc-fkey" data-mc-f="help"><span class="fk">F1</span>Help</div>
+        <div class="mc-fkey" data-mc-f="search"><span class="fk">F2</span>Search</div>
+        <div class="mc-fkey" data-mc-f="open"><span class="fk">F3</span>Open</div>
+        <div class="mc-fkey" data-mc-f="tools"><span class="fk">F9</span>Tools</div>
+        <div class="mc-fkey tty-shell-font-btn" id="mc-fk-font"><span class="fk">F7</span>Font</div>
+        <div class="mc-fkey" data-mc-f="quit"><span class="fk">F10</span>Quit</div>
+      </div>
+    </div>
+
+    <!-- ── NETHACK ───────────────────────────────────────────────────────────── -->
+    <div id="nethack-shell">
+      <div id="nethack-status"></div>
+      <div id="nethack-msgs">Welcome to Café Neurotico. Your library awaits.</div>
+      <div id="nethack-body"></div>
+      <div id="nethack-hint">? for help &nbsp;·&nbsp; / to search &nbsp;·&nbsp; Enter to open &nbsp;·&nbsp; Arrow keys to navigate &nbsp;<button id="nethack-fk-font" class="tty-shell-font-btn" style="color:#555;">Font</button></div>
+      <div id="nethack-cmdline">
+        <span id="nethack-cmd-prefix">#</span>
+        <input id="nethack-cmd-input" autocomplete="off" spellcheck="false" placeholder="extended command…">
+      </div>
+    </div>
+
+    <!-- ── IRSSI ─────────────────────────────────────────────────────────────── -->
+    <div id="irssi-shell">
+      <div id="irssi-topbar">
+        <span id="irssi-topbar-left">irssi — Café Neurotico Game Library</span>
+        <span id="irssi-topbar-right"></span>
+      </div>
+      <div id="irssi-main">
+        <div id="irssi-sidebar"></div>
+        <div id="irssi-messages"></div>
+      </div>
+      <div id="irssi-statusbar">
+        <span id="irssi-status-left">[#library]</span>
+        <span id="irssi-status-center"></span>
+        <span class="tty-shell-font-btn" id="irssi-fk-font" style="cursor:pointer;">[Font]</span>
+      </div>
+      <div id="irssi-input-row">
+        <span id="irssi-prompt">[#library]</span>
+        <input id="irssi-input" autocomplete="off" spellcheck="false" placeholder="search…">
+        <span class="tty-cursor" style="color:#c8c8c8;"></span>
+      </div>
+    </div>
+
+    <!-- ── QBASIC ────────────────────────────────────────────────────────────── -->
+    <div id="qbasic-shell">
+      <div id="qbasic-menubar">
+        <span class="qb-mitem"><span>F</span>ile</span>
+        <span class="qb-mitem"><span>E</span>dit</span>
+        <span class="qb-mitem"><span>S</span>earch</span>
+        <span class="qb-mitem"><span>V</span>iew</span>
+        <span class="qb-mitem"><span>H</span>elp</span>
+      </div>
+      <div id="qbasic-titlebar">CAFÉ NEUROTICO GAME MANAGER — LIBRARY.BAS</div>
+      <div id="qbasic-body"></div>
+      <div id="qbasic-searchbar">
+        <span>SEARCH:</span>
+        <input id="qbasic-search" autocomplete="off" spellcheck="false" placeholder="type to filter…">
+      </div>
+      <div id="qbasic-statusbar">
+        <span id="qbasic-status-left">F1=Help  F2=Run  F5=Continue  F8=Step  F10=Menu</span>
+        <span id="qbasic-fk-font" class="tty-shell-font-btn" style="cursor:pointer;">Font</span>
+        <span id="qbasic-status-right"></span>
+      </div>
+    </div>
+
+    <!-- ── EMACS ─────────────────────────────────────────────────────────────── -->
+    <div id="emacs-shell">
+      <div id="emacs-header">
+        <span>GNU Emacs  —  Café Neurotico</span>
+        <span id="emacs-header-right"></span>
+      </div>
+      <div id="emacs-buffer"></div>
+      <div id="emacs-modeline">
+        <span id="emacs-ml-flags">--:--</span>
+        <span id="emacs-ml-name">&nbsp;*library*</span>
+        <span style="flex:1;border-bottom:2px solid rgba(255,255,255,0.15);"></span>
+        <span id="emacs-ml-mode">(Game-Mode)</span>
+        <span id="emacs-ml-pos">&nbsp;&nbsp;All</span>
+        <span id="emacs-fk-font" class="tty-shell-font-btn" style="cursor:pointer;font-weight:normal;padding:0 8px;">&nbsp;Font</span>
+      </div>
+      <div id="emacs-minibuf">
+        <span id="emacs-mb-prefix">M-x </span>
+        <input id="emacs-mb-input" autocomplete="off" spellcheck="false" placeholder="search-library">
+        <span class="tty-cursor" style="color:#c586c0;"></span>
+      </div>
+    </div>
+
+    <!-- ── GRUB ──────────────────────────────────────────────────────────────── -->
+    <div id="grub-shell">
+      <div id="grub-inner">
+        <div id="grub-header">
+          <div id="grub-title">GNU GRUB  version 2.12</div>
+          <div id="grub-subtitle">Café Neurotico Game Library</div>
+        </div>
+        <div id="grub-box">
+          <div id="grub-box-title">SELECT AN ENTRY:</div>
+          <div id="grub-list"></div>
+          <div id="grub-search-row"><span>/</span><input id="grub-search" autocomplete="off" spellcheck="false" placeholder="filter…"></div>
+        </div>
+        <div id="grub-footer">
+          <span id="grub-hint">Use ↑↓ to select · Enter to open · / to search · t for Tools</span>
+          <span id="grub-fk-font" class="tty-shell-font-btn" style="cursor:pointer;color:#555;">Font</span>
+        </div>
+      </div>
+    </div>
+
     <!-- ── MAC OS 1.0 ───────────────────────────────────────────────────── -->
     <div id="mac-shell">
       <div id="mac-menubar">
@@ -4876,6 +5386,12 @@ LOADING...READY.</div>
               <button class="segmented-btn" data-val="bbs">BBS</button>
               <button class="segmented-btn" data-val="vi">Vi Buffer</button>
               <button class="segmented-btn lsc-full" data-val="adventure">Adventure</button>
+              <button class="segmented-btn" data-val="mc">Midnight Cmdr</button>
+              <button class="segmented-btn" data-val="nethack">NetHack</button>
+              <button class="segmented-btn" data-val="irssi">irssi</button>
+              <button class="segmented-btn" data-val="qbasic">QBASIC</button>
+              <button class="segmented-btn" data-val="emacs">Emacs</button>
+              <button class="segmented-btn lsc-full" data-val="grub">GRUB</button>
             </div>
             <div class="lsc-group" data-cat="ancient" style="display:none">
               <button class="segmented-btn lsc-full" data-val="mac">Mac OS 1.0</button>

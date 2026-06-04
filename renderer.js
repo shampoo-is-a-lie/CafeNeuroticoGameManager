@@ -492,10 +492,10 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mac', 'layout-xp', 'layout-kde', 'layout-c64', 'layout-amiga', 'layout-beos', 'layout-w95', 'layout-nextstep');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mc', 'layout-nethack', 'layout-irssi', 'layout-qbasic', 'layout-emacs', 'layout-grub', 'layout-mac', 'layout-xp', 'layout-kde', 'layout-c64', 'layout-amiga', 'layout-beos', 'layout-w95', 'layout-nextstep');
     c.classList.add('layout-' + mode);
     // Mirror themed layout classes onto body so CSS variables reach modals outside #app-container
-    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep', 'htop', 'ranger', 'bbs', 'vi', 'adventure'];
+    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep', 'htop', 'ranger', 'bbs', 'vi', 'adventure', 'mc', 'nethack', 'irssi', 'qbasic', 'emacs', 'grub'];
     _themedModes.forEach(m => document.body.classList.remove('layout-' + m));
     if (_themedModes.includes(mode)) document.body.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
@@ -522,6 +522,12 @@ function applyLayoutMode(mode) {
     if (mode === 'bbs')       { renderBbs(); }
     if (mode === 'vi')        { renderVi(); }
     if (mode === 'adventure') { renderAdventure(); }
+    if (mode === 'mc')        { renderMc(); }
+    if (mode === 'nethack')   { renderNethack(); }
+    if (mode === 'irssi')     { renderIrssi(); }
+    if (mode === 'qbasic')    { renderQbasic(); }
+    if (mode === 'emacs')     { renderEmacs(); }
+    if (mode === 'grub')      { renderGrub(); }
     if (mode === 'mac')       { renderMac(); }
     if (mode === 'xp')        { renderXP(); }
     if (mode === 'kde')       { renderKDE(); }
@@ -530,7 +536,7 @@ function applyLayoutMode(mode) {
     if (mode === 'beos')      { renderBeos(); }
     if (mode === 'w95')       { renderW95(); }
     if (mode === 'nextstep')  { renderNextstep(); }
-    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac','xp','kde','c64','amiga','beos','w95','nextstep'];
+    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub','mac','xp','kde','c64','amiga','beos','w95','nextstep'];
     if (!allFlatModes.includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
@@ -542,6 +548,7 @@ const _layoutCats = {
     rail:'classic', sidebar:'classic', topnav:'classic', split:'classic', commander:'classic',
     datahero:'flat', catalog:'flat', newspaper:'flat', streamrows:'flat', timeline:'flat', kanban:'flat',
     htop:'tty', ranger:'tty', bbs:'tty', vi:'tty', adventure:'tty',
+    mc:'tty', nethack:'tty', irssi:'tty', qbasic:'tty', emacs:'tty', grub:'tty',
     mac:'ancient', xp:'ancient', kde:'ancient', c64:'ancient', amiga:'ancient', beos:'ancient', w95:'ancient', nextstep:'ancient'
 };
 function updateLayoutCatTab(mode) {
@@ -1397,6 +1404,12 @@ function applyFilters() {
     renderBbs();
     renderVi();
     renderAdventure();
+    renderMc();
+    renderNethack();
+    renderIrssi();
+    renderQbasic();
+    renderEmacs();
+    renderGrub();
     renderMac();
     renderXP();
     renderKDE();
@@ -1409,7 +1422,7 @@ function applyFilters() {
     renderSplitList(filtered);
 }
 
-const _FLAT_MODES = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mac','xp','kde'];
+const _FLAT_MODES = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub','mac','xp','kde'];
 function _inFlatLayout() {
     const cl = document.getElementById('app-container').classList;
     return _FLAT_MODES.some(m => cl.contains('layout-' + m));
@@ -2159,7 +2172,7 @@ document.getElementById('btn-fdo-launch').addEventListener('click', () => {
     window.api.updateLastPlayed(_flatDetailGame.id);
 });
 
-const _ttyLayouts = ['htop','ranger','bbs','vi','adventure'];
+const _ttyLayouts = ['htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub'];
 
 function _openFlatGamepage(game) {
     const c = document.getElementById('app-container');
@@ -4417,7 +4430,7 @@ document.querySelectorAll('.tgp-fopt').forEach(el => {
         document.getElementById('tgp-filter-menu').classList.remove('open');
     });
 });
-['htop-fk-font','ranger-fk-font','bbs-fk-font','vi-fk-font','adv-fk-font'].forEach(id => {
+['htop-fk-font','ranger-fk-font','bbs-fk-font','vi-fk-font','adv-fk-font','mc-fk-font','nethack-fk-font','irssi-fk-font','qbasic-fk-font','emacs-fk-font','grub-fk-font'].forEach(id => {
     document.getElementById(id)?.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('tty-layout-font-menu').classList.toggle('open');
@@ -5446,6 +5459,405 @@ function renderAdventure() {
     });
 })();
 
+// ── MC (Midnight Commander) ───────────────────────────────────────────────────
+let _mcCat = { type:'all' }, _mcIdx = 0, _mcSearch = '';
+
+function _mcGamesFor(cat) {
+    const src = _flatFilter(_mcSearch);
+    if (cat.type === 'all')   return src;
+    if (cat.type === 'store') return src.filter(g => (g.Store||'').toLowerCase().includes(cat.val.toLowerCase()));
+    if (cat.type === 'genre') return src.filter(g => (g.GENRE||'').toLowerCase() === cat.val.toLowerCase());
+    return src;
+}
+
+function renderMc() {
+    if (!document.getElementById('app-container').classList.contains('layout-mc')) return;
+    const src = _flatFilter('');
+
+    // Left panel categories
+    const leftBody = document.getElementById('mc-left-body');
+    leftBody.innerHTML = '';
+    const cats = [{ type:'all', tag:'ALL', label:'All Games' }];
+    [['Steam','steam'],['GOG','gog'],['Epic','epic'],['Itch','itch'],['Flatpak','flatpak']].forEach(([lbl,k]) => {
+        if (src.some(g => (g.Store||'').toLowerCase().includes(k))) cats.push({ type:'store', val:k, tag:lbl.substring(0,3).toUpperCase(), label:lbl });
+    });
+    cats.push({ type:'_sep' });
+    const genres = [...new Set(src.map(g => g.GENRE).filter(Boolean))].sort();
+    genres.slice(0,16).forEach(g => cats.push({ type:'genre', val:g, tag:'GNR', label:g }));
+
+    cats.forEach(c => {
+        if (c.type === '_sep') { const sep = document.createElement('div'); sep.className = 'mc-sep'; leftBody.appendChild(sep); return; }
+        const isActive = _mcCat.type === c.type && (_mcCat.val||'') === (c.val||'');
+        const item = document.createElement('div');
+        item.className = 'mc-item' + (isActive ? ' mc-sel' : '');
+        item.innerHTML = `<span class="mc-item-tag">${escHtml(c.tag||'')}</span>${escHtml(c.label)}`;
+        item.addEventListener('click', () => { _mcCat = c; _mcIdx = 0; renderMc(); });
+        leftBody.appendChild(item);
+    });
+
+    // Right panel game list
+    const games = _mcGamesFor(_mcCat).slice().sort((a,b) => (a.Game||'').localeCompare(b.Game||''));
+    _mcIdx = Math.min(_mcIdx, Math.max(0, games.length - 1));
+    const rightBody = document.getElementById('mc-right-body');
+    rightBody.innerHTML = '';
+    games.forEach((g, i) => {
+        const isSel = i === _mcIdx;
+        const item = document.createElement('div');
+        item.className = 'mc-item' + (isSel ? ' mc-sel' : '');
+        item.innerHTML =
+            `<span class="mc-game-name">${escHtml(g.Game||'')}</span>` +
+            `<span class="mc-game-store">${escHtml((g.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
+            `<span class="mc-game-hltb">${g.HLTB_Main ? g.HLTB_Main+'h' : ''}</span>`;
+        item.addEventListener('click', () => { _mcIdx = i; renderMc(); });
+        item.addEventListener('dblclick', () => _openFlatGamepage(g));
+        rightBody.appendChild(item);
+    });
+    const sel = rightBody.querySelector('.mc-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+
+    // Right title + info bar
+    document.getElementById('mc-right-title').textContent = `Games  (${games.length})`;
+    const g = games[_mcIdx];
+    document.getElementById('mc-info').textContent = g
+        ? `${g.Game||''}  ·  ${(g.Store||'').split(',')[0].trim()}${g.GENRE ? '  ·  '+g.GENRE : ''}${g.HLTB_Main ? '  ·  HLTB: '+g.HLTB_Main+'h' : ''}`
+        : '';
+}
+
+(function () {
+    document.querySelectorAll('.mc-fkey').forEach(fk => {
+        fk.addEventListener('click', () => {
+            const f = fk.dataset.mcF;
+            if (f === 'open') {
+                const games = _mcGamesFor(_mcCat).slice().sort((a,b) => (a.Game||'').localeCompare(b.Game||''));
+                if (games[_mcIdx]) _openFlatGamepage(games[_mcIdx]);
+            } else if (f === 'tools') { openToolsModal(); }
+            else if (f === 'search') {
+                const input = document.getElementById('mc-search-inline');
+                // toggle inline search if added later
+            }
+        });
+    });
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-mc')) return;
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        const games = _mcGamesFor(_mcCat).slice().sort((a,b) => (a.Game||'').localeCompare(b.Game||''));
+        if (e.key === 'ArrowDown')  { _mcIdx = Math.min(_mcIdx + 1, games.length - 1); renderMc(); e.preventDefault(); }
+        if (e.key === 'ArrowUp')    { _mcIdx = Math.max(_mcIdx - 1, 0); renderMc(); e.preventDefault(); }
+        if (e.key === 'Enter' && games[_mcIdx]) _openFlatGamepage(games[_mcIdx]);
+    });
+})();
+
+// ── NETHACK ───────────────────────────────────────────────────────────────────
+let _nethackIdx = 0, _nethackFilter = '';
+const _nhKeys = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const _nhSyms = [')', '(', '[', '=', '/', '\\', '%', '!', '?', '*', '+', '"', ',', '$', '&', '^'];
+
+function renderNethack() {
+    if (!document.getElementById('app-container').classList.contains('layout-nethack')) return;
+    const src = _flatFilter(_nethackFilter);
+    _nethackIdx = Math.min(_nethackIdx, Math.max(0, src.length - 1));
+    const g = src[_nethackIdx];
+
+    // Status bar
+    const total = src.length;
+    const inst = src.filter(x => x.Installed == 1).length;
+    document.getElementById('nethack-status').innerHTML =
+        `<span class="nh-stat">Café Neurotico  the Game Librarian</span>` +
+        `<span class="nh-stat">Dlvl:<b>${total}</b></span>` +
+        `<span class="nh-stat">Gold:<b>${inst}</b></span>` +
+        `<span class="nh-stat">Hp:<b>100</b>(100)</span>` +
+        `<span class="nh-stat">Pw:<b>42</b>(42)</span>`;
+
+    if (g) {
+        document.getElementById('nethack-msgs').textContent =
+            `${g.Game} -- ${g.GENRE||'item'}${g.ProtonTier ? ' ['+g.ProtonTier+']' : ''}. What do you want to do?`;
+    }
+
+    const body = document.getElementById('nethack-body');
+    body.innerHTML = '';
+    src.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'nh-item' + (i === _nethackIdx ? ' nh-sel' : '');
+        const key = _nhKeys[i % _nhKeys.length];
+        const sym = _nhSyms[i % _nhSyms.length];
+        row.innerHTML =
+            `<span class="nh-key">${key} -</span>` +
+            `<span class="nh-sym">${sym}</span>` +
+            `<span class="nh-name">${escHtml(item.Game||'')}</span>` +
+            `<span class="nh-store">${escHtml((item.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
+            `<span class="nh-genre">${escHtml(item.GENRE||'')}</span>` +
+            `<span class="nh-hltb">${item.HLTB_Main ? item.HLTB_Main+'h' : ''}</span>`;
+        row.addEventListener('click', () => { _nethackIdx = i; renderNethack(); });
+        row.addEventListener('dblclick', () => _openFlatGamepage(item));
+        body.appendChild(row);
+    });
+    const sel = body.querySelector('.nh-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+
+    const prefix = document.getElementById('nethack-cmd-prefix');
+    const inp = document.getElementById('nethack-cmd-input');
+    prefix.textContent = '#';
+    inp.placeholder = 'extended command… (/ to search, Enter to open)';
+}
+
+(function () {
+    const inp = document.getElementById('nethack-cmd-input');
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-nethack')) return;
+        if (document.activeElement === inp) return;
+        const src = _flatFilter(_nethackFilter);
+        if (e.key === 'ArrowDown' || e.key === 'j') { _nethackIdx = Math.min(_nethackIdx+1, src.length-1); renderNethack(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp' || e.key === 'k') { _nethackIdx = Math.max(_nethackIdx-1, 0); renderNethack(); e.preventDefault(); }
+        else if (e.key === 'Enter') { if (src[_nethackIdx]) _openFlatGamepage(src[_nethackIdx]); }
+        else if (e.key === '/') { inp.value = ''; inp.focus(); e.preventDefault(); }
+    });
+    inp?.addEventListener('input', () => { _nethackFilter = inp.value; _nethackIdx = 0; renderNethack(); });
+    inp?.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { _nethackFilter = ''; inp.value = ''; inp.blur(); renderNethack(); }
+        if (e.key === 'Enter') {
+            const src = _flatFilter(_nethackFilter);
+            if (src[_nethackIdx]) _openFlatGamepage(src[_nethackIdx]);
+        }
+    });
+    document.getElementById('nethack-fk-font') // registered via tty-shell-font-btn above
+})();
+
+// ── IRSSI ─────────────────────────────────────────────────────────────────────
+let _irssiChan = 'all', _irssiIdx = 0, _irssiFilter = '';
+
+function _irssiGames() {
+    const src = _flatFilter(_irssiFilter);
+    if (_irssiChan === 'all') return src;
+    if (_irssiChan.startsWith('store:')) return src.filter(g => (g.Store||'').toLowerCase().includes(_irssiChan.slice(6)));
+    if (_irssiChan.startsWith('genre:')) return src.filter(g => (g.GENRE||'').toLowerCase() === _irssiChan.slice(6).toLowerCase());
+    return src;
+}
+
+function renderIrssi() {
+    if (!document.getElementById('app-container').classList.contains('layout-irssi')) return;
+    const src = _flatFilter('');
+
+    // Sidebar channels
+    const sidebar = document.getElementById('irssi-sidebar');
+    sidebar.innerHTML = '';
+    const channels = [{ id:'all', label:'#library' }];
+    [['Steam','store:steam'],['GOG','store:gog'],['Epic','store:epic'],['Itch','store:itch']].forEach(([lbl,id]) => {
+        if (src.some(g => (g.Store||'').toLowerCase().includes(id.slice(6)))) channels.push({ id, label:'#'+lbl.toLowerCase() });
+    });
+    channels.push({ id:'_sep' });
+    const genres = [...new Set(src.map(g => g.GENRE).filter(Boolean))].sort().slice(0, 14);
+    genres.forEach(gn => channels.push({ id:'genre:'+gn, label:'#'+gn.toLowerCase().replace(/\s+/g,'-').substring(0,12) }));
+
+    channels.forEach(ch => {
+        if (ch.id === '_sep') { const sep = document.createElement('div'); sep.className = 'irssi-chan-sep'; sidebar.appendChild(sep); return; }
+        const el = document.createElement('div');
+        el.className = 'irssi-chan' + (ch.id === _irssiChan ? ' irssi-active' : '');
+        el.textContent = ch.label;
+        el.addEventListener('click', () => { _irssiChan = ch.id; _irssiIdx = 0; renderIrssi(); });
+        sidebar.appendChild(el);
+    });
+
+    // Messages pane
+    const games = _irssiGames();
+    _irssiIdx = Math.min(_irssiIdx, Math.max(0, games.length - 1));
+    const msgs = document.getElementById('irssi-messages');
+    msgs.innerHTML = '';
+    const now = new Date();
+    games.forEach((g, i) => {
+        const isSel = i === _irssiIdx;
+        const line = document.createElement('div');
+        line.className = 'irssi-line' + (isSel ? ' irssi-sel' : '');
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const meta = [g.GENRE, g.HLTB_Main ? g.HLTB_Main+'h' : '', g.ProtonTier].filter(Boolean).join(' · ');
+        line.innerHTML =
+            `<span class="irssi-ts">${h}:${m}</span>` +
+            `<span class="irssi-nick">${escHtml((g.Store||'unknown').split(',')[0].trim())}</span>` +
+            `<span class="irssi-sep-char">&lt;</span>` +
+            `<span class="irssi-msg">${escHtml(g.Game||'')}${meta ? ' <span class="irssi-msg-meta">— '+escHtml(meta)+'</span>' : ''}</span>`;
+        line.addEventListener('click', () => { _irssiIdx = i; renderIrssi(); });
+        line.addEventListener('dblclick', () => _openFlatGamepage(g));
+        msgs.appendChild(line);
+    });
+    const sel = msgs.querySelector('.irssi-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+
+    // Status bar
+    const chanLabel = channels.find(c => c.id === _irssiChan);
+    document.getElementById('irssi-status-left').textContent = `[${chanLabel?.label || '#library'}] [${games.length} games]`;
+    document.getElementById('irssi-prompt').textContent = `[${chanLabel?.label || '#library'}]`;
+}
+
+(function () {
+    const inp = document.getElementById('irssi-input');
+    inp?.addEventListener('input', () => { _irssiFilter = inp.value; _irssiIdx = 0; renderIrssi(); });
+    inp?.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { _irssiFilter = ''; inp.value = ''; renderIrssi(); }
+        if (e.key === 'Enter') { const g = _irssiGames()[_irssiIdx]; if (g) _openFlatGamepage(g); }
+    });
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-irssi')) return;
+        if (document.activeElement === inp) return;
+        const games = _irssiGames();
+        if (e.key === 'ArrowDown') { _irssiIdx = Math.min(_irssiIdx+1, games.length-1); renderIrssi(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { _irssiIdx = Math.max(_irssiIdx-1, 0); renderIrssi(); e.preventDefault(); }
+        else if (e.key === 'Enter') { if (games[_irssiIdx]) _openFlatGamepage(games[_irssiIdx]); }
+        else if (e.key === 't') openToolsModal();
+    });
+})();
+
+// ── QBASIC ────────────────────────────────────────────────────────────────────
+let _qbIdx = 0, _qbFilter = '';
+
+function renderQbasic() {
+    if (!document.getElementById('app-container').classList.contains('layout-qbasic')) return;
+    const src = _flatFilter(_qbFilter);
+    _qbIdx = Math.min(_qbIdx, Math.max(0, src.length - 1));
+
+    document.getElementById('qbasic-status-right').textContent = `${src.length} records`;
+
+    const body = document.getElementById('qbasic-body');
+    body.innerHTML = '';
+    src.forEach((g, i) => {
+        const isSel = i === _qbIdx;
+        const row = document.createElement('div');
+        row.className = 'qb-line' + (isSel ? ' qb-sel' : '');
+        row.innerHTML =
+            `<span class="qb-linenum">${String((i+1)*10).padStart(5,' ')}</span>` +
+            `<span class="qb-name">${escHtml(g.Game||'')}</span>` +
+            `<span class="qb-store">${escHtml((g.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
+            `<span class="qb-genre">${escHtml(g.GENRE||'')}</span>` +
+            `<span class="qb-hltb">${g.HLTB_Main ? g.HLTB_Main+'h' : ''}</span>`;
+        row.addEventListener('click', () => { _qbIdx = i; renderQbasic(); });
+        row.addEventListener('dblclick', () => _openFlatGamepage(g));
+        body.appendChild(row);
+    });
+    const sel = body.querySelector('.qb-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+
+(function () {
+    const inp = document.getElementById('qbasic-search');
+    inp?.addEventListener('input', () => { _qbFilter = inp.value; _qbIdx = 0; renderQbasic(); });
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-qbasic')) return;
+        if (document.activeElement === inp) return;
+        const src = _flatFilter(_qbFilter);
+        if (e.key === 'ArrowDown') { _qbIdx = Math.min(_qbIdx+1, src.length-1); renderQbasic(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { _qbIdx = Math.max(_qbIdx-1, 0); renderQbasic(); e.preventDefault(); }
+        else if (e.key === 'Enter') { if (src[_qbIdx]) _openFlatGamepage(src[_qbIdx]); }
+        else if (e.key === 't') openToolsModal();
+    });
+    document.querySelectorAll('.qb-mitem').forEach(el => {
+        el.addEventListener('click', () => {
+            if (el.textContent.trim().startsWith('H')) { /* help noop */ }
+        });
+    });
+})();
+
+// ── EMACS ─────────────────────────────────────────────────────────────────────
+let _emacsIdx = 0, _emacsFilter = '';
+
+function renderEmacs() {
+    if (!document.getElementById('app-container').classList.contains('layout-emacs')) return;
+    const src = _flatFilter(_emacsFilter);
+    _emacsIdx = Math.min(_emacsIdx, Math.max(0, src.length - 1));
+    const g = src[_emacsIdx];
+
+    // Mode line
+    document.getElementById('emacs-ml-pos').textContent =
+        src.length ? `  ${Math.round((_emacsIdx+1)/src.length*100)}%` : '  All';
+    document.getElementById('emacs-ml-name').textContent = ` *library* (${src.length})`;
+    document.getElementById('emacs-header-right').textContent =
+        g ? g.Game || '' : '';
+
+    const buf = document.getElementById('emacs-buffer');
+    buf.innerHTML = '';
+    src.forEach((item, i) => {
+        const isSel = i === _emacsIdx;
+        const row = document.createElement('div');
+        row.className = 'emacs-line' + (isSel ? ' emacs-sel' : '');
+        row.innerHTML =
+            `<span class="emacs-lnum">${String(i+1).padStart(4,' ')}</span>` +
+            `<span class="emacs-name">${escHtml(item.Game||'')}</span>` +
+            `<span class="emacs-store">${escHtml((item.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
+            `<span class="emacs-genre">${escHtml(item.GENRE||'')}</span>` +
+            `<span class="emacs-hltb">${item.HLTB_Main ? item.HLTB_Main+'h' : ''}</span>`;
+        row.addEventListener('click', () => { _emacsIdx = i; renderEmacs(); });
+        row.addEventListener('dblclick', () => _openFlatGamepage(item));
+        buf.appendChild(row);
+    });
+    const sel = buf.querySelector('.emacs-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+
+(function () {
+    const inp = document.getElementById('emacs-mb-input');
+    inp?.addEventListener('input', () => { _emacsFilter = inp.value; _emacsIdx = 0; renderEmacs(); });
+    inp?.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { _emacsFilter = ''; inp.value = ''; inp.placeholder = 'search-library'; renderEmacs(); }
+        if (e.key === 'Enter') { const src = _flatFilter(_emacsFilter); if (src[_emacsIdx]) _openFlatGamepage(src[_emacsIdx]); }
+    });
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-emacs')) return;
+        if (document.activeElement === inp) return;
+        const src = _flatFilter(_emacsFilter);
+        if (e.key === 'ArrowDown' || e.key === 'n' && e.ctrlKey) { _emacsIdx = Math.min(_emacsIdx+1, src.length-1); renderEmacs(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp' || e.key === 'p' && e.ctrlKey) { _emacsIdx = Math.max(_emacsIdx-1, 0); renderEmacs(); e.preventDefault(); }
+        else if (e.key === 'Enter') { if (src[_emacsIdx]) _openFlatGamepage(src[_emacsIdx]); }
+        else if (e.key === 'x' && e.metaKey) { inp?.focus(); e.preventDefault(); }
+    });
+})();
+
+// ── GRUB ──────────────────────────────────────────────────────────────────────
+let _grubIdx = 0, _grubFilter = '', _grubSearchOpen = false;
+
+function renderGrub() {
+    if (!document.getElementById('app-container').classList.contains('layout-grub')) return;
+    const src = _flatFilter(_grubFilter);
+    _grubIdx = Math.min(_grubIdx, Math.max(0, src.length - 1));
+
+    const list = document.getElementById('grub-list');
+    list.innerHTML = '';
+    src.forEach((g, i) => {
+        const isSel = i === _grubIdx;
+        const entry = document.createElement('div');
+        entry.className = 'grub-entry' + (isSel ? ' grub-sel' : '');
+        const meta = [(g.Store||'').split(',')[0].trim(), g.GENRE, g.HLTB_Main ? g.HLTB_Main+'h' : ''].filter(Boolean).join(' · ');
+        entry.innerHTML =
+            `<span class="grub-arrow">${isSel ? '*' : ' '}</span>` +
+            `<span class="grub-name">${escHtml(g.Game||'')}</span>` +
+            `<span class="grub-meta">${escHtml(meta)}</span>`;
+        entry.addEventListener('click', () => { _grubIdx = i; renderGrub(); });
+        entry.addEventListener('dblclick', () => _openFlatGamepage(g));
+        list.appendChild(entry);
+    });
+    const sel = list.querySelector('.grub-sel');
+    if (sel) sel.scrollIntoView({ block:'nearest' });
+
+    const searchRow = document.getElementById('grub-search-row');
+    searchRow.style.display = _grubSearchOpen ? 'flex' : 'none';
+}
+
+(function () {
+    const inp = document.getElementById('grub-search');
+    document.addEventListener('keydown', e => {
+        if (!document.getElementById('app-container').classList.contains('layout-grub')) return;
+        if (document.activeElement === inp) return;
+        const src = _flatFilter(_grubFilter);
+        if (e.key === 'ArrowDown') { _grubIdx = Math.min(_grubIdx+1, src.length-1); renderGrub(); e.preventDefault(); }
+        else if (e.key === 'ArrowUp') { _grubIdx = Math.max(_grubIdx-1, 0); renderGrub(); e.preventDefault(); }
+        else if (e.key === 'Enter') { if (src[_grubIdx]) _openFlatGamepage(src[_grubIdx]); }
+        else if (e.key === '/') { _grubSearchOpen = true; renderGrub(); setTimeout(() => inp?.focus(), 50); e.preventDefault(); }
+        else if (e.key === 't') openToolsModal();
+        else if (e.key === 'Escape') { _grubFilter = ''; _grubSearchOpen = false; if (inp) inp.value = ''; renderGrub(); }
+    });
+    inp?.addEventListener('input', () => { _grubFilter = inp.value; _grubIdx = 0; renderGrub(); });
+    inp?.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { _grubFilter = ''; _grubSearchOpen = false; inp.value = ''; inp.blur(); renderGrub(); }
+        if (e.key === 'Enter') { _grubSearchOpen = false; renderGrub(); }
+    });
+})();
 
 function renderGallery(recent, regular) {
     if (_inFlatLayout()) return;
