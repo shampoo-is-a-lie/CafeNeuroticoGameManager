@@ -5544,6 +5544,7 @@ function renderMc() {
         if (e.key === 'ArrowDown')  { _mcIdx = Math.min(_mcIdx + 1, games.length - 1); renderMc(); e.preventDefault(); }
         if (e.key === 'ArrowUp')    { _mcIdx = Math.max(_mcIdx - 1, 0); renderMc(); e.preventDefault(); }
         if (e.key === 'Enter' && games[_mcIdx]) _openFlatGamepage(games[_mcIdx]);
+        if (e.key === 't') openToolsModal();
     });
 })();
 
@@ -5610,6 +5611,7 @@ function renderNethack() {
         else if (e.key === 'ArrowUp' || e.key === 'k') { _nethackIdx = Math.max(_nethackIdx-1, 0); renderNethack(); e.preventDefault(); }
         else if (e.key === 'Enter') { if (src[_nethackIdx]) _openFlatGamepage(src[_nethackIdx]); }
         else if (e.key === '/') { inp.value = ''; inp.focus(); e.preventDefault(); }
+        else if (e.key === 't') openToolsModal();
     });
     inp?.addEventListener('input', () => { _nethackFilter = inp.value; _nethackIdx = 0; renderNethack(); });
     inp?.addEventListener('keydown', e => {
@@ -5792,6 +5794,7 @@ function renderEmacs() {
 }
 
 (function () {
+    document.getElementById('emacs-tools-btn')?.addEventListener('click', () => openToolsModal());
     const inp = document.getElementById('emacs-mb-input');
     inp?.addEventListener('input', () => { _emacsFilter = inp.value; _emacsIdx = 0; renderEmacs(); });
     inp?.addEventListener('keydown', e => {
@@ -5806,6 +5809,7 @@ function renderEmacs() {
         else if (e.key === 'ArrowUp' || e.key === 'p' && e.ctrlKey) { _emacsIdx = Math.max(_emacsIdx-1, 0); renderEmacs(); e.preventDefault(); }
         else if (e.key === 'Enter') { if (src[_emacsIdx]) _openFlatGamepage(src[_emacsIdx]); }
         else if (e.key === 'x' && e.metaKey) { inp?.focus(); e.preventDefault(); }
+        else if (e.key === 't') openToolsModal();
     });
 })();
 
