@@ -492,10 +492,10 @@ document.querySelectorAll('.pico8-vis-btn').forEach(btn =>
 function applyLayoutMode(mode) {
     if (mode === 'cp') mode = 'rail'; // Navigator removed
     const c = document.getElementById('app-container');
-    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mc', 'layout-nethack', 'layout-irssi', 'layout-qbasic', 'layout-emacs', 'layout-grub', 'layout-mac', 'layout-xp', 'layout-kde', 'layout-c64', 'layout-amiga', 'layout-beos', 'layout-w95', 'layout-nextstep');
+    c.classList.remove('layout-sidebar', 'layout-rail', 'layout-cp', 'layout-topnav', 'layout-split', 'layout-commander', 'layout-datahero', 'layout-catalog', 'layout-newspaper', 'layout-streamrows', 'layout-timeline', 'layout-kanban', 'layout-htop', 'layout-ranger', 'layout-bbs', 'layout-vi', 'layout-adventure', 'layout-mc', 'layout-nethack', 'layout-grub', 'layout-mac', 'layout-xp', 'layout-kde', 'layout-c64', 'layout-amiga', 'layout-beos', 'layout-w95', 'layout-nextstep');
     c.classList.add('layout-' + mode);
     // Mirror themed layout classes onto body so CSS variables reach modals outside #app-container
-    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep', 'htop', 'ranger', 'bbs', 'vi', 'adventure', 'mc', 'nethack', 'irssi', 'qbasic', 'emacs', 'grub'];
+    const _themedModes = ['mac', 'xp', 'kde', 'c64', 'amiga', 'beos', 'w95', 'nextstep', 'htop', 'ranger', 'bbs', 'vi', 'adventure', 'mc', 'nethack', 'grub'];
     _themedModes.forEach(m => document.body.classList.remove('layout-' + m));
     if (_themedModes.includes(mode)) document.body.classList.add('layout-' + mode);
     document.querySelectorAll('#layout-segmented-control .segmented-btn').forEach(b =>
@@ -524,9 +524,6 @@ function applyLayoutMode(mode) {
     if (mode === 'adventure') { renderAdventure(); }
     if (mode === 'mc')        { renderMc(); }
     if (mode === 'nethack')   { renderNethack(); }
-    if (mode === 'irssi')     { renderIrssi(); }
-    if (mode === 'qbasic')    { renderQbasic(); }
-    if (mode === 'emacs')     { renderEmacs(); }
     if (mode === 'grub')      { renderGrub(); }
     if (mode === 'mac')       { renderMac(); }
     if (mode === 'xp')        { renderXP(); }
@@ -536,7 +533,7 @@ function applyLayoutMode(mode) {
     if (mode === 'beos')      { renderBeos(); }
     if (mode === 'w95')       { renderW95(); }
     if (mode === 'nextstep')  { renderNextstep(); }
-    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub','mac','xp','kde','c64','amiga','beos','w95','nextstep'];
+    const allFlatModes = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','grub','mac','xp','kde','c64','amiga','beos','w95','nextstep'];
     if (!allFlatModes.includes(mode)) {
         document.getElementById('main-content')?.classList.remove('split-edit');
     }
@@ -548,7 +545,7 @@ const _layoutCats = {
     rail:'classic', sidebar:'classic', topnav:'classic', split:'classic', commander:'classic',
     datahero:'flat', catalog:'flat', newspaper:'flat', streamrows:'flat', timeline:'flat', kanban:'flat',
     htop:'tty', ranger:'tty', bbs:'tty', vi:'tty', adventure:'tty',
-    mc:'tty', nethack:'tty', irssi:'tty', qbasic:'tty', emacs:'tty', grub:'tty',
+    mc:'tty', nethack:'tty', grub:'tty',
     mac:'ancient', xp:'ancient', kde:'ancient', c64:'ancient', amiga:'ancient', beos:'ancient', w95:'ancient', nextstep:'ancient'
 };
 function updateLayoutCatTab(mode) {
@@ -1406,9 +1403,6 @@ function applyFilters() {
     renderAdventure();
     renderMc();
     renderNethack();
-    renderIrssi();
-    renderQbasic();
-    renderEmacs();
     renderGrub();
     renderMac();
     renderXP();
@@ -1422,7 +1416,7 @@ function applyFilters() {
     renderSplitList(filtered);
 }
 
-const _FLAT_MODES = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub','mac','xp','kde'];
+const _FLAT_MODES = ['datahero','catalog','newspaper','streamrows','timeline','kanban','htop','ranger','bbs','vi','adventure','mc','nethack','grub','mac','xp','kde'];
 function _inFlatLayout() {
     const cl = document.getElementById('app-container').classList;
     return _FLAT_MODES.some(m => cl.contains('layout-' + m));
@@ -2172,7 +2166,7 @@ document.getElementById('btn-fdo-launch').addEventListener('click', () => {
     window.api.updateLastPlayed(_flatDetailGame.id);
 });
 
-const _ttyLayouts = ['htop','ranger','bbs','vi','adventure','mc','nethack','irssi','qbasic','emacs','grub'];
+const _ttyLayouts = ['htop','ranger','bbs','vi','adventure','mc','nethack','grub'];
 
 function _openFlatGamepage(game) {
     const c = document.getElementById('app-container');
@@ -4430,7 +4424,7 @@ document.querySelectorAll('.tgp-fopt').forEach(el => {
         document.getElementById('tgp-filter-menu').classList.remove('open');
     });
 });
-['htop-fk-font','ranger-fk-font','bbs-fk-font','vi-fk-font','adv-fk-font','mc-fk-font','nethack-fk-font','irssi-fk-font','qbasic-fk-font','emacs-fk-font','grub-fk-font'].forEach(id => {
+['htop-fk-font','ranger-fk-font','bbs-fk-font','vi-fk-font','adv-fk-font','mc-fk-font','nethack-fk-font','grub-fk-font'].forEach(id => {
     document.getElementById(id)?.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById('tty-layout-font-menu').classList.toggle('open');
@@ -5622,195 +5616,6 @@ function renderNethack() {
         }
     });
     document.getElementById('nethack-fk-font') // registered via tty-shell-font-btn above
-})();
-
-// ── IRSSI ─────────────────────────────────────────────────────────────────────
-let _irssiChan = 'all', _irssiIdx = 0, _irssiFilter = '';
-
-function _irssiGames() {
-    const src = _flatFilter(_irssiFilter);
-    if (_irssiChan === 'all') return src;
-    if (_irssiChan.startsWith('store:')) return src.filter(g => (g.Store||'').toLowerCase().includes(_irssiChan.slice(6)));
-    if (_irssiChan.startsWith('genre:')) return src.filter(g => (g.GENRE||'').toLowerCase() === _irssiChan.slice(6).toLowerCase());
-    return src;
-}
-
-function renderIrssi() {
-    if (!document.getElementById('app-container').classList.contains('layout-irssi')) return;
-    const src = _flatFilter('');
-
-    // Sidebar channels
-    const sidebar = document.getElementById('irssi-sidebar');
-    sidebar.innerHTML = '';
-    const channels = [{ id:'all', label:'#library' }];
-    [['Steam','store:steam'],['GOG','store:gog'],['Epic','store:epic'],['Itch','store:itch']].forEach(([lbl,id]) => {
-        if (src.some(g => (g.Store||'').toLowerCase().includes(id.slice(6)))) channels.push({ id, label:'#'+lbl.toLowerCase() });
-    });
-    channels.push({ id:'_sep' });
-    const genres = [...new Set(src.map(g => g.GENRE).filter(Boolean))].sort().slice(0, 14);
-    genres.forEach(gn => channels.push({ id:'genre:'+gn, label:'#'+gn.toLowerCase().replace(/\s+/g,'-').substring(0,12) }));
-
-    channels.forEach(ch => {
-        if (ch.id === '_sep') { const sep = document.createElement('div'); sep.className = 'irssi-chan-sep'; sidebar.appendChild(sep); return; }
-        const el = document.createElement('div');
-        el.className = 'irssi-chan' + (ch.id === _irssiChan ? ' irssi-active' : '');
-        el.textContent = ch.label;
-        el.addEventListener('click', () => { _irssiChan = ch.id; _irssiIdx = 0; renderIrssi(); });
-        sidebar.appendChild(el);
-    });
-
-    // Messages pane
-    const games = _irssiGames();
-    _irssiIdx = Math.min(_irssiIdx, Math.max(0, games.length - 1));
-    const msgs = document.getElementById('irssi-messages');
-    msgs.innerHTML = '';
-    const now = new Date();
-    games.forEach((g, i) => {
-        const isSel = i === _irssiIdx;
-        const line = document.createElement('div');
-        line.className = 'irssi-line' + (isSel ? ' irssi-sel' : '');
-        const h = String(now.getHours()).padStart(2,'0');
-        const m = String(now.getMinutes()).padStart(2,'0');
-        const meta = [g.GENRE, g.HLTB_Main ? g.HLTB_Main+'h' : '', g.ProtonTier].filter(Boolean).join(' · ');
-        line.innerHTML =
-            `<span class="irssi-ts">${h}:${m}</span>` +
-            `<span class="irssi-nick">${escHtml((g.Store||'unknown').split(',')[0].trim())}</span>` +
-            `<span class="irssi-sep-char">&lt;</span>` +
-            `<span class="irssi-msg">${escHtml(g.Game||'')}${meta ? ' <span class="irssi-msg-meta">— '+escHtml(meta)+'</span>' : ''}</span>`;
-        line.addEventListener('click', () => { _irssiIdx = i; renderIrssi(); });
-        line.addEventListener('dblclick', () => _openFlatGamepage(g));
-        msgs.appendChild(line);
-    });
-    const sel = msgs.querySelector('.irssi-sel');
-    if (sel) sel.scrollIntoView({ block:'nearest' });
-
-    // Status bar
-    const chanLabel = channels.find(c => c.id === _irssiChan);
-    document.getElementById('irssi-status-left').textContent = `[${chanLabel?.label || '#library'}] [${games.length} games]`;
-    document.getElementById('irssi-prompt').textContent = `[${chanLabel?.label || '#library'}]`;
-}
-
-(function () {
-    const inp = document.getElementById('irssi-input');
-    inp?.addEventListener('input', () => { _irssiFilter = inp.value; _irssiIdx = 0; renderIrssi(); });
-    inp?.addEventListener('keydown', e => {
-        if (e.key === 'Escape') { _irssiFilter = ''; inp.value = ''; renderIrssi(); }
-        if (e.key === 'Enter') { const g = _irssiGames()[_irssiIdx]; if (g) _openFlatGamepage(g); }
-    });
-    document.addEventListener('keydown', e => {
-        if (!document.getElementById('app-container').classList.contains('layout-irssi')) return;
-        if (document.activeElement === inp) return;
-        const games = _irssiGames();
-        if (e.key === 'ArrowDown') { _irssiIdx = Math.min(_irssiIdx+1, games.length-1); renderIrssi(); e.preventDefault(); }
-        else if (e.key === 'ArrowUp') { _irssiIdx = Math.max(_irssiIdx-1, 0); renderIrssi(); e.preventDefault(); }
-        else if (e.key === 'Enter') { if (games[_irssiIdx]) _openFlatGamepage(games[_irssiIdx]); }
-        else if (e.key === 't') openToolsModal();
-    });
-})();
-
-// ── QBASIC ────────────────────────────────────────────────────────────────────
-let _qbIdx = 0, _qbFilter = '';
-
-function renderQbasic() {
-    if (!document.getElementById('app-container').classList.contains('layout-qbasic')) return;
-    const src = _flatFilter(_qbFilter);
-    _qbIdx = Math.min(_qbIdx, Math.max(0, src.length - 1));
-
-    document.getElementById('qbasic-status-right').textContent = `${src.length} records`;
-
-    const body = document.getElementById('qbasic-body');
-    body.innerHTML = '';
-    src.forEach((g, i) => {
-        const isSel = i === _qbIdx;
-        const row = document.createElement('div');
-        row.className = 'qb-line' + (isSel ? ' qb-sel' : '');
-        row.innerHTML =
-            `<span class="qb-linenum">${String((i+1)*10).padStart(5,' ')}</span>` +
-            `<span class="qb-name">${escHtml(g.Game||'')}</span>` +
-            `<span class="qb-store">${escHtml((g.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
-            `<span class="qb-genre">${escHtml(g.GENRE||'')}</span>` +
-            `<span class="qb-hltb">${g.HLTB_Main ? g.HLTB_Main+'h' : ''}</span>`;
-        row.addEventListener('click', () => { _qbIdx = i; renderQbasic(); });
-        row.addEventListener('dblclick', () => _openFlatGamepage(g));
-        body.appendChild(row);
-    });
-    const sel = body.querySelector('.qb-sel');
-    if (sel) sel.scrollIntoView({ block:'nearest' });
-}
-
-(function () {
-    const inp = document.getElementById('qbasic-search');
-    inp?.addEventListener('input', () => { _qbFilter = inp.value; _qbIdx = 0; renderQbasic(); });
-    document.addEventListener('keydown', e => {
-        if (!document.getElementById('app-container').classList.contains('layout-qbasic')) return;
-        if (document.activeElement === inp) return;
-        const src = _flatFilter(_qbFilter);
-        if (e.key === 'ArrowDown') { _qbIdx = Math.min(_qbIdx+1, src.length-1); renderQbasic(); e.preventDefault(); }
-        else if (e.key === 'ArrowUp') { _qbIdx = Math.max(_qbIdx-1, 0); renderQbasic(); e.preventDefault(); }
-        else if (e.key === 'Enter') { if (src[_qbIdx]) _openFlatGamepage(src[_qbIdx]); }
-        else if (e.key === 't') openToolsModal();
-    });
-    document.querySelectorAll('.qb-mitem').forEach(el => {
-        el.addEventListener('click', () => {
-            if (el.textContent.trim().startsWith('H')) { /* help noop */ }
-        });
-    });
-})();
-
-// ── EMACS ─────────────────────────────────────────────────────────────────────
-let _emacsIdx = 0, _emacsFilter = '';
-
-function renderEmacs() {
-    if (!document.getElementById('app-container').classList.contains('layout-emacs')) return;
-    const src = _flatFilter(_emacsFilter);
-    _emacsIdx = Math.min(_emacsIdx, Math.max(0, src.length - 1));
-    const g = src[_emacsIdx];
-
-    // Mode line
-    document.getElementById('emacs-ml-pos').textContent =
-        src.length ? `  ${Math.round((_emacsIdx+1)/src.length*100)}%` : '  All';
-    document.getElementById('emacs-ml-name').textContent = ` *library* (${src.length})`;
-    document.getElementById('emacs-header-right').textContent =
-        g ? g.Game || '' : '';
-
-    const buf = document.getElementById('emacs-buffer');
-    buf.innerHTML = '';
-    src.forEach((item, i) => {
-        const isSel = i === _emacsIdx;
-        const row = document.createElement('div');
-        row.className = 'emacs-line' + (isSel ? ' emacs-sel' : '');
-        row.innerHTML =
-            `<span class="emacs-lnum">${String(i+1).padStart(4,' ')}</span>` +
-            `<span class="emacs-name">${escHtml(item.Game||'')}</span>` +
-            `<span class="emacs-store">${escHtml((item.Store||'').split(',')[0].trim().substring(0,8))}</span>` +
-            `<span class="emacs-genre">${escHtml(item.GENRE||'')}</span>` +
-            `<span class="emacs-hltb">${item.HLTB_Main ? item.HLTB_Main+'h' : ''}</span>`;
-        row.addEventListener('click', () => { _emacsIdx = i; renderEmacs(); });
-        row.addEventListener('dblclick', () => _openFlatGamepage(item));
-        buf.appendChild(row);
-    });
-    const sel = buf.querySelector('.emacs-sel');
-    if (sel) sel.scrollIntoView({ block:'nearest' });
-}
-
-(function () {
-    document.getElementById('emacs-tools-btn')?.addEventListener('click', () => openToolsModal());
-    const inp = document.getElementById('emacs-mb-input');
-    inp?.addEventListener('input', () => { _emacsFilter = inp.value; _emacsIdx = 0; renderEmacs(); });
-    inp?.addEventListener('keydown', e => {
-        if (e.key === 'Escape') { _emacsFilter = ''; inp.value = ''; inp.placeholder = 'search-library'; renderEmacs(); }
-        if (e.key === 'Enter') { const src = _flatFilter(_emacsFilter); if (src[_emacsIdx]) _openFlatGamepage(src[_emacsIdx]); }
-    });
-    document.addEventListener('keydown', e => {
-        if (!document.getElementById('app-container').classList.contains('layout-emacs')) return;
-        if (document.activeElement === inp) return;
-        const src = _flatFilter(_emacsFilter);
-        if (e.key === 'ArrowDown' || e.key === 'n' && e.ctrlKey) { _emacsIdx = Math.min(_emacsIdx+1, src.length-1); renderEmacs(); e.preventDefault(); }
-        else if (e.key === 'ArrowUp' || e.key === 'p' && e.ctrlKey) { _emacsIdx = Math.max(_emacsIdx-1, 0); renderEmacs(); e.preventDefault(); }
-        else if (e.key === 'Enter') { if (src[_emacsIdx]) _openFlatGamepage(src[_emacsIdx]); }
-        else if (e.key === 'x' && e.metaKey) { inp?.focus(); e.preventDefault(); }
-        else if (e.key === 't') openToolsModal();
-    });
 })();
 
 // ── GRUB ──────────────────────────────────────────────────────────────────────
