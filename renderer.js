@@ -4828,6 +4828,36 @@ function renderNewspaper() {
     }, { passive: false });
 
     document.getElementById('btn-dh-tools')?.addEventListener('click', () => openToolsModal());
+
+    (function () {
+        const btn   = document.getElementById('btn-dh-search');
+        const bar   = document.getElementById('dh-search-bar');
+        const input = document.getElementById('dh-search');
+        if (!btn || !bar || !input) return;
+
+        function openSearch() {
+            bar.style.display = 'flex';
+            btn.classList.add('active');
+            input.focus();
+        }
+        function closeSearch() {
+            bar.style.display = 'none';
+            btn.classList.remove('active');
+            input.value = '';
+            input.parentElement?.classList.remove('has-text');
+            renderDataHero();
+        }
+
+        btn.addEventListener('click', () => {
+            bar.style.display === 'flex' ? closeSearch() : openSearch();
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeSearch();
+        });
+        input.addEventListener('input', () => {
+            btn.classList.toggle('active', true);
+        });
+    })();
     document.getElementById('btn-cat-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-np-tools')?.addEventListener('click', () => openToolsModal());
     document.getElementById('btn-sr-tools')?.addEventListener('click', () => openToolsModal());
