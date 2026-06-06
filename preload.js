@@ -125,6 +125,7 @@ contextBridge.exposeInMainWorld('api', {
                                 addGameToPlaylist:      (plId, gId)  => ipcRenderer.invoke('add-game-to-playlist', plId, gId),
                                 removeGameFromPlaylist: (plId, gId)  => ipcRenderer.invoke('remove-game-from-playlist', plId, gId),
                                 getGamePlaylists:       (gId)        => ipcRenderer.invoke('get-game-playlists', gId),
+                                getRecentlyImported:    (limit)      => ipcRenderer.invoke('get-recently-imported', limit),
 
                                 // --- MANUAL ---
                                 openManual: () => ipcRenderer.send('open-manual'),

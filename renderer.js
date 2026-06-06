@@ -359,6 +359,7 @@ setTimeout(updateTopnavFilterArrows, 200);
 
 // Local variable to hold our gaming history limit preference
 let recentGamesCount = 0;
+let recentlyImportedCount = 0;
 let detailScreenshotInterval = null;
 let heroKbInterval = null;
 let ssBannerKbInterval = null; // FIX: New Ken Burns interval for the Screenshots Banner
@@ -397,6 +398,15 @@ window.api.getBaseDir().then(dir => {
         }
     });
 
+    // Load the recently-imported playlist setting at startup
+    window.api.getSetting('recently_imported_count').then(val => {
+        const n = val ? parseInt(val, 10) : 0;
+        recentlyImportedCount = n;
+        document.querySelectorAll('#recently-imported-segmented-control .segmented-btn').forEach(btn =>
+            btn.classList.toggle('active', btn.getAttribute('data-val') === String(n)));
+        renderPlaylistPanels();
+    });
+
     // Load the gaming history preference at startup
     window.api.getSetting('recent_games_count').then(val => {
         if (val) {
@@ -418,6 +428,22 @@ document.querySelectorAll('#history-segmented-control .segmented-btn').forEach(b
         recentGamesCount = parseInt(val, 10);
         await window.api.setSetting('recent_games_count', val);
         applyFilters();
+    });
+});
+
+// Segmented Control Logic for Recently Imported Playlist
+document.querySelectorAll('#recently-imported-segmented-control .segmented-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        document.querySelectorAll('#recently-imported-segmented-control .segmented-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const val = e.target.getAttribute('data-val');
+        recentlyImportedCount = parseInt(val, 10);
+        await window.api.setSetting('recently_imported_count', val);
+        if (currentPlaylistId === 'recently-imported') {
+            if (recentlyImportedCount === 0) clearPlaylistFilter();
+            else await setRecentlyImportedFilter();
+        }
+        renderPlaylistPanels();
     });
 });
 
@@ -928,7 +954,7 @@ function renderPlaylistPanels() {
 function _renderPlaylistList(containerId, mode) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    if (!allPlaylists.length) {
+    if (!allPlaylists.length && recentlyImportedCount === 0) {
         container.innerHTML = `<p style="font-size:11px; color:var(--text_dim); margin:4px 0; text-align:center;">No playlists yet.</p>`;
         return;
     }
@@ -936,7 +962,18 @@ function _renderPlaylistList(containerId, mode) {
         style="width:24px; height:24px; padding:0; background:transparent; border:1px solid var(--border_solid); color:var(--text_dim); border-radius:4px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:color 0.15s, border-color 0.15s;">
         <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     </button>`;
-    container.innerHTML = allPlaylists.map(p => {
+
+    const riActive = currentPlaylistId === 'recently-imported';
+    const riHtml = recentlyImportedCount > 0
+        ? `<div style="display:flex; align-items:center; gap:4px; margin-bottom:4px;">
+            <button class="btn-recently-imported-filter"
+                style="flex:1; text-align:left; font-size:11px; padding:8px 10px; background:${riActive ? 'var(--accent)' : 'var(--bg_menu)'}; border:1px solid ${riActive ? 'var(--accent)' : 'var(--border_solid)'}; color:${riActive ? 'var(--bg)' : 'var(--text_sec)'}; border-radius:6px; cursor:pointer; font-family:inherit; font-weight:900; transition:background 0.15s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                📥 Recently Imported
+            </button>
+           </div>`
+        : '';
+
+    container.innerHTML = riHtml + allPlaylists.map(p => {
         const isActive = currentPlaylistId === p.id;
         return `<div style="display:flex; align-items:center; gap:4px;">
             <button class="btn-playlist-filter" data-playlist-id="${p.id}"
@@ -947,6 +984,10 @@ function _renderPlaylistList(containerId, mode) {
         </div>`;
     }).join('');
 
+    container.querySelector('.btn-recently-imported-filter')?.addEventListener('click', () => {
+        document.getElementById('modal-playlists-nav')?.classList.remove('active');
+        setRecentlyImportedFilter();
+    });
     container.querySelectorAll('.btn-playlist-filter').forEach(btn => {
         btn.addEventListener('click', () => {
             document.getElementById('modal-playlists-nav')?.classList.remove('active');
@@ -972,6 +1013,25 @@ async function setPlaylistFilter(playlistId) {
     closePanel();
     const active = document.querySelector('.view.active');
     if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) switchView(lastGridView);
+}
+
+async function setRecentlyImportedFilter() {
+    activeFilters.clear();
+    syncFilterActiveStates();
+    currentPlaylistId = 'recently-imported';
+    currentPlaylistGames = await window.api.getRecentlyImported(recentlyImportedCount);
+    renderPlaylistPanels();
+    applyFilters();
+    closePanel();
+    const active = document.querySelector('.view.active');
+    if (active && (active.id === 'view-gamepage' || active.id === 'view-details')) switchView(lastGridView);
+}
+
+function clearPlaylistFilter() {
+    currentPlaylistId = null;
+    currentPlaylistGames = null;
+    renderPlaylistPanels();
+    applyFilters();
 }
 
 function openCreatePlaylistModal() {

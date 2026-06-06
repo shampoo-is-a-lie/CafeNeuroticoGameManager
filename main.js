@@ -223,6 +223,13 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN GrinderGameId TEXT").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN prefer_heroic INTEGER DEFAULT 0").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN LaunchCommands TEXT DEFAULT NULL").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN date_added INTEGER DEFAULT 0").run(); } catch(e) {}
+        try {
+            db.prepare(`CREATE TRIGGER IF NOT EXISTS auto_date_added
+                AFTER INSERT ON games
+                WHEN NEW.date_added IS NULL OR NEW.date_added = 0
+                BEGIN UPDATE games SET date_added = CAST(strftime('%s','now') AS INTEGER) WHERE id = NEW.id; END`).run();
+        } catch(e) {}
 
         db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`).run();
         db.prepare(`CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)`).run();
@@ -2765,6 +2772,10 @@ ipcMain.handle('remove-game-from-playlist', (_, playlistId, gameId) => {
 ipcMain.handle('get-game-playlists', (_, gameId) => {
     if (!db) return [];
     return db.prepare('SELECT playlist_id FROM playlist_games WHERE game_id=?').all(gameId).map(r => r.playlist_id);
+});
+ipcMain.handle('get-recently-imported', (_, limit) => {
+    if (!db) return [];
+    return db.prepare('SELECT * FROM games WHERE date_added > 0 ORDER BY date_added DESC LIMIT ?').all(limit);
 });
 
 // ── COMMAND BAR SHELL LAUNCHER ────────────────────────────────────────────────
