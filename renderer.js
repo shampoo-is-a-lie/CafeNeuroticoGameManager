@@ -1262,6 +1262,8 @@ document.getElementById('btn-cmd-want')?.addEventListener('click', () => activat
 
 document.querySelectorAll('.flat-tb-home-btn').forEach(btn =>
     btn.addEventListener('click', () => activateFilter('all')));
+document.querySelectorAll('.flat-tb-connect-btn').forEach(btn =>
+    btn.addEventListener('click', () => document.getElementById('btn-open-connect')?.click()));
 document.querySelectorAll('.flat-tb-filter-btn').forEach(btn =>
     btn.addEventListener('click', () => activateFilter(btn.dataset.filter)));
 document.querySelectorAll('.flat-tb-playlists-btn').forEach(btn =>
