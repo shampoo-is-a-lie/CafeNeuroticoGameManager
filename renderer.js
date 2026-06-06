@@ -1163,6 +1163,9 @@ function syncFilterActiveStates() {
         const f = btn.dataset.filter;
         btn.classList.toggle('active', f === 'all' ? activeFilters.size === 0 : activeFilters.has(f));
     });
+    document.querySelectorAll('#cmd-icon-bar .cmd-icon-btn[data-filter]').forEach(btn => {
+        btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
+    });
 }
 
 function switchView(viewId) {
@@ -1251,6 +1254,8 @@ document.getElementById('view-gallery').addEventListener('scroll', function () {
 
 // Command icon bar button wiring
 document.getElementById('btn-cmd-home')?.addEventListener('click', () => activateFilter('all'));
+document.getElementById('btn-cmd-favs')?.addEventListener('click', () => activateFilter('favs'));
+document.getElementById('btn-cmd-want')?.addEventListener('click', () => activateFilter('want'));
 document.getElementById('btn-cmd-refresh')?.addEventListener('click', () => document.getElementById('btn-refresh-library').click());
 document.getElementById('btn-cmd-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
 document.getElementById('btn-cmd-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
