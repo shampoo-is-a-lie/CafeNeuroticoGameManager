@@ -1166,6 +1166,9 @@ function syncFilterActiveStates() {
     document.querySelectorAll('#cmd-icon-bar .cmd-icon-btn[data-filter]').forEach(btn => {
         btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
     });
+    document.querySelectorAll('.flat-tb-filter-btn[data-filter]').forEach(btn => {
+        btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
+    });
 }
 
 function switchView(viewId) {
@@ -1256,6 +1259,11 @@ document.getElementById('view-gallery').addEventListener('scroll', function () {
 document.getElementById('btn-cmd-home')?.addEventListener('click', () => activateFilter('all'));
 document.getElementById('btn-cmd-favs')?.addEventListener('click', () => activateFilter('favs'));
 document.getElementById('btn-cmd-want')?.addEventListener('click', () => activateFilter('want'));
+
+document.querySelectorAll('.flat-tb-filter-btn').forEach(btn =>
+    btn.addEventListener('click', () => activateFilter(btn.dataset.filter)));
+document.querySelectorAll('.flat-tb-playlists-btn').forEach(btn =>
+    btn.addEventListener('click', () => document.getElementById('modal-playlists-nav')?.classList.add('active')));
 document.getElementById('btn-cmd-refresh')?.addEventListener('click', () => document.getElementById('btn-refresh-library').click());
 document.getElementById('btn-cmd-add')?.addEventListener('click', () => document.getElementById('btn-add-game').click());
 document.getElementById('btn-cmd-connect')?.addEventListener('click', () => document.getElementById('btn-open-connect').click());
