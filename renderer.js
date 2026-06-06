@@ -1166,6 +1166,9 @@ function syncFilterActiveStates() {
     document.querySelectorAll('#cmd-icon-bar .cmd-icon-btn[data-filter]').forEach(btn => {
         btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
     });
+    document.querySelectorAll('.flat-tb-home-btn').forEach(btn => {
+        btn.classList.toggle('active', activeFilters.size === 0 && currentPlaylistId === null);
+    });
     document.querySelectorAll('.flat-tb-filter-btn[data-filter]').forEach(btn => {
         btn.classList.toggle('active', activeFilters.has(btn.dataset.filter));
     });
@@ -1260,6 +1263,8 @@ document.getElementById('btn-cmd-home')?.addEventListener('click', () => activat
 document.getElementById('btn-cmd-favs')?.addEventListener('click', () => activateFilter('favs'));
 document.getElementById('btn-cmd-want')?.addEventListener('click', () => activateFilter('want'));
 
+document.querySelectorAll('.flat-tb-home-btn').forEach(btn =>
+    btn.addEventListener('click', () => activateFilter('all')));
 document.querySelectorAll('.flat-tb-filter-btn').forEach(btn =>
     btn.addEventListener('click', () => activateFilter(btn.dataset.filter)));
 document.querySelectorAll('.flat-tb-playlists-btn').forEach(btn =>
