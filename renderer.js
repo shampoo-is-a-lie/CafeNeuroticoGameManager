@@ -359,7 +359,7 @@ setTimeout(updateTopnavFilterArrows, 200);
 
 // Local variable to hold our gaming history limit preference
 let recentGamesCount = 0;
-let recentlyImportedCount = 0;
+let recentlyImportedCount = 100;
 let detailScreenshotInterval = null;
 let heroKbInterval = null;
 let ssBannerKbInterval = null; // FIX: New Ken Burns interval for the Screenshots Banner
@@ -399,9 +399,10 @@ window.api.getBaseDir().then(dir => {
     });
 
     // Load the recently-imported playlist setting at startup
-    window.api.getSetting('recently_imported_count').then(val => {
-        const n = val ? parseInt(val, 10) : 0;
+    window.api.getSetting('recently_imported_count').then(async val => {
+        const n = val !== null && val !== undefined ? parseInt(val, 10) : 100;
         recentlyImportedCount = n;
+        if (val === null || val === undefined) await window.api.setSetting('recently_imported_count', '100');
         document.querySelectorAll('#recently-imported-segmented-control .segmented-btn').forEach(btn =>
             btn.classList.toggle('active', btn.getAttribute('data-val') === String(n)));
         renderPlaylistPanels();
