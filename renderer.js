@@ -5022,19 +5022,15 @@ function renderKanban() {
     const query = (document.getElementById('kb-search')?.value || '').trim();
     const src = _flatFilter(query);
 
-    const now = Date.now() / 1000;
-    const recentCutoff = 60 * 24 * 3600; // 60 days
     const bins = { backlog: [], want: [], playing: [], played: [] };
-
     src.forEach(g => {
-        if (g.WANT_TO_PLAY === 'YES')           { bins.want.push(g); return; }
-        if (g.is_favourite == 1)                { bins.playing.push(g); return; }
-        if (g.LastPlayed > 0)                   { bins.played.push(g); return; }
+        if (g.kb_played == 1)          { bins.played.push(g);  return; }
+        if (g.WANT_TO_PLAY === 'YES')  { bins.want.push(g);    return; }
+        if (g.LastPlayed > 0)          { bins.playing.push(g); return; }
         bins.backlog.push(g);
     });
 
-    const total = src.length;
-    document.getElementById('kb-count').textContent = total + ' games';
+    document.getElementById('kb-count').textContent = src.length + ' games';
 
     Object.entries(bins).forEach(([col, games]) => {
         const body = document.getElementById('kb-' + col);
@@ -5045,7 +5041,6 @@ function renderKanban() {
         games.forEach(g => body.appendChild(_kbCard(g)));
     });
 
-    // Drag-to-reassign: Want ↔ Backlog (backed by WANT_TO_PLAY flag)
     document.querySelectorAll('.kb-col').forEach(col => {
         col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('kb-drop-over'); });
         col.addEventListener('dragleave', () => col.classList.remove('kb-drop-over'));
@@ -5054,11 +5049,24 @@ function renderKanban() {
             col.classList.remove('kb-drop-over');
             const id = Number(e.dataTransfer.getData('text/plain'));
             const target = col.dataset.col;
-            if (target !== 'want' && target !== 'backlog') return;
-            const val = target === 'want' ? 'YES' : 'NO';
-            window.api.setGameFlag(String(id), 'WANT_TO_PLAY', val);
+            if (target === 'playing') return; // playing is auto-computed, not draggable-to
             const g = allGames.find(x => x.id === id);
-            if (g) g.WANT_TO_PLAY = val;
+            if (!g) return;
+
+            if (target === 'played') {
+                window.api.setGameFlag(String(id), 'kb_played', '1');
+                g.kb_played = 1;
+            } else if (target === 'backlog') {
+                window.api.setGameFlag(String(id), 'kb_played', '0');
+                window.api.setGameFlag(String(id), 'WANT_TO_PLAY', 'NO');
+                g.kb_played = 0;
+                g.WANT_TO_PLAY = 'NO';
+            } else if (target === 'want') {
+                window.api.setGameFlag(String(id), 'kb_played', '0');
+                window.api.setGameFlag(String(id), 'WANT_TO_PLAY', 'YES');
+                g.kb_played = 0;
+                g.WANT_TO_PLAY = 'YES';
+            }
             renderKanban();
         });
     });

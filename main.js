@@ -224,6 +224,7 @@ app.whenReady().then(() => {
         try { db.prepare("ALTER TABLE games ADD COLUMN prefer_heroic INTEGER DEFAULT 0").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN LaunchCommands TEXT DEFAULT NULL").run(); } catch(e) {}
         try { db.prepare("ALTER TABLE games ADD COLUMN date_added INTEGER DEFAULT 0").run(); } catch(e) {}
+        try { db.prepare("ALTER TABLE games ADD COLUMN kb_played INTEGER DEFAULT 0").run(); } catch(e) {}
         try {
             db.prepare(`CREATE TRIGGER IF NOT EXISTS auto_date_added
                 AFTER INSERT ON games
@@ -1113,7 +1114,7 @@ ipcMain.handle('add-game', (e, name) => {
 });
 
 ipcMain.handle('set-game-flag', (_, id, field, value) => {
-    const allowed = ['FAV', 'WANT_TO_PLAY'];
+    const allowed = ['FAV', 'WANT_TO_PLAY', 'kb_played'];
     if (!allowed.includes(field)) return { ok: false };
     db.prepare(`UPDATE games SET ${field}=? WHERE id=?`).run(value, id);
     return { ok: true };
