@@ -5049,11 +5049,15 @@ function renderKanban() {
             col.classList.remove('kb-drop-over');
             const id = Number(e.dataTransfer.getData('text/plain'));
             const target = col.dataset.col;
-            if (target === 'playing') return; // playing is auto-computed, not draggable-to
             const g = allGames.find(x => x.id === id);
             if (!g) return;
 
-            if (target === 'played') {
+            if (target === 'playing') {
+                window.api.setGameFlag(String(id), 'kb_played', '0');
+                window.api.setGameFlag(String(id), 'WANT_TO_PLAY', 'NO');
+                g.kb_played = 0;
+                g.WANT_TO_PLAY = 'NO';
+            } else if (target === 'played') {
                 window.api.setGameFlag(String(id), 'kb_played', '1');
                 g.kb_played = 1;
             } else if (target === 'backlog') {
