@@ -4572,10 +4572,18 @@ document.addEventListener('keydown', e => {
 function _flatFilter(query, bypassPicoHide = false) {
     const q = (query || '').toLowerCase();
     const picoSearch = q.includes('pico');
-    return allGames.filter(g => {
+    const base = currentPlaylistGames !== null ? currentPlaylistGames : allGames;
+    const qualifierActive = [...activeFilters].filter(f => QUALIFIER_FILTERS.has(f));
+    return base.filter(g => {
         if (_hidePico8 && !picoSearch && !bypassPicoHide) {
             const s = (g.Store||'').toLowerCase();
             if (s.includes('pico-8') || s.includes('pico8')) return false;
+        }
+        for (const f of qualifierActive) {
+            if (f === 'favs'      && g.FAV !== 'YES') return false;
+            if (f === 'want'      && g.WANT_TO_PLAY !== 'YES') return false;
+            if (f === 'playable'  && !g.LaunchCommand) return false;
+            if (f === 'installed' && g.Installed != 1) return false;
         }
         if (!q) return true;
         return (g.Game||'').toLowerCase().includes(q) ||
