@@ -2225,9 +2225,8 @@ function _fdoActivateKbSlide(idx, total) {
         if (i === idx) {
             s.style.setProperty('--kb-tx', pan.tx);
             s.style.setProperty('--kb-ty', pan.ty);
-            s.style.animation = 'none';
-            void s.offsetWidth;
-            s.style.animation = '';
+            s.classList.remove('active');
+            void s.offsetWidth; // resets to scale(1.05) — matches animation 0%, no visible jump
             s.classList.add('active');
         } else {
             s.classList.remove('active');
