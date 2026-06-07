@@ -2188,17 +2188,13 @@ function getStoreLogo(store) {
 let _flatDetailGame = null;
 let _fdoEditReturn  = null; // game to reopen in FLATGAMEPAGE after edit closes
 
-function openFlatDetail(game) {
+async function openFlatDetail(game) {
     _flatDetailGame = game;
     currentGameId = game.id;
     const nameEl = document.getElementById('edit-name');
     if (nameEl) nameEl.value = game.Game || '';
-    const ov = document.getElementById('flat-detail-overlay');
 
-    const src = game.HeroArt ? getSafePath(game.HeroArt) : game.CoverArt ? getSafePath(game.CoverArt) : '';
-    document.getElementById('fdo-bg').style.backgroundImage = src ? `url("${src}")` : 'none';
-
-    document.getElementById('fdo-store-tag').textContent = (game.Store || '').toUpperCase();
+    document.getElementById('fdo-store-tag').textContent = (game.Store || '').split(',')[0].trim().toUpperCase();
     document.getElementById('fdo-title').textContent = game.Game || '';
 
     const meta = document.getElementById('fdo-meta');
@@ -2217,18 +2213,40 @@ function openFlatDetail(game) {
         meta.appendChild(span);
     });
 
-    const desc = getLocalizedDescription(game) || '';
-    document.getElementById('fdo-desc').textContent = desc;
-
+    document.getElementById('fdo-desc').textContent = getLocalizedDescription(game) || '';
     document.getElementById('btn-fdo-launch').style.display = game.LaunchCommand ? '' : 'none';
-
     document.getElementById('btn-fdo-fav').classList.toggle('active', game.FAV === 'YES');
     document.getElementById('btn-fdo-want').classList.toggle('active', game.WANT_TO_PLAY === 'YES');
 
-    ov.classList.add('open');
+    // Left panel: check for local trailer first, fall back to cover art
+    const video  = document.getElementById('fdo-video');
+    const art    = document.getElementById('fdo-art');
+    const trailerBtn = document.getElementById('btn-fdo-trailer');
+    const localTrailer = await window.api.checkLocalTrailer(game.Game || '');
+
+    if (localTrailer) {
+        video.src = localTrailer;
+        video.muted = true;
+        video.style.display = 'block';
+        art.style.display = 'none';
+        trailerBtn.textContent = '🔇 MUTE';
+    } else {
+        video.pause();
+        video.src = '';
+        video.style.display = 'none';
+        const artSrc = game.CoverArt ? getSafePath(game.CoverArt) : game.HeroArt ? getSafePath(game.HeroArt) : '';
+        art.src = artSrc;
+        art.style.display = artSrc ? 'block' : 'none';
+        trailerBtn.textContent = '▶ TRAILER';
+    }
+
+    document.getElementById('flat-detail-overlay').classList.add('open');
 }
 
 function closeFlatDetail() {
+    const video = document.getElementById('fdo-video');
+    video.pause();
+    video.src = '';
     document.getElementById('flat-detail-overlay').classList.remove('open');
     _flatDetailGame = null;
 }
@@ -2272,7 +2290,14 @@ document.getElementById('btn-fdo-playlist').addEventListener('click', () => {
 
 document.getElementById('btn-fdo-trailer').addEventListener('click', () => {
     if (!_flatDetailGame) return;
-    document.getElementById('btn-watch-trailer').click();
+    const video = document.getElementById('fdo-video');
+    const btn   = document.getElementById('btn-fdo-trailer');
+    if (video.src && video.style.display !== 'none') {
+        video.muted = !video.muted;
+        btn.textContent = video.muted ? '🔇 MUTE' : '🔊 UNMUTE';
+    } else {
+        document.getElementById('btn-watch-trailer').click();
+    }
 });
 
 const _ttyLayouts = ['htop','ranger','bbs','vi','adventure','mc','nethack','grub'];
