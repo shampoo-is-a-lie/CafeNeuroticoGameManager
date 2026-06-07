@@ -2225,11 +2225,14 @@ function _fdoActivateKbSlide(idx, total) {
         if (i === idx) {
             s.style.setProperty('--kb-tx', pan.tx);
             s.style.setProperty('--kb-ty', pan.ty);
-            s.classList.remove('active');
-            void s.offsetWidth; // resets to scale(1.05) — matches animation 0%, no visible jump
-            s.classList.add('active');
-        } else {
-            s.classList.remove('active');
+            s.classList.remove('kb-anim');
+            void s.offsetWidth; // resets to base scale(1.05) — matches animation 0%
+            s.classList.add('kb-anim');
+            requestAnimationFrame(() => s.classList.add('kb-active'));
+        } else if (s.classList.contains('kb-active')) {
+            // Fade out while keeping kb-anim so transform holds during crossfade
+            s.classList.remove('kb-active');
+            setTimeout(() => s.classList.remove('kb-anim'), 2000);
         }
     });
 }
@@ -2238,6 +2241,7 @@ function _fdoStopKenBurns() {
     clearInterval(_fdoKbTimer);
     _fdoKbTimer = null;
     document.querySelectorAll('#fdo-bg .kb-slide').forEach(s => s.remove());
+    _fdoKbIdx = 0;
 }
 
 const _fdoSvgVolOff = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
