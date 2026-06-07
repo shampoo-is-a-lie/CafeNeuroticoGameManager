@@ -2198,8 +2198,9 @@ const _fdoKbPans = [
 
 function _fdoStartKenBurns(slides) {
     clearInterval(_fdoKbTimer);
-    const bg = document.getElementById('fdo-kb-bg');
-    bg.innerHTML = '';
+    const bg = document.getElementById('fdo-bg');
+    // Remove only kb-slide children, leave the video element intact
+    bg.querySelectorAll('.kb-slide').forEach(s => s.remove());
     if (!slides.length) return;
     slides.forEach(src => {
         const d = document.createElement('div');
@@ -2218,7 +2219,7 @@ function _fdoStartKenBurns(slides) {
 }
 
 function _fdoActivateKbSlide(idx, total) {
-    const slides = document.querySelectorAll('#fdo-kb-bg .kb-slide');
+    const slides = document.querySelectorAll('#fdo-bg .kb-slide');
     const pan = _fdoKbPans[idx % _fdoKbPans.length];
     slides.forEach((s, i) => {
         if (i === idx) {
@@ -2237,7 +2238,7 @@ function _fdoActivateKbSlide(idx, total) {
 function _fdoStopKenBurns() {
     clearInterval(_fdoKbTimer);
     _fdoKbTimer = null;
-    document.getElementById('fdo-kb-bg').innerHTML = '';
+    document.querySelectorAll('#fdo-bg .kb-slide').forEach(s => s.remove());
 }
 
 const _fdoSvgVolOff = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
@@ -2273,32 +2274,28 @@ async function openFlatDetail(game) {
     document.getElementById('btn-fdo-fav').classList.toggle('active', game.FAV === 'YES');
     document.getElementById('btn-fdo-want').classList.toggle('active', game.WANT_TO_PLAY === 'YES');
 
-    // Ken Burns slideshow on right panel
+    // Ken Burns slideshow as full-bleed background (screenshots → HeroArt fallback)
     const kbSlides = [];
     if (game.Screenshot) game.Screenshot.split('|').filter(s => s.trim()).forEach(s => kbSlides.push(getSafePath(s)));
     if (game.HeroArt)    kbSlides.push(getSafePath(game.HeroArt));
     if (!kbSlides.length && game.CoverArt) kbSlides.push(getSafePath(game.CoverArt));
-    _fdoStartKenBurns(kbSlides);
 
-    // Left panel: local trailer → video, else cover art
+    // Local trailer replaces KB slideshow when available
     const video      = document.getElementById('fdo-video');
-    const art        = document.getElementById('fdo-art');
     const trailerBtn = document.getElementById('btn-fdo-trailer');
     const localTrailer = await window.api.checkLocalTrailer(game.Game || '');
 
     if (localTrailer) {
+        _fdoStopKenBurns();
         video.src = localTrailer;
         video.muted = true;
         video.style.display = 'block';
-        art.style.display = 'none';
         trailerBtn.innerHTML = _fdoSvgVolOff + 'UNMUTE';
     } else {
         video.pause();
         video.src = '';
         video.style.display = 'none';
-        const artSrc = game.CoverArt ? getSafePath(game.CoverArt) : game.HeroArt ? getSafePath(game.HeroArt) : '';
-        art.src = artSrc;
-        art.style.display = artSrc ? 'block' : 'none';
+        _fdoStartKenBurns(kbSlides);
         trailerBtn.innerHTML = '▶ TRAILER';
     }
 
