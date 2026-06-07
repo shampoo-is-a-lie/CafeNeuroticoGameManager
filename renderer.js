@@ -2226,14 +2226,6 @@ function closeFlatDetail() {
 
 document.getElementById('btn-fdo-back').addEventListener('click', closeFlatDetail);
 
-document.getElementById('btn-fdo-gamepage').addEventListener('click', () => {
-    if (!_flatDetailGame) return;
-    const game = _flatDetailGame;
-    closeFlatDetail();
-    _splitEditActive = true;
-    document.getElementById('main-content').classList.add('split-edit');
-    openGamepage(game);
-});
 
 document.getElementById('btn-fdo-edit').addEventListener('click', () => {
     if (!_flatDetailGame) return;
