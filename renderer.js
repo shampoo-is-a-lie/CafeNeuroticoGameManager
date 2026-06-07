@@ -2181,6 +2181,9 @@ let _flatDetailGame = null;
 
 function openFlatDetail(game) {
     _flatDetailGame = game;
+    currentGameId = game.id;
+    const nameEl = document.getElementById('edit-name');
+    if (nameEl) nameEl.value = game.Game || '';
     const ov = document.getElementById('flat-detail-overlay');
 
     const src = game.HeroArt ? getSafePath(game.HeroArt) : game.CoverArt ? getSafePath(game.CoverArt) : '';
@@ -2209,6 +2212,9 @@ function openFlatDetail(game) {
     document.getElementById('fdo-desc').textContent = desc;
 
     document.getElementById('btn-fdo-launch').style.display = game.LaunchCommand ? '' : 'none';
+
+    document.getElementById('btn-fdo-fav').classList.toggle('active', game.FAV === 'YES');
+    document.getElementById('btn-fdo-want').classList.toggle('active', game.WANT_TO_PLAY === 'YES');
 
     ov.classList.add('open');
 }
@@ -2242,6 +2248,29 @@ document.getElementById('btn-fdo-launch').addEventListener('click', () => {
     if (!_flatDetailGame) return;
     verifyAndLaunch(_flatDetailGame.id, _flatDetailGame.LaunchCommand);
     window.api.updateLastPlayed(_flatDetailGame.id);
+});
+
+document.getElementById('btn-fdo-fav').addEventListener('click', () => {
+    const g = _flatDetailGame; if (!g) return;
+    g.FAV = g.FAV === 'YES' ? 'NO' : 'YES';
+    document.getElementById('btn-fdo-fav').classList.toggle('active', g.FAV === 'YES');
+    window.api.setGameFlag(String(g.id), 'FAV', g.FAV);
+});
+
+document.getElementById('btn-fdo-want').addEventListener('click', () => {
+    const g = _flatDetailGame; if (!g) return;
+    g.WANT_TO_PLAY = g.WANT_TO_PLAY === 'YES' ? 'NO' : 'YES';
+    document.getElementById('btn-fdo-want').classList.toggle('active', g.WANT_TO_PLAY === 'YES');
+    window.api.setGameFlag(String(g.id), 'WANT_TO_PLAY', g.WANT_TO_PLAY);
+});
+
+document.getElementById('btn-fdo-playlist').addEventListener('click', () => {
+    if (_flatDetailGame) openPlaylistPickerForGame(_flatDetailGame);
+});
+
+document.getElementById('btn-fdo-trailer').addEventListener('click', () => {
+    if (!_flatDetailGame) return;
+    document.getElementById('btn-watch-trailer').click();
 });
 
 const _ttyLayouts = ['htop','ranger','bbs','vi','adventure','mc','nethack','grub'];
