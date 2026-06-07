@@ -2274,6 +2274,14 @@ async function openFlatDetail(game) {
 
     document.getElementById('fdo-desc').textContent = getLocalizedDescription(game) || '';
     document.getElementById('btn-fdo-launch').style.display = game.LaunchCommand ? '' : 'none';
+
+    const coverSrc = game.CoverArt ? getSafePath(game.CoverArt) : '';
+    const coverWrap = document.getElementById('fdo-cover-wrap');
+    coverWrap.style.display = coverSrc ? '' : 'none';
+    if (coverSrc) {
+        document.getElementById('fdo-cover-aura').src = coverSrc;
+        document.getElementById('fdo-cover-card').src = coverSrc;
+    }
     document.getElementById('btn-fdo-fav').classList.toggle('active', game.FAV === 'YES');
     document.getElementById('btn-fdo-want').classList.toggle('active', game.WANT_TO_PLAY === 'YES');
 

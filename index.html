@@ -920,13 +920,17 @@
     #fdo-bar { position:relative; z-index:1; display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.3); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); flex-shrink:0; }
     #fdo-store-tag { font-size:9px; font-weight:900; letter-spacing:2px; color:var(--text_dim); text-transform:uppercase; margin-left:4px; }
     #fdo-spacer { flex:1; }
-    #fdo-content { position:relative; z-index:1; flex:1; display:flex; flex-direction:column; justify-content:flex-end; padding:32px 44px 40px; overflow-y:auto; min-height:0; }
+    #fdo-content { position:relative; z-index:1; display:flex; flex-direction:row; align-items:flex-end; gap:28px; padding:32px 44px 40px; min-height:0; }
+    #fdo-cover-wrap { position:relative; flex-shrink:0; width:130px; align-self:flex-end; }
+    #fdo-cover-aura { position:absolute; width:320px; height:320px; top:50%; left:50%; transform:translate(-50%,-40%); object-fit:cover; filter:blur(55px) saturate(2) brightness(0.85); opacity:0.7; border-radius:50%; pointer-events:none; display:block; }
+    #fdo-cover-card { position:relative; z-index:1; width:130px; height:190px; object-fit:cover; border-radius:8px; box-shadow:0 14px 44px rgba(0,0,0,0.9), 0 2px 8px rgba(0,0,0,0.6); transform:rotate(-2.5deg); display:block; }
+    #fdo-info { flex:1; min-width:0; }
     #fdo-title { font-size:38px; font-weight:900; color:#fff; line-height:1.05; margin-bottom:13px; text-shadow:0 2px 14px rgba(0,0,0,0.95); }
     #fdo-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
     .fdo-meta-pill { font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.5); }
     .fdo-meta-pill.accent { color:var(--accent); }
     .fdo-meta-sep { width:1px; height:10px; background:rgba(255,255,255,0.18); flex-shrink:0; }
-    #fdo-desc { font-size:12px; color:rgba(255,255,255,0.45); line-height:1.75; max-width:700px; max-height:130px; overflow:hidden; }
+    #fdo-desc { font-size:12px; color:rgba(255,255,255,0.45); line-height:1.75; max-width:640px; max-height:130px; overflow:hidden; }
     /* ── TTY Gamepage (DOS) ─────────────────────────────────────────────────── */
     #tty-gamepage { display:none; position:fixed; top:35px; left:0; right:0; bottom:0; z-index:9999; flex-direction:column; background:#000; font-family:var(--tty-font),'Fira Code','Courier New',monospace; -webkit-font-smoothing:none; color:#ffffff; zoom:1.5; overflow:hidden; }
     #tty-gamepage.open { display:flex; }
@@ -4770,9 +4774,15 @@ LOADING...READY.</div>
       <button id="btn-fdo-launch" class="fl-btn fl-btn-primary">▶ PLAY</button>
     </div>
     <div id="fdo-content">
-      <div id="fdo-title"></div>
-      <div id="fdo-meta"></div>
-      <div id="fdo-desc"></div>
+      <div id="fdo-cover-wrap">
+        <img id="fdo-cover-aura" src="" alt="">
+        <img id="fdo-cover-card" src="" alt="">
+      </div>
+      <div id="fdo-info">
+        <div id="fdo-title"></div>
+        <div id="fdo-meta"></div>
+        <div id="fdo-desc"></div>
+      </div>
     </div>
   </div>
 
