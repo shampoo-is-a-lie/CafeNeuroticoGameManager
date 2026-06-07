@@ -2186,7 +2186,62 @@ function getStoreLogo(store) {
 
 // ── FLAT LAYOUT HELPERS ──────────────────────────────────────────────────────
 let _flatDetailGame = null;
-let _fdoEditReturn  = null; // game to reopen in FLATGAMEPAGE after edit closes
+let _fdoEditReturn  = null;
+let _fdoKbTimer     = null;
+let _fdoKbIdx       = 0;
+
+const _fdoKbPans = [
+    { tx: '-2%', ty: '-1%' }, { tx: '2%',  ty: '1%'  },
+    { tx: '-1%', ty: '2%'  }, { tx: '1%',  ty: '-2%' },
+    { tx: '0%',  ty: '-2%' }, { tx: '-2%', ty: '0%'  },
+];
+
+function _fdoStartKenBurns(slides) {
+    clearInterval(_fdoKbTimer);
+    const bg = document.getElementById('fdo-kb-bg');
+    bg.innerHTML = '';
+    if (!slides.length) return;
+    slides.forEach(src => {
+        const d = document.createElement('div');
+        d.className = 'kb-slide';
+        d.style.backgroundImage = `url("${src}")`;
+        bg.appendChild(d);
+    });
+    _fdoKbIdx = 0;
+    _fdoActivateKbSlide(0, slides.length);
+    if (slides.length > 1) {
+        _fdoKbTimer = setInterval(() => {
+            _fdoKbIdx = (_fdoKbIdx + 1) % slides.length;
+            _fdoActivateKbSlide(_fdoKbIdx, slides.length);
+        }, 7000);
+    }
+}
+
+function _fdoActivateKbSlide(idx, total) {
+    const slides = document.querySelectorAll('#fdo-kb-bg .kb-slide');
+    const pan = _fdoKbPans[idx % _fdoKbPans.length];
+    slides.forEach((s, i) => {
+        if (i === idx) {
+            s.style.setProperty('--kb-tx', pan.tx);
+            s.style.setProperty('--kb-ty', pan.ty);
+            s.style.animation = 'none';
+            void s.offsetWidth;
+            s.style.animation = '';
+            s.classList.add('active');
+        } else {
+            s.classList.remove('active');
+        }
+    });
+}
+
+function _fdoStopKenBurns() {
+    clearInterval(_fdoKbTimer);
+    _fdoKbTimer = null;
+    document.getElementById('fdo-kb-bg').innerHTML = '';
+}
+
+const _fdoSvgVolOff = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+const _fdoSvgVolOn  = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
 
 async function openFlatDetail(game) {
     _flatDetailGame = game;
@@ -2218,9 +2273,16 @@ async function openFlatDetail(game) {
     document.getElementById('btn-fdo-fav').classList.toggle('active', game.FAV === 'YES');
     document.getElementById('btn-fdo-want').classList.toggle('active', game.WANT_TO_PLAY === 'YES');
 
-    // Left panel: check for local trailer first, fall back to cover art
-    const video  = document.getElementById('fdo-video');
-    const art    = document.getElementById('fdo-art');
+    // Ken Burns slideshow on right panel
+    const kbSlides = [];
+    if (game.Screenshot) game.Screenshot.split('|').filter(s => s.trim()).forEach(s => kbSlides.push(getSafePath(s)));
+    if (game.HeroArt)    kbSlides.push(getSafePath(game.HeroArt));
+    if (!kbSlides.length && game.CoverArt) kbSlides.push(getSafePath(game.CoverArt));
+    _fdoStartKenBurns(kbSlides);
+
+    // Left panel: local trailer → video, else cover art
+    const video      = document.getElementById('fdo-video');
+    const art        = document.getElementById('fdo-art');
     const trailerBtn = document.getElementById('btn-fdo-trailer');
     const localTrailer = await window.api.checkLocalTrailer(game.Game || '');
 
@@ -2229,7 +2291,7 @@ async function openFlatDetail(game) {
         video.muted = true;
         video.style.display = 'block';
         art.style.display = 'none';
-        trailerBtn.textContent = '🔇 MUTE';
+        trailerBtn.innerHTML = _fdoSvgVolOff + 'UNMUTE';
     } else {
         video.pause();
         video.src = '';
@@ -2237,7 +2299,7 @@ async function openFlatDetail(game) {
         const artSrc = game.CoverArt ? getSafePath(game.CoverArt) : game.HeroArt ? getSafePath(game.HeroArt) : '';
         art.src = artSrc;
         art.style.display = artSrc ? 'block' : 'none';
-        trailerBtn.textContent = '▶ TRAILER';
+        trailerBtn.innerHTML = '▶ TRAILER';
     }
 
     document.getElementById('flat-detail-overlay').classList.add('open');
@@ -2247,6 +2309,7 @@ function closeFlatDetail() {
     const video = document.getElementById('fdo-video');
     video.pause();
     video.src = '';
+    _fdoStopKenBurns();
     document.getElementById('flat-detail-overlay').classList.remove('open');
     _flatDetailGame = null;
 }
@@ -2294,7 +2357,7 @@ document.getElementById('btn-fdo-trailer').addEventListener('click', () => {
     const btn   = document.getElementById('btn-fdo-trailer');
     if (video.src && video.style.display !== 'none') {
         video.muted = !video.muted;
-        btn.textContent = video.muted ? '🔇 MUTE' : '🔊 UNMUTE';
+        btn.innerHTML = video.muted ? _fdoSvgVolOff + 'UNMUTE' : _fdoSvgVolOn + 'MUTE';
     } else {
         document.getElementById('btn-watch-trailer').click();
     }
