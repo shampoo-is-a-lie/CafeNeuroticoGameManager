@@ -1901,7 +1901,15 @@ new MutationObserver(() => {
     if (vd && !vd.classList.contains('active')) {
         _splitEditActive = false;
         document.getElementById('main-content').classList.remove('split-edit');
-        applyFilters();
+        if (_fdoEditReturn) {
+            const game = _fdoEditReturn;
+            _fdoEditReturn = null;
+            // Refresh game data from allGames in case edit saved changes
+            const fresh = allGames.find(g => g.id === game.id) || game;
+            openFlatDetail(fresh);
+        } else {
+            applyFilters();
+        }
     }
 }).observe(document.getElementById('view-details'), { attributes: true, attributeFilter: ['class'] });
 
@@ -2178,6 +2186,7 @@ function getStoreLogo(store) {
 
 // ── FLAT LAYOUT HELPERS ──────────────────────────────────────────────────────
 let _flatDetailGame = null;
+let _fdoEditReturn  = null; // game to reopen in FLATGAMEPAGE after edit closes
 
 function openFlatDetail(game) {
     _flatDetailGame = game;
@@ -2230,6 +2239,7 @@ document.getElementById('btn-fdo-back').addEventListener('click', closeFlatDetai
 document.getElementById('btn-fdo-edit').addEventListener('click', () => {
     if (!_flatDetailGame) return;
     const game = _flatDetailGame;
+    _fdoEditReturn = game;
     closeFlatDetail();
     _splitEditActive = true;
     document.getElementById('main-content').classList.add('split-edit');
