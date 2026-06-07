@@ -2195,7 +2195,7 @@ function openFlatDetail(game) {
     if (game.GENRE)      pills.push({ t: game.GENRE });
     if (game.HLTB_Main)  pills.push({ t: _hltbDisplay(game.HLTB_Main), accent: true });
     if (game.ProtonTier) pills.push({ t: game.ProtonTier });
-    if (game.METACRITIC) pills.push({ t: String(game.METACRITIC), accent: true });
+    if (game.METACRITIC) pills.push({ t: 'Metacritic ' + game.METACRITIC, accent: true });
     if (game.RELEASED)   pills.push({ t: game.RELEASED });
     pills.forEach((p, i) => {
         if (i > 0) { const sep = document.createElement('div'); sep.className = 'fdo-meta-sep'; meta.appendChild(sep); }
